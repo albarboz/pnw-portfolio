@@ -2,6 +2,7 @@ import { gsap, ScrollTrigger } from '../core/scroll';
 import { clamp, lerp } from '../core/math';
 import { motionScale, prefersReducedMotion } from '../core/motion';
 import { pointer } from '../core/pointer';
+import { DepthPhoto } from '../effects/depth-photo';
 import { Fog } from '../effects/fog';
 import { site } from '../content/site';
 import type { SceneHandle } from './types';
@@ -45,6 +46,14 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   landing.style.transformOrigin = `${F.x}% ${F.y}%`;
   landing.style.objectPosition = `${F.x}% ${F.y}%`;
 
+  // 2.5D trail: once the depth map is in, a WebGL canvas replaces the flat landing <img>.
+  const depthCanvas = $<HTMLCanvasElement>('[data-layer="landing-depth"]');
+  const depth = new DepthPhoto(depthCanvas, landing, site.descent.landing.depth, (on) => {
+    depthCanvas.hidden = !on;
+    landing.style.opacity = on ? '0' : ''; // not visibility: that would drop its alt text from screen readers
+    render();
+  });
+
   // ---------- state: the timeline tweens these numbers, render() reads them ----------
   const state = {
     heroOut: 0, // hero text fade
@@ -77,6 +86,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     L = { vw, vh, w, h };
     fogHigh.resize();
     fogLow.resize();
+    depth.resize(vw, vh);
   };
 
   /** Position the overlook at zoom z, panning toward the dive target, never revealing an edge. */
@@ -109,7 +119,19 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
 
     landingWrap.style.opacity = String(state.landing);
     const s = m ? lerp(1.35, 1.02, state.land) : 1;
-    landing.style.transform = `scale(${s}) translate3d(${pointer.x * -6 * m}px, ${pointer.y * -4 * m}px, 0)`;
+    if (depth.active) {
+      // Settling onto the trail: the camera sinks and eases back, so the near ferns move more than the far trees.
+      const rise = (1 - state.land) * m;
+      if (state.landing > 0)
+        depth.draw({
+          zoom: s,
+          dolly: 0.18 * rise,
+          x: pointer.x * -14 * m,
+          y: rise * 0.08 * L.vh + pointer.y * -8 * m,
+        });
+    } else {
+      landing.style.transform = `scale(${s}) translate3d(${pointer.x * -6 * m}px, ${pointer.y * -4 * m}px, 0)`;
+    }
     capLanding.style.opacity = String(state.capLanding);
 
     fogHigh.density = state.fogHigh;
@@ -180,6 +202,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     destroy() {
       gsap.ticker.remove(tick);
       observer.disconnect();
+      depth.destroy();
       window.removeEventListener('resize', onResize);
       tl.scrollTrigger?.kill();
       tl.kill();

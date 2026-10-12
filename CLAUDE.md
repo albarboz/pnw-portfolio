@@ -7,7 +7,7 @@ An immersive, scroll-driven portfolio. The visitor starts at a Cascade valley ov
 - **Vite + TypeScript** (vanilla, no framework). Keep it that way unless the owner asks.
 - **GSAP + ScrollTrigger** for every scroll-linked animation. GSAP is free for commercial use, including all plugins.
 - **Lenis** for smooth scrolling, wired to ScrollTrigger in `src/core/scroll.ts`.
-- **Canvas 2D** for fog (`src/effects/fog.ts`). Three.js is planned for later (see `docs/ROADMAP.md`); do not add it until a scene actually needs it.
+- **Canvas 2D** for fog (`src/effects/fog.ts`); a small hand-written WebGL shader for the 2.5D trail photo (`src/effects/depth-photo.ts`). Three.js is planned for later (see `docs/ROADMAP.md`); do not add it until a scene actually needs it.
 
 Ask before adding any other dependency.
 
@@ -33,6 +33,7 @@ src/
 public/images/       photos (credit every one in docs/ASSET-CREDITS.md)
 public/audio/        ambient audio (optional)
 docs/                roadmap, asset credits, scene recipe
+tools/               optional Python asset scripts (depth maps); not part of the build
 ```
 
 ## How scenes work

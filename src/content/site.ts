@@ -23,6 +23,8 @@ export interface PhotoAsset {
   alt: string;
   width: number;
   height: number;
+  /** Optional depth map (tools/depth-map.py) for the 2.5D camera move. Credit it with the photo. */
+  depth?: string;
 }
 
 /** Path to a file in public/, relative to the site root (works in dev, build and sub-folder hosting). */
@@ -52,6 +54,7 @@ export const site = {
     /** Landing photo: what the fog clears to. */
     landing: {
       src: asset('images/trail.webp'),
+      depth: asset('images/trail-depth.webp'),
       alt: 'A runner in a light jacket jogs down a dirt trail through mossy old-growth trees and ferns.',
       width: 2250,
       height: 1500,
