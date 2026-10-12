@@ -17,6 +17,12 @@
   --glass: rgba(15, 21, 19, 0.55);
   --shade: rgba(15, 21, 19, 0.88);
   --veil: rgba(28, 40, 48, 0.42);
+  --shadow-sky: rgba(14, 22, 28, 0.55);
+  --shadow-forest: rgba(8, 12, 11, 0.75);
+
+  /* Canvas fog tints (hex only: read by cssRgb() in src/core/tokens.ts) */
+  --fog-high: #e2e7e9;
+  --fog-low: #cdd7d0;
 
   --display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
   --body: 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;

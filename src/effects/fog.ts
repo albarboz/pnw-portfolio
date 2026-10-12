@@ -1,8 +1,10 @@
+import { cssRgb } from '../core/tokens';
+
 export interface FogOptions {
   /** Number of fog puffs. More = denser texture, slower draw. */
   count?: number;
-  /** RGB tint of the fog. */
-  tint?: [number, number, number];
+  /** Color token from tokens.css for the fog tint, e.g. '--fog-high'. Must be a hex color. */
+  tint?: string;
   /** Canvas resolution relative to its CSS size. Low values look softer and run faster (≤ 0.35). */
   resolution?: number;
   /** Puffs spawn between this fraction of the height and the bottom (0 = whole canvas). */
@@ -10,7 +12,8 @@ export interface FogOptions {
 }
 
 /**
- * Soft drifting fog drawn as additive radial gradients on a low-res canvas.
+ * Soft drifting fog drawn as stacked radial gradients on a low-res canvas.
+ * Normal blending, not additive: overlaps thicken toward the tint but never clip to a flat white patch.
  * Set `density`, `rush` (fly-through spread) and `offsetX/Y` (parallax, -1…1), then call `draw(time)`.
  */
 export class Fog {
@@ -23,6 +26,7 @@ export class Fog {
   private w = 2;
   private h = 2;
   private opts: Required<FogOptions>;
+  private rgb: [number, number, number];
   private puffs: {
     x: number;
     y: number;
@@ -38,7 +42,8 @@ export class Fog {
     options: FogOptions = {},
   ) {
     this.ctx = canvas.getContext('2d')!;
-    this.opts = { count: 28, tint: [236, 230, 214], resolution: 0.33, yMin: 0.15, ...options };
+    this.opts = { count: 28, tint: '--fog', resolution: 0.33, yMin: 0.15, ...options };
+    this.rgb = cssRgb(this.opts.tint);
     const { count, yMin } = this.opts;
     this.puffs = Array.from({ length: count }, () => ({
       x: Math.random(),
@@ -67,12 +72,11 @@ export class Fog {
   /** @param time seconds; pass 0 for a still frame */
   draw(time: number) {
     const { ctx, w, h } = this;
-    const [r, g, b] = this.opts.tint;
+    const [r, g, b] = this.rgb;
     const res = this.opts.resolution;
     this.clear();
     if (this.density <= 0.005) return;
 
-    ctx.globalCompositeOperation = 'lighter';
     const base = Math.max(w, h);
     for (const p of this.puffs) {
       const x = (((p.x + p.speed * time) % 1.4) + 1.4) % 1.4 - 0.2;
@@ -86,15 +90,17 @@ export class Fog {
         p.r * base * (0.9 + 0.1 * Math.sin(time * 0.2 + p.phase)) * (1 + this.rush * 0.6);
       const a = p.alpha * this.density;
 
-      const grad = ctx.createRadialGradient(px, py, 0, px, py, rad);
+      // Squash the whole gradient into a flat puff so it fades to 0 exactly at the rim (no hard edges).
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, rad);
       grad.addColorStop(0, `rgba(${r},${g},${b},${a})`);
       grad.addColorStop(0.5, `rgba(${r},${g},${b},${a * 0.45})`);
       grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      ctx.setTransform(1.3, 0, 0, 0.6, px, py);
       ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.ellipse(px, py, rad * 1.7, rad * 0.55, 0, 0, Math.PI * 2);
+      ctx.arc(0, 0, rad, 0, Math.PI * 2);
       ctx.fill();
     }
-    ctx.globalCompositeOperation = 'source-over';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 }

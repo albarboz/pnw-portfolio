@@ -28,12 +28,12 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
 
   const fogHigh = new Fog($<HTMLCanvasElement>('[data-fog="high"]'), {
     count: 30,
-    tint: [226, 231, 233],
+    tint: '--fog-high',
     yMin: 0.3,
   });
   const fogLow = new Fog($<HTMLCanvasElement>('[data-fog="low"]'), {
     count: 22,
-    tint: [205, 215, 208],
+    tint: '--fog-low',
     yMin: 0,
   });
 
@@ -47,7 +47,6 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
 
   // ---------- state: the timeline tweens these numbers, render() reads them ----------
   const state = {
-    progress: 0,
     heroOut: 0, // hero text fade
     heroY: 0, // hero text lift (px)
     pan: 0, // 0 = opening frame, 1 = dive target centered
@@ -96,7 +95,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   const render = () => {
     const m = motionScale();
     const z = 1 + (ZMAX - 1) * state.dive * m;
-    placeOverlook(z, state.pan, pointer.x * -12 * m, pointer.y * -6 * m);
+    placeOverlook(z, state.pan * m, pointer.x * -12 * m, pointer.y * -6 * m);
 
     heroCopy.style.opacity = String(1 - state.heroOut);
     heroCopy.style.transform = `translate3d(0, ${state.heroY * m}px, 0)`;
@@ -126,10 +125,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
       start: 'top top',
       end: '+=320%',
       scrub: prefersReducedMotion() ? true : 0.6,
-      onUpdate: (self) => {
-        state.progress = self.progress;
-        opts.onProgress?.(self.progress);
-      },
+      onUpdate: (self) => opts.onProgress?.(self.progress),
     },
   });
 
@@ -142,18 +138,24 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     .to(state, { capFog: 1, duration: 0.1 }, 0.3)
     .to(state, { capFog: 0, duration: 0.08 }, 0.5)
     .to(state, { whiteout: 1, duration: 0.14, ease: 'power1.inOut' }, 0.5)
-    .set(state, { fogLow: 1.82 }, 0.6)
+    .to(state, { fogLow: 1.82, duration: 0.06, ease: 'power1.in' }, 0.56)
     .to(state, { landing: 1, duration: 0.16, ease: 'power1.inOut' }, 0.62)
     .to(state, { land: 1, duration: 0.38, ease: 'power2.out' }, 0.62)
     .to(state, { fogLow: 0.12, duration: 0.3, ease: 'power1.inOut' }, 0.66)
     .to(state, { capLanding: 1, duration: 0.09 }, 0.86);
 
   // ---------- loop: render every frame (pointer parallax) and draw fog while visible ----------
+  // Visibility comes from an observer so the ticker never forces a layout read.
+  let visible = true;
+  const observer = new IntersectionObserver(([entry]) => (visible = entry.isIntersecting));
+  observer.observe(stage);
+
   const tick = (time: number) => {
-    if (stage.getBoundingClientRect().bottom <= 0) return;
+    if (!visible) return;
     render();
     const t = prefersReducedMotion() ? 0 : time;
-    if (state.progress < 0.72) fogHigh.draw(t);
+    // Timeline progress, not scroll progress: with scrub lag, the scroll runs ahead of the whiteout.
+    if (tl.progress() < 0.72) fogHigh.draw(t);
     else fogHigh.clear();
     fogLow.draw(t * 0.8);
   };
@@ -172,6 +174,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   return {
     destroy() {
       gsap.ticker.remove(tick);
+      observer.disconnect();
       window.removeEventListener('resize', onResize);
       tl.scrollTrigger?.kill();
       tl.kill();

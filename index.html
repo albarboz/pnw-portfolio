@@ -27,12 +27,12 @@
       <!-- Scene: descent (src/scenes/descent.ts) -->
       <section class="scene" data-scene="descent" aria-label="Introduction">
         <div class="stage" data-stage>
-          <img class="overlook" data-layer="overlook" data-img="descent.overlook" alt="" />
+          <img class="overlook" data-layer="overlook" data-img="descent.overlook" alt="" fetchpriority="high" />
           <div class="overlook-veil" aria-hidden="true"></div>
           <canvas data-fog="high" aria-hidden="true"></canvas>
           <div class="whiteout" data-layer="whiteout" aria-hidden="true"></div>
           <div class="landing-wrap" data-layer="landing-wrap">
-            <img data-layer="landing" data-img="descent.landing" alt="" />
+            <img data-layer="landing" data-img="descent.landing" alt="" fetchpriority="low" />
             <div class="landing-shade" aria-hidden="true"></div>
           </div>
           <canvas data-fog="low" aria-hidden="true"></canvas>
@@ -46,11 +46,11 @@
             </div>
           </div>
 
-          <div class="caption cap-fog" data-layer="cap-fog" aria-hidden="true">
+          <div class="caption cap-fog" data-layer="cap-fog">
             <span class="mono" data-text="descent.fogCaption.label"></span>
             <p data-text="descent.fogCaption.text"></p>
           </div>
-          <div class="caption cap-landing" data-layer="cap-landing" aria-hidden="true">
+          <div class="caption cap-landing" data-layer="cap-landing">
             <span class="mono" data-text="descent.landingCaption.label"></span>
             <p data-text="descent.landingCaption.text"></p>
           </div>

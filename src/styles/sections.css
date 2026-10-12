@@ -44,7 +44,8 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 40%, var(--shade) 100%);
+  /* ends on solid --night so the pin hands off to About without an edge */
+  background: linear-gradient(180deg, transparent 40%, var(--shade) 88%, var(--night) 100%);
 }
 
 .overlook-veil {
@@ -64,7 +65,7 @@
   gap: 14px;
   text-align: center;
   color: var(--sky-text);
-  text-shadow: 0 2px 30px rgba(14, 22, 28, 0.55);
+  text-shadow: 0 2px 30px var(--shadow-sky);
   pointer-events: none;
 }
 .hero-copy .mono {
@@ -126,6 +127,8 @@
 .cap-fog {
   top: 42%;
   color: var(--fog-ink);
+  /* fog-colored halo keeps dark text readable while the photo still shows through */
+  text-shadow: 0 0 10px var(--fog), 0 0 28px var(--fog);
 }
 .cap-fog .mono {
   color: var(--fog-ink-soft);
@@ -133,7 +136,7 @@
 .cap-landing {
   bottom: 12vh;
   color: var(--text);
-  text-shadow: 0 2px 26px rgba(8, 12, 11, 0.75);
+  text-shadow: 0 2px 26px var(--shadow-forest);
 }
 .cap-landing .mono {
   color: var(--lichen);
