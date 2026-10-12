@@ -4,10 +4,12 @@ Every image, video and sound in `public/` needs a row here before launch.
 
 | File | Source | Author | License | Status |
 | --- | --- | --- | --- | --- |
-| `public/images/valley.webp` | Provided by site owner | To confirm | To confirm | Confirm before launch |
-| `public/images/trail.webp` | Provided by site owner | To confirm | To confirm | Confirm before launch |
+| `public/images/valley.webp` | AI-generated with Midjourney (original `aerielmid.png`) | Site owner | Midjourney Terms of Service, paid plan (owner owns the output) | OK |
+| `public/images/trail.webp` | AI-generated with Midjourney (original `alanrunningmid.png`) | Site owner | Midjourney Terms of Service, paid plan (owner owns the output) | OK |
 
-If these were made with an AI image tool, record the tool and check its terms allow commercial/portfolio use. Originals live outside the repo; the files here are WebP exports under the 400 KB budget (valley 1792×2688 at q62, the full original size; trail 2250×1500 at q54, downscaled from a 2688×1792 original to fit the budget).
+Both images were generated on a paid Midjourney plan, which allows commercial use. Per Midjourney's terms, a company with more than $1M a year in gross revenue needs the Pro or Mega plan; re-check the current terms if that changes. The originals carry the IPTC `trainedAlgorithmicMedia` tag, which marks them as AI-generated.
+
+Originals live outside the repo; the files here are WebP exports under the 400 KB budget (valley 1792×2688 at q62, the full original size; trail 2250×1500 at q54, downscaled from a 2688×1792 original to fit the budget). 1792 px is the largest Midjourney's 2× upscale gives, so `diveZoom` is set to 3 rather than 4.5 to limit how far the overlook gets magnified; a sharper overlook ≥ 3000 px wide would allow a deeper dive.
 
 ## Good free sources
 

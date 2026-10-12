@@ -6,7 +6,7 @@ Work in phases. Each phase should ship a page that works on its own.
 
 - [x] Overlook → fog dive → trail scene with GSAP ScrollTrigger + Lenis
 - [x] Canvas fog, altimeter, optional wind audio
-- [ ] Replace placeholder photos with licensed, high-res images (≥ 2000 px)
+- [x] Replace placeholder photos with licensed, high-res images (≥ 2000 px)
 - [ ] Real bio, projects and contact in `src/content/site.ts`
 - [x] Project detail pages or modals
 

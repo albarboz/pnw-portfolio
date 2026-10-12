@@ -53,10 +53,10 @@ This keeps the timing (timeline) separate from the drawing (render), so timing c
 
 - **Content lives in `src/content/site.ts`.** Never hard-code names, project copy or image paths in scenes or HTML.
 - **Reduced motion:** check `prefersReducedMotion()` from `src/core/motion.ts`. Scenes must still show every piece of content as a still, readable layout.
-- **Performance:** animate only `transform` and `opacity`. Fog canvases render at ≤ 0.35× resolution. Hero images ≤ 400 KB as JPEG/WebP, ≥ 2000 px on the long side.
+- **Performance:** animate only `transform` and `opacity`. Fog canvases render at ≤ 0.35× resolution. Hero images ≤ 400 KB as JPEG/WebP, ≥ 2000 px on the long side; the overlook at 1792 px wide keeps `diveZoom` ≤ 3 so it stays reasonably sharp.
 - **No horizontal scroll at 375 px wide.** Test phone width for every scene.
 - **Styles:** colors and fonts only from tokens in `src/styles/tokens.css`. No inline colors in TS.
-- **Assets:** every image or sound gets a row in `docs/ASSET-CREDITS.md` with source and license. The current photos are unlicensed placeholders and must be replaced before launch.
+- **Assets:** every image or sound gets a row in `docs/ASSET-CREDITS.md` with source and license. The current images are AI-generated with Midjourney on a paid plan (see the credits file).
 - Keep files small. If a scene file passes ~250 lines, split helpers into `core/` or `effects/`.
 
 ## Done checklist

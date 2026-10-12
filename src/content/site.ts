@@ -46,8 +46,8 @@ export const site = {
     diveTarget: { x: 0.51, y: 0.49 },
     /** Center of the opening frame, as a fraction of the photo. Used when the photo is cropped. */
     startFocus: { x: 0.5, y: 0.34 },
-    /** How far the camera zooms into the dive target (1 = no zoom). */
-    diveZoom: 4.5,
+    /** How far the camera zooms into the dive target (1 = no zoom). The 1792 px overlook gets soft above ~3. */
+    diveZoom: 3,
 
     /** Landing photo: what the fog clears to. */
     landing: {
@@ -136,7 +136,7 @@ export const site = {
   },
 
   credits: [
-    'Photos: provided by the site owner. Confirm source and license before launch.',
+    'Images generated with Midjourney.',
   ],
 };
 
