@@ -5,7 +5,9 @@ import './styles/sections.css';
 import { initScroll, ScrollTrigger } from './core/scroll';
 import { renderContent } from './ui/content';
 import { createAltimeter } from './ui/altimeter';
+import { createReveal } from './ui/reveal';
 import { initCopyEmail } from './ui/copy-email';
+import { createProjectDialog } from './ui/project-dialog';
 import { createWind } from './effects/wind';
 import { createScenes } from './scenes';
 
@@ -19,7 +21,9 @@ const lenis = initScroll();
 const altimeter = createAltimeter();
 const scenes = createScenes(altimeter);
 altimeter.attach(); // after scenes, so pinned scroll space is measured
+const reveal = createReveal(); // same reason
 initCopyEmail();
+const projectDialog = createProjectDialog(lenis);
 createWind(
   document.querySelector<HTMLButtonElement>('[data-wind]')!,
   document.querySelector<HTMLElement>('[data-wind-label]')!,
@@ -34,6 +38,8 @@ if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     scenes.forEach((s) => s.destroy());
     altimeter.destroy();
+    reveal.destroy();
+    projectDialog.destroy();
     lenis?.destroy();
   });
 }

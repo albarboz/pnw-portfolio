@@ -4,8 +4,16 @@ export interface Project {
   title: string;
   year: string;
   kind: string;
+  /** One or two lines for the list. */
   description: string;
-  href: string;
+  /** Longer write-up for the detail view, one string per paragraph. Falls back to `description`. */
+  details?: string[];
+  role?: string;
+  tools?: string[];
+  /** Live site, repo, case study … shown as buttons in the detail view. */
+  links?: { label: string; href: string }[];
+  /** Optional cover image for the detail view. Credit it in docs/ASSET-CREDITS.md. */
+  image?: PhotoAsset;
   /** Marks placeholder content. Remove once the project is real. */
   example?: boolean;
 }
@@ -67,6 +75,8 @@ export const site = {
   work: {
     heading: 'Selected work',
     label: 'Old growth',
+    /** Interface labels in the project detail view. */
+    detail: { close: 'Close', role: 'Role', tools: 'Tools', example: 'Example' },
     projects: [
       {
         title: 'Hoh Rain Forest field guide',
@@ -74,7 +84,13 @@ export const site = {
         kind: 'Web app',
         description:
           'An offline-first trail companion that identifies mosses and ferns from a photo and logs sightings to a shared map.',
-        href: '#work',
+        details: [
+          'Placeholder write-up. Describe the problem, what you built, and what changed because of it.',
+          'A second paragraph for process, constraints or results. Delete any field you do not need.',
+        ],
+        role: 'Design and front end',
+        tools: ['TypeScript', 'IndexedDB', 'Mapbox'],
+        links: [{ label: 'Live site', href: 'https://example.com' }],
         example: true,
       },
       {
@@ -83,7 +99,6 @@ export const site = {
         kind: 'Data viz',
         description:
           'Live snow level, freezing line and pass conditions for the Cascades, drawn as a single elevation profile.',
-        href: '#work',
         example: true,
       },
       {
@@ -92,7 +107,6 @@ export const site = {
         kind: 'Mobile UI',
         description:
           'Pace, elevation and segment splits for forest trails, designed to read at a glance mid-stride and in the rain.',
-        href: '#work',
         example: true,
       },
     ] as Project[],

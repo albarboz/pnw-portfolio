@@ -156,6 +156,10 @@
 }
 
 .about {
+  /* overlap the stage by 2px: at fractional scroll positions its light --fog backdrop
+     can bleed through the antialiased bottom edge as a hairline */
+  position: relative;
+  margin-top: -2px;
   background: var(--night);
 }
 .about-grid {
@@ -210,19 +214,44 @@
 .work-list li {
   border-bottom: 1px solid var(--rule);
 }
-.work-list a {
+.work-row {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 6px 24px;
   align-items: baseline;
-  padding: 28px 4px;
-  text-decoration: none;
-  transition: padding 0.35s ease, background-color 0.35s ease;
+  /* right padding leaves room for the 14px hover shift, so text never pokes past the row */
+  padding: 28px 18px 28px 4px;
 }
-.work-list a:hover,
-.work-list a:focus-visible {
-  padding-left: 18px;
-  background: linear-gradient(90deg, rgba(185, 199, 158, 0.08), transparent 70%);
+/* hover: a lichen wash fades in and the text slides right (opacity + transform only) */
+.work-row::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, var(--lichen-wash), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.work-row .work-title,
+.work-row .work-desc {
+  transition: transform 0.35s ease;
+}
+.work-row:hover::before,
+.work-row:focus-visible::before {
+  opacity: 1;
+}
+.work-row:hover .work-title,
+.work-row:hover .work-desc,
+.work-row:focus-visible .work-title,
+.work-row:focus-visible .work-desc {
+  transform: translateX(14px);
 }
 .work-title {
   font-family: var(--display);
@@ -308,6 +337,123 @@
   font-size: 13px;
 }
 
+/* ===================== project detail dialog ===================== */
+/* The dialog is a transparent full-screen layer; scrim and sheet are children so GSAP can fade them. */
+html:has(.project-dialog[open]) {
+  overflow: hidden;
+}
+.project-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+}
+.project-dialog::backdrop {
+  background: transparent;
+}
+.pd-scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--shade);
+}
+.pd-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  padding: clamp(16px, 6vh, 72px) var(--gutter);
+}
+.pd-panel {
+  position: relative;
+  /* auto margins center it, but unlike place-items the top stays reachable when it overflows */
+  margin: auto;
+  width: min(760px, 100%);
+  padding: clamp(24px, 4vw, 48px);
+}
+.pd-panel > * {
+  position: relative;
+}
+.pd-panel > .pd-sheet {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--forest);
+  box-shadow: 0 30px 80px var(--shadow-forest);
+}
+.pd-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.pd-close {
+  padding: 8px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: none;
+  color: var(--text);
+}
+.pd-close:hover {
+  border-color: var(--lichen);
+  color: var(--lichen);
+}
+.pd-title {
+  margin: 26px 0 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(40px, 6vw, 68px);
+  line-height: 1.02;
+  overflow-wrap: break-word;
+}
+.pd-image {
+  margin-top: 28px;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+.pd-body {
+  margin-top: 26px;
+}
+.pd-body p {
+  margin: 0 0 16px;
+  max-width: 60ch;
+  color: var(--text-soft);
+  font-size: 18px;
+}
+.pd-facts {
+  margin: 28px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--rule);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px 28px;
+  align-items: baseline;
+}
+.pd-facts dt {
+  color: var(--lichen);
+}
+.pd-facts dd {
+  margin: 0;
+  color: var(--text-soft);
+}
+.pd-links {
+  margin-top: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.pd-links .btn {
+  text-decoration: none;
+}
 /* ===================== fixed instruments ===================== */
 .altimeter,
 .wind {
@@ -355,7 +501,7 @@
 }
 .wind[aria-pressed='true'] .dot {
   background: var(--lichen);
-  box-shadow: 0 0 0 4px rgba(185, 199, 158, 0.22);
+  box-shadow: 0 0 0 4px var(--lichen-glow);
 }
 
 /* ===================== responsive & motion ===================== */
@@ -365,7 +511,7 @@
   }
 }
 @media (max-width: 560px) {
-  .work-list a {
+  .work-row {
     grid-template-columns: minmax(0, 1fr);
   }
   .work-meta {
@@ -379,7 +525,15 @@
   .scroll-cue .drip {
     animation: none;
   }
-  .work-list a {
+  .work-row::before,
+  .work-row .work-title,
+  .work-row .work-desc {
     transition: none;
+  }
+  .work-row:hover .work-title,
+  .work-row:hover .work-desc,
+  .work-row:focus-visible .work-title,
+  .work-row:focus-visible .work-desc {
+    transform: none;
   }
 }

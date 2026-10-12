@@ -1,10 +1,10 @@
-import { site } from '../content/site';
+import { site, type Project } from '../content/site';
 
 /**
  * Fills the page from src/content/site.ts.
  *   data-text="about.heading"   → textContent
  *   data-img="descent.overlook" → src, alt, width, height
- *   [data-projects]             → project list
+ *   [data-projects]             → project rows (buttons that open the detail view)
  */
 export function renderContent() {
   const get = (path: string): unknown =>
@@ -36,20 +36,14 @@ export function renderContent() {
   const list = document.querySelector('[data-projects]');
   if (list) {
     list.replaceChildren(
-      ...site.work.projects.map((p) => {
+      ...site.work.projects.map((p, i) => {
         const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = p.href;
-
-        const title = document.createElement('span');
-        title.className = 'work-title';
-        title.textContent = p.title;
-        if (p.example) {
-          const tag = document.createElement('span');
-          tag.className = 'example-tag';
-          tag.textContent = 'Example';
-          title.append(tag);
-        }
+        li.dataset.reveal = '';
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'work-row';
+        row.dataset.project = String(i);
+        row.setAttribute('aria-haspopup', 'dialog');
 
         const meta = document.createElement('span');
         meta.className = 'work-meta mono';
@@ -59,8 +53,8 @@ export function renderContent() {
         desc.className = 'work-desc';
         desc.textContent = p.description;
 
-        a.append(title, meta, desc);
-        li.append(a);
+        row.append(projectTitle(p, 'work-title'), meta, desc);
+        li.append(row);
         return li;
       }),
     );
@@ -72,4 +66,18 @@ export function renderContent() {
       ...site.credits.map((text) => Object.assign(document.createElement('span'), { textContent: text })),
     );
   }
+}
+
+/** Project title, plus an "Example" tag while the project is placeholder content. */
+export function projectTitle(p: Project, className: string): HTMLElement {
+  const title = document.createElement('span');
+  title.className = className;
+  title.textContent = p.title;
+  if (p.example) {
+    const tag = document.createElement('span');
+    tag.className = 'example-tag';
+    tag.textContent = site.work.detail.example;
+    title.append(tag);
+  }
+  return title;
 }

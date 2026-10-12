@@ -59,8 +59,8 @@
 
       <section class="section about" id="about" aria-labelledby="about-h">
         <div class="wrap about-grid">
-          <h2 id="about-h" data-text="about.heading"></h2>
-          <div>
+          <h2 id="about-h" data-text="about.heading" data-reveal></h2>
+          <div data-reveal>
             <span class="mono label" data-text="about.label"></span>
             <div data-about-body></div>
           </div>
@@ -69,7 +69,7 @@
 
       <section class="section work" id="work" aria-labelledby="work-h">
         <div class="wrap">
-          <div class="sec-head">
+          <div class="sec-head" data-reveal>
             <h2 id="work-h" data-text="work.heading"></h2>
             <span class="mono label" data-text="work.label"></span>
           </div>
@@ -79,16 +79,16 @@
 
       <section class="section contact" id="contact" aria-labelledby="contact-h">
         <div class="wrap">
-          <div class="sec-head">
+          <div class="sec-head" data-reveal>
             <h2 id="contact-h" data-text="contact.heading"></h2>
             <span class="mono label" data-text="contact.label"></span>
           </div>
-          <p class="lead">
+          <p class="lead" data-reveal>
             <span data-text="contact.leadBefore"></span>
             <em data-text="contact.leadEmphasis"></em>
             <span data-text="contact.leadAfter"></span>
           </p>
-          <div class="email-row">
+          <div class="email-row" data-reveal>
             <span class="email" data-text="contact.email"></span>
             <button class="btn" type="button" data-copy-email>Copy email</button>
           </div>
@@ -96,6 +96,25 @@
         </div>
       </section>
     </main>
+
+    <!-- Project detail view (src/ui/project-dialog.ts), filled from site.work.projects -->
+    <dialog class="project-dialog" aria-labelledby="pd-title" data-project-dialog data-lenis-prevent>
+      <div class="pd-scrim" data-pd="scrim" aria-hidden="true"></div>
+      <div class="pd-scroll" data-pd="scroll">
+        <article class="pd-panel" data-pd="panel">
+          <div class="pd-sheet" data-pd="sheet" aria-hidden="true"></div>
+          <header class="pd-head" data-pd-fade>
+            <span class="mono label" data-pd="meta"></span>
+            <button class="pd-close mono" type="button" data-pd="close" data-text="work.detail.close"></button>
+          </header>
+          <h2 class="pd-title" id="pd-title" data-pd="title"></h2>
+          <img class="pd-image" data-pd="image" data-pd-fade alt="" hidden />
+          <div class="pd-body" data-pd="body" data-pd-fade></div>
+          <dl class="pd-facts" data-pd="facts" data-pd-fade></dl>
+          <div class="pd-links" data-pd="links" data-pd-fade></div>
+        </article>
+      </div>
+    </dialog>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

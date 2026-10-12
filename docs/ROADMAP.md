@@ -8,7 +8,7 @@ Work in phases. Each phase should ship a page that works on its own.
 - [x] Canvas fog, altimeter, optional wind audio
 - [ ] Replace placeholder photos with licensed, high-res images (≥ 2000 px)
 - [ ] Real bio, projects and contact in `src/content/site.ts`
-- [ ] Project detail pages or modals
+- [x] Project detail pages or modals
 
 ## Phase 2 – Depth
 

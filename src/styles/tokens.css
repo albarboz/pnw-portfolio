@@ -10,6 +10,8 @@
   --sky-text-soft: #dfe5e4;
   --lichen: #b9c79e;
   --lichen-hover: #cbd7b4;
+  --lichen-wash: rgba(185, 199, 158, 0.08);
+  --lichen-glow: rgba(185, 199, 158, 0.22);
   --text: #e7ebe8;
   --text-soft: #cdd5d0;
   --muted: #94a39c;
