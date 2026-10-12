@@ -12,8 +12,10 @@ export interface FogOptions {
 }
 
 /**
- * Soft drifting fog drawn as stacked radial gradients on a low-res canvas.
+ * Soft drifting fog drawn as stacked puffs on a low-res canvas.
  * Normal blending, not additive: overlaps thicken toward the tint but never clip to a flat white patch.
+ * Every puff stamps one pre-rendered sprite. Canvas gradients are dithered per pixel, and on a canvas this
+ * low-res the dither gets stretched into a visible grid; the sprite's alpha is computed exactly, so it has none.
  * Set `density`, `rush` (fly-through spread) and `offsetX/Y` (parallax, -1…1), then call `draw(time)`.
  */
 export class Fog {
@@ -23,6 +25,8 @@ export class Fog {
   offsetY = 0;
 
   private ctx: CanvasRenderingContext2D;
+  private sprite: HTMLCanvasElement;
+  private last = ''; // inputs of the frame on the canvas, so a still frame (reduced motion) is drawn once
   private w = 2;
   private h = 2;
   private opts: Required<FogOptions>;
@@ -44,6 +48,7 @@ export class Fog {
     this.ctx = canvas.getContext('2d')!;
     this.opts = { count: 28, tint: '--fog', resolution: 0.33, yMin: 0.15, ...options };
     this.rgb = cssRgb(this.opts.tint);
+    this.sprite = puffSprite(this.rgb);
     const { count, yMin } = this.opts;
     this.puffs = Array.from({ length: count }, () => ({
       x: Math.random(),
@@ -63,18 +68,22 @@ export class Fog {
     this.h = Math.max(2, Math.round(rect.height * this.opts.resolution));
     this.canvas.width = this.w;
     this.canvas.height = this.h;
+    this.last = '';
   }
 
   clear() {
     this.ctx.clearRect(0, 0, this.w, this.h);
+    this.last = '';
   }
 
   /** @param time seconds; pass 0 for a still frame */
   draw(time: number) {
     const { ctx, w, h } = this;
-    const [r, g, b] = this.rgb;
     const res = this.opts.resolution;
+    const key = `${time}|${this.density}|${this.rush}|${this.offsetX}|${this.offsetY}`;
+    if (key === this.last) return;
     this.clear();
+    this.last = key;
     if (this.density <= 0.005) return;
 
     const base = Math.max(w, h);
@@ -88,19 +97,35 @@ export class Fog {
       const py = cy * h + this.offsetY * 20 * p.depth * res;
       const rad =
         p.r * base * (0.9 + 0.1 * Math.sin(time * 0.2 + p.phase)) * (1 + this.rush * 0.6);
-      const a = p.alpha * this.density;
 
-      // Squash the whole gradient into a flat puff so it fades to 0 exactly at the rim (no hard edges).
-      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, rad);
-      grad.addColorStop(0, `rgba(${r},${g},${b},${a})`);
-      grad.addColorStop(0.5, `rgba(${r},${g},${b},${a * 0.45})`);
-      grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      // Squash the round puff flat; it fades to 0 exactly at the rim (no hard edges).
+      ctx.globalAlpha = Math.min(1, p.alpha * this.density);
       ctx.setTransform(1.3, 0, 0, 0.6, px, py);
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(0, 0, rad, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.drawImage(this.sprite, -rad, -rad, rad * 2, rad * 2);
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
   }
+}
+
+/** A round puff in the tint: alpha 1 at the center, 0.45 halfway out, 0 at the rim. */
+function puffSprite([r, g, b]: [number, number, number], size = 256) {
+  const sprite = document.createElement('canvas');
+  sprite.width = sprite.height = size;
+  const ctx = sprite.getContext('2d')!;
+  const img = ctx.createImageData(size, size);
+  const c = (size - 1) / 2;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const t = Math.min(1, Math.hypot(x - c, y - c) / c);
+      const alpha = t < 0.5 ? 1 - 1.1 * t : 0.9 * (1 - t);
+      const i = (y * size + x) * 4;
+      img.data[i] = r;
+      img.data[i + 1] = g;
+      img.data[i + 2] = b;
+      img.data[i + 3] = Math.round(alpha * 255);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return sprite;
 }
