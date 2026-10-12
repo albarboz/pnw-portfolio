@@ -1,0 +1,39 @@
+import './styles/tokens.css';
+import './styles/base.css';
+import './styles/sections.css';
+
+import { initScroll, ScrollTrigger } from './core/scroll';
+import { renderContent } from './ui/content';
+import { createAltimeter } from './ui/altimeter';
+import { initCopyEmail } from './ui/copy-email';
+import { createWind } from './effects/wind';
+import { createScenes } from './scenes';
+
+// 1. content first, so scenes measure real layout
+renderContent();
+
+// 2. smooth scroll (skipped for reduced motion)
+const lenis = initScroll();
+
+// 3. scenes and widgets
+const altimeter = createAltimeter();
+const scenes = createScenes(altimeter);
+altimeter.attach(); // after scenes, so pinned scroll space is measured
+initCopyEmail();
+createWind(
+  document.querySelector<HTMLButtonElement>('[data-wind]')!,
+  document.querySelector<HTMLElement>('[data-wind-label]')!,
+);
+
+// Recalculate trigger positions once fonts and images have settled.
+document.fonts?.ready.then(() => ScrollTrigger.refresh());
+window.addEventListener('load', () => ScrollTrigger.refresh());
+
+// Vite hot reload: tear down scenes cleanly so triggers don't stack up.
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    scenes.forEach((s) => s.destroy());
+    altimeter.destroy();
+    lenis?.destroy();
+  });
+}

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Into the Fog</title>
+    <meta name="description" content="An immersive portfolio that descends through Cascade valley fog." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+  </head>
+  <body>
+    <!-- Text and images are filled from src/content/site.ts (data-text / data-img). -->
+
+    <button class="wind mono" type="button" aria-pressed="false" data-wind>
+      <span class="dot" aria-hidden="true"></span><span data-wind-label>Wind off</span>
+    </button>
+
+    <div class="altimeter mono" aria-hidden="true">
+      <i data-alt="name"></i><b data-alt="value"></b>
+    </div>
+
+    <main>
+      <!-- Scene: descent (src/scenes/descent.ts) -->
+      <section class="scene" data-scene="descent" aria-label="Introduction">
+        <div class="stage" data-stage>
+          <img class="overlook" data-layer="overlook" data-img="descent.overlook" alt="" />
+          <div class="overlook-veil" aria-hidden="true"></div>
+          <canvas data-fog="high" aria-hidden="true"></canvas>
+          <div class="whiteout" data-layer="whiteout" aria-hidden="true"></div>
+          <div class="landing-wrap" data-layer="landing-wrap">
+            <img data-layer="landing" data-img="descent.landing" alt="" />
+            <div class="landing-shade" aria-hidden="true"></div>
+          </div>
+          <canvas data-fog="low" aria-hidden="true"></canvas>
+
+          <div class="hero-copy" data-layer="hero">
+            <span class="mono" data-text="eyebrow"></span>
+            <h1><span data-text="name.first"></span> <em data-text="name.last"></em></h1>
+            <p data-text="tagline"></p>
+            <div class="scroll-cue mono" aria-hidden="true">
+              <span data-text="scrollCue"></span><span class="drip"></span>
+            </div>
+          </div>
+
+          <div class="caption cap-fog" data-layer="cap-fog" aria-hidden="true">
+            <span class="mono" data-text="descent.fogCaption.label"></span>
+            <p data-text="descent.fogCaption.text"></p>
+          </div>
+          <div class="caption cap-landing" data-layer="cap-landing" aria-hidden="true">
+            <span class="mono" data-text="descent.landingCaption.label"></span>
+            <p data-text="descent.landingCaption.text"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section about" id="about" aria-labelledby="about-h">
+        <div class="wrap about-grid">
+          <h2 id="about-h" data-text="about.heading"></h2>
+          <div>
+            <span class="mono label" data-text="about.label"></span>
+            <div data-about-body></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section work" id="work" aria-labelledby="work-h">
+        <div class="wrap">
+          <div class="sec-head">
+            <h2 id="work-h" data-text="work.heading"></h2>
+            <span class="mono label" data-text="work.label"></span>
+          </div>
+          <ul class="work-list" data-projects></ul>
+        </div>
+      </section>
+
+      <section class="section contact" id="contact" aria-labelledby="contact-h">
+        <div class="wrap">
+          <div class="sec-head">
+            <h2 id="contact-h" data-text="contact.heading"></h2>
+            <span class="mono label" data-text="contact.label"></span>
+          </div>
+          <p class="lead">
+            <span data-text="contact.leadBefore"></span>
+            <em data-text="contact.leadEmphasis"></em>
+            <span data-text="contact.leadAfter"></span>
+          </p>
+          <div class="email-row">
+            <span class="email" data-text="contact.email"></span>
+            <button class="btn" type="button" data-copy-email>Copy email</button>
+          </div>
+          <div class="credits" data-credits></div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+/* Design tokens. Every color and font in the project comes from here. */
+:root {
+  /* Cascade valley: blue-grey peaks, white valley fog, fir and moss greens, lichen accent */
+  --night: #0f1513;
+  --forest: #17201c;
+  --fog: #e2e6e6;
+  --fog-ink: #1f2a2a;
+  --fog-ink-soft: #4f5d5f;
+  --sky-text: #f3f5f4;
+  --sky-text-soft: #dfe5e4;
+  --lichen: #b9c79e;
+  --lichen-hover: #cbd7b4;
+  --text: #e7ebe8;
+  --text-soft: #cdd5d0;
+  --muted: #94a39c;
+  --rule: rgba(231, 235, 232, 0.14);
+  --glass: rgba(15, 21, 19, 0.55);
+  --shade: rgba(15, 21, 19, 0.88);
+  --veil: rgba(28, 40, 48, 0.42);
+
+  --display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --body: 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --gutter: 20px;
+  --max: 1080px;
+
+  color-scheme: dark;
+}

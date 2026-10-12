@@ -1,0 +1,43 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  background: var(--night);
+}
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+img {
+  max-width: 100%;
+  display: block;
+}
+a {
+  color: inherit;
+}
+button {
+  font: inherit;
+  cursor: pointer;
+}
+:focus-visible {
+  outline: 2px solid var(--lichen);
+  outline-offset: 3px;
+}
+.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+h1,
+h2 {
+  text-wrap: balance;
+}
