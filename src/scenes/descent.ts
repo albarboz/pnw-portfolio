@@ -94,8 +94,13 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   // ---------- render: the only place that writes to the DOM ----------
   const render = () => {
     const m = motionScale();
-    const z = 1 + (ZMAX - 1) * state.dive * m;
-    placeOverlook(z, state.pan * m, pointer.x * -12 * m, pointer.y * -6 * m);
+    // Once the trail fully covers it, stop drawing the big zoomed overlook (opacity, not visibility: keeps its alt text).
+    const covered = state.landing >= 1;
+    overlook.style.opacity = covered ? '0' : '';
+    if (!covered) {
+      const z = 1 + (ZMAX - 1) * state.dive * m;
+      placeOverlook(z, state.pan * m, pointer.x * -12 * m, pointer.y * -6 * m);
+    }
 
     heroCopy.style.opacity = String(1 - state.heroOut);
     heroCopy.style.transform = `translate3d(0, ${state.heroY * m}px, 0)`;

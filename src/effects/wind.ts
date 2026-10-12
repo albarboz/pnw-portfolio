@@ -1,8 +1,13 @@
+import { site } from '../content/site';
+
 /**
  * Ambient wind: looped brown noise through a low-pass filter, with two slow LFOs for gusts.
  * No audio files needed. To use a recording instead, drop it in public/audio and swap the source.
+ * `state` shows "on"/"off" next to the label; it is aria-hidden, since aria-pressed already says it.
  */
-export function createWind(button: HTMLButtonElement, label: HTMLElement) {
+export function createWind(button: HTMLButtonElement, state: HTMLElement) {
+  const t = site.ui.wind;
+  state.textContent = t.off;
   let ctx: AudioContext | null = null;
   let master: GainNode | null = null;
 
@@ -60,7 +65,8 @@ export function createWind(button: HTMLButtonElement, label: HTMLElement) {
   button.addEventListener('click', async () => {
     const turnOn = button.getAttribute('aria-pressed') !== 'true';
     if (turnOn && !ctx && !build()) {
-      label.textContent = 'Audio unavailable';
+      button.textContent = t.unavailable;
+      button.disabled = true;
       return;
     }
     if (!ctx || !master) return;
@@ -74,6 +80,6 @@ export function createWind(button: HTMLButtonElement, label: HTMLElement) {
     master.gain.setValueAtTime(master.gain.value, now);
     master.gain.linearRampToValueAtTime(turnOn ? 0.5 : 0, now + 1.2);
     button.setAttribute('aria-pressed', String(turnOn));
-    label.textContent = turnOn ? 'Wind on' : 'Wind off';
+    state.textContent = turnOn ? t.on : t.off;
   });
 }

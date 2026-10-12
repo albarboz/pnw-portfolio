@@ -6,6 +6,7 @@ Every image, video and sound in `public/` needs a row here before launch.
 | --- | --- | --- | --- | --- |
 | `public/images/valley.webp` | AI-generated with Midjourney (original `aerielmid.png`) | Site owner | Midjourney Terms of Service, paid plan (owner owns the output) | OK |
 | `public/images/trail.webp` | AI-generated with Midjourney (original `alanrunningmid.png`) | Site owner | Midjourney Terms of Service, paid plan (owner owns the output) | OK |
+| `public/favicon.svg` | Drawn for this site (fir on `--night`) | Site owner | Original | OK |
 
 Both images were generated on a paid Midjourney plan, which allows commercial use. Per Midjourney's terms, a company with more than $1M a year in gross revenue needs the Pro or Mega plan; re-check the current terms if that changes. The originals carry the IPTC `trainedAlgorithmicMedia` tag, which marks them as AI-generated.
 

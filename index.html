@@ -3,8 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Title and description stay in the HTML so link previews and search engines see them without JS. -->
     <title>Into the Fog</title>
     <meta name="description" content="An immersive portfolio that descends through Cascade valley fog." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -16,7 +18,8 @@
     <!-- Text and images are filled from src/content/site.ts (data-text / data-img). -->
 
     <button class="wind mono" type="button" aria-pressed="false" data-wind>
-      <span class="dot" aria-hidden="true"></span><span data-wind-label>Wind off</span>
+      <span class="dot" aria-hidden="true"></span><span data-text="ui.wind.label"></span>
+      <span data-wind-state aria-hidden="true"></span>
     </button>
 
     <div class="altimeter mono" aria-hidden="true">
@@ -90,7 +93,8 @@
           </p>
           <div class="email-row" data-reveal>
             <span class="email" data-text="contact.email"></span>
-            <button class="btn" type="button" data-copy-email>Copy email</button>
+            <button class="btn" type="button" data-copy-email data-text="ui.copyEmail.label"></button>
+            <span class="sr-only" role="status" data-copy-status></span>
           </div>
           <div class="credits" data-credits></div>
         </div>

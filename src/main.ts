@@ -26,7 +26,7 @@ initCopyEmail();
 const projectDialog = createProjectDialog(lenis);
 createWind(
   document.querySelector<HTMLButtonElement>('[data-wind]')!,
-  document.querySelector<HTMLElement>('[data-wind-label]')!,
+  document.querySelector<HTMLElement>('[data-wind-state]')!,
 );
 
 // Recalculate trigger positions once fonts and images have settled.

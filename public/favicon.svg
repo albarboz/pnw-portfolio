@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Colors match --night and --lichen in src/styles/tokens.css -->
+  <rect width="32" height="32" rx="7" fill="#0f1513"/>
+  <path fill="#b9c79e" d="M16 4 L21 11 H18.5 L23 17 H19.5 L25 24 H17.5 V28 H14.5 V24 H7 L12.5 17 H9 L13.5 11 H11 Z"/>
+</svg>

@@ -121,6 +121,13 @@ export const site = {
     email: 'hello@yourdomain.com',
   },
 
+  /** Small interface labels. */
+  ui: {
+    copyEmail: { label: 'Copy email', copied: 'Copied', selected: 'Selected — press Ctrl/⌘ C' },
+    /** The button reads "Wind" plus its state; screen readers get the state from aria-pressed instead. */
+    wind: { label: 'Wind', on: 'on', off: 'off', unavailable: 'Audio unavailable' },
+  },
+
   /** Altimeter readings in feet. The descent scene interpolates between these. */
   altitude: {
     top: 6200,

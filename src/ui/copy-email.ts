@@ -1,22 +1,35 @@
-/** Copy-to-clipboard button for the contact email, with a select-text fallback. */
+import { site } from '../content/site';
+
+/**
+ * Copy-to-clipboard button for the contact email, with a select-text fallback.
+ * The result also goes to a status region, because screen readers don't announce a button's text changing.
+ */
 export function initCopyEmail() {
   const button = document.querySelector<HTMLButtonElement>('[data-copy-email]');
   const email = document.querySelector<HTMLElement>('[data-text="contact.email"]');
+  const status = document.querySelector<HTMLElement>('[data-copy-status]');
   if (!button || !email) return;
 
-  const original = button.textContent;
+  const t = site.ui.copyEmail;
+  const say = (text: string) => {
+    button.textContent = text;
+    if (status) status.textContent = text;
+  };
   button.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(email.textContent?.trim() ?? '');
-      button.textContent = 'Copied';
+      say(t.copied);
     } catch {
       const range = document.createRange();
       range.selectNodeContents(email);
       const sel = window.getSelection();
       sel?.removeAllRanges();
       sel?.addRange(range);
-      button.textContent = 'Selected — press Ctrl/⌘ C';
+      say(t.selected);
     }
-    window.setTimeout(() => (button.textContent = original), 2000);
+    window.setTimeout(() => {
+      button.textContent = t.label;
+      if (status) status.textContent = '';
+    }, 2000);
   });
 }
