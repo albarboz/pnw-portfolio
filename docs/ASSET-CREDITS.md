@@ -7,7 +7,7 @@ Every image, video and sound in `public/` needs a row here before launch.
 | `public/images/valley.webp` | Provided by site owner | To confirm | To confirm | Confirm before launch |
 | `public/images/trail.webp` | Provided by site owner | To confirm | To confirm | Confirm before launch |
 
-If these were made with an AI image tool, record the tool and check its terms allow commercial/portfolio use. Originals live outside the repo; the files here are resized WebP exports (valley 1600×2400, trail 2100×1400).
+If these were made with an AI image tool, record the tool and check its terms allow commercial/portfolio use. Originals live outside the repo; the files here are WebP exports under the 400 KB budget (valley 1792×2688 at q62, the full original size; trail 2250×1500 at q54, downscaled from a 2688×1792 original to fit the budget).
 
 ## Good free sources
 

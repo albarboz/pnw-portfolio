@@ -31,8 +31,8 @@ export const site = {
     overlook: {
       src: asset('images/valley.webp'),
       alt: 'Fir trees frame a deep mountain valley, with a river of fog winding below jagged blue peaks.',
-      width: 1600,
-      height: 2400,
+      width: 1792,
+      height: 2688,
     } satisfies PhotoAsset,
     /** Where the camera dives, as a fraction of the opening photo (0–1). Currently: the fog pool in the valley. */
     diveTarget: { x: 0.51, y: 0.49 },
@@ -45,8 +45,8 @@ export const site = {
     landing: {
       src: asset('images/trail.webp'),
       alt: 'A runner in a light jacket jogs down a dirt trail through mossy old-growth trees and ferns.',
-      width: 2100,
-      height: 1400,
+      width: 2250,
+      height: 1500,
     } satisfies PhotoAsset,
     /** Point the landing photo pushes in toward, in CSS percentages. Currently: the runner. */
     landingFocus: { x: 48, y: 58 },
