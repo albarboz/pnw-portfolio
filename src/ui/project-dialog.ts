@@ -48,12 +48,12 @@ export function createProjectDialog(lenis: Lenis | null): { destroy: () => void 
     if (prefersReducedMotion()) return;
 
     tl = gsap
-      .timeline({ defaults: { duration: 0.75, ease: 'power3.inOut' } })
+      .timeline({ defaults: { duration: 0.6, ease: 'power3.inOut' } })
       .set(rowTitle(), { opacity: 0 })
-      .fromTo(scrim, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: 'power1.out' }, 0)
-      .fromTo(sheet, { opacity: 0, y: 40 }, { opacity: 1, y: 0, ease: 'power3.out' }, 0.1)
+      .fromTo(scrim, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'power1.out' }, 0)
+      .fromTo(sheet, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, 0.05)
       .fromTo(title, { ...flipTo(title, rowTitle()), transformOrigin: '0 0' }, { x: 0, y: 0, scale: 1 }, 0)
-      .fromTo(fades, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out', stagger: 0.06 }, 0.45);
+      .fromTo(fades, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out', stagger: 0.04 }, 0.25);
   };
 
   const close = () => {
@@ -62,11 +62,11 @@ export function createProjectDialog(lenis: Lenis | null): { destroy: () => void 
     closing = true;
     tl?.kill();
     tl = gsap
-      .timeline({ defaults: { duration: 0.6, ease: 'power3.inOut' }, onComplete: finish })
-      .to(fades, { opacity: 0, y: 12, duration: 0.25, ease: 'power1.in' }, 0)
-      .to(title, flipTo(title, rowTitle()), 0.1)
-      .to(sheet, { opacity: 0, y: 40, duration: 0.45 }, 0.1)
-      .to(scrim, { opacity: 0, duration: 0.45 }, 0.3);
+      .timeline({ defaults: { duration: 0.35, ease: 'power3.inOut' }, onComplete: finish })
+      .to(fades, { opacity: 0, y: 12, duration: 0.15, ease: 'power2.out' }, 0)
+      .to(title, flipTo(title, rowTitle()), 0.05)
+      .to(sheet, { opacity: 0, y: 40, duration: 0.3, ease: 'power2.out' }, 0.05)
+      .to(scrim, { opacity: 0, duration: 0.3, ease: 'power2.out' }, 0.1);
   };
 
   // Also runs on the dialog's own close event (e.g. a forced second Esc), so cleanup always happens.
