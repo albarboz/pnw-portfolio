@@ -54,12 +54,16 @@ export function createTunePanel() {
   sh.addBinding(tuning.shafts, 'threshold', { label: 'gap brightness', min: 0, max: 0.6, step: 0.01 });
   sh.addBinding(tuning.shafts, 'softness', { min: 0, max: 0.6, step: 0.01 });
 
+  const gr = pane.addFolder({ title: 'Film grain' });
+  gr.addBinding(tuning.grain, 'amount', { min: 0, max: 0.5, step: 0.01 });
+  gr.addBinding(tuning.grain, 'size', { min: 0.5, max: 3, step: 0.05 });
+
   // For scripts and the console: window.tuning is the live object the scenes read.
   (window as unknown as { tuning: typeof tuning }).tuning = tuning;
 
   pane.addButton({ title: 'Copy values' }).on('click', () => {
     const r = (n: number) => Math.round(n * 1000) / 1000;
-    const { fog: f, dolly: d, photo3d: s, shafts: l } = tuning;
+    const { fog: f, dolly: d, photo3d: s, shafts: l, grain: g } = tuning;
     const text = [
       '// src/core/tuning.ts',
       `scroll: ${r(tuning.scroll)},`,
@@ -67,6 +71,7 @@ export function createTunePanel() {
       `dolly: { mid: ${r(d.mid)}, near: ${r(d.near)} },`,
       `photo3d: { show: ${s.show}, sky: ${r(s.sky)}, fly: ${r(s.fly)}, fov: ${r(s.fov)}, sway: ${r(s.sway)}, near: ${r(s.near)}, smooth: ${r(s.smooth)} },`,
       `shafts: { strength: ${r(l.strength)}, x: ${r(l.x)}, y: ${r(l.y)}, length: ${r(l.length)}, threshold: ${r(l.threshold)}, softness: ${r(l.softness)} },`,
+      `grain: { amount: ${r(g.amount)}, size: ${r(g.size)} },`,
       '// src/content/site.ts',
       `diveZoom: ${r(site.descent.diveZoom)},`,
     ].join('\n');

@@ -62,6 +62,14 @@ export const tuning = {
     softness: 0.2,
   },
 
+  /** Film grain over the whole descent (src/effects/grain.ts), so the smooth fog shares the photos' grain. */
+  grain: {
+    /** Strength: 0 = off. */
+    amount: 0.05,
+    /** Grain size in CSS px. Bigger = coarser, like faster film. */
+    size: 1,
+  },
+
   /** Distance of each overlook cutout from the camera's start (far = 1). Smaller = the camera passes it sooner. */
   dolly: {
     /** The tall fir and the slope below the overlook. */

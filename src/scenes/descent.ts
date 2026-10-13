@@ -5,6 +5,7 @@ import { pointer } from '../core/pointer';
 import { tuning } from '../core/tuning';
 import { DepthPhoto } from '../effects/depth-photo';
 import { FogLayer } from '../effects/fog-layer';
+import { Grain } from '../effects/grain';
 import { Overlook } from '../effects/overlook';
 import { site } from '../content/site';
 import type { SceneHandle } from './types';
@@ -51,6 +52,8 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     landing.style.willChange = on ? 'auto' : ''; // the canvas moves now; don't keep a GPU layer for a still <img>
     render();
   });
+
+  const grain = new Grain($('[data-layer="grain"]'));
 
   // The opening view: flat photo → cutouts flown through by a CSS dolly → the valley in 3D (src/effects/overlook.ts).
   const overlook = new Overlook(stage, () => render());
@@ -158,9 +161,13 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   const observer = new IntersectionObserver(([entry]) => (visible = entry.isIntersecting));
   observer.observe(stage);
 
+  let lastProgress = -1;
   const tick = (time: number) => {
     if (!visible) return;
     render();
+    const p = tl.progress();
+    grain.update(p !== lastProgress && !prefersReducedMotion(), time); // fresh grain only while scrolling
+    lastProgress = p;
     const t = prefersReducedMotion() ? 0 : time;
     // Timeline progress, not scroll progress: with scrub lag, the scroll runs ahead of the whiteout.
     if (tl.progress() < 0.72) fogHigh.draw(t);
@@ -186,6 +193,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
       fogHigh.destroy();
       fogLow.destroy();
       overlook.destroy();
+      grain.destroy();
       window.removeEventListener('resize', onResize);
       tl.scrollTrigger?.kill();
       tl.kill();
