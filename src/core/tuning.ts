@@ -50,7 +50,7 @@ export const tuning = {
    */
   shafts: {
     /** Brightness. 0 = off. */
-    strength: 0.4,
+    strength: 0.1,
     /** Where the light comes from, as a fraction of the photo (0, 0 = top left; y < 0 = above the frame). */
     x: 0.75,
     y: -0.25,
