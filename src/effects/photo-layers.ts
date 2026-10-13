@@ -1,11 +1,30 @@
+import { smoothstep } from '../core/math';
+
 export type LayerName = 'far' | 'mid' | 'near';
 
-/** How much faster each cutout zooms (zoom ** `zoom`) and shifts with the pointer (× `shift`) than the photo. */
-const DEPTH: Record<LayerName, { zoom: number; shift: number }> = {
-  far: { zoom: 1, shift: 0.4 },
-  mid: { zoom: 1.35, shift: 1 },
-  near: { zoom: 1.8, shift: 2 },
+/**
+ * Where each cutout stands: its distance from the camera's starting point (far = 1), and how much it
+ * shifts with the pointer (× `shift`). The camera flies past the near branches early in the dive, and past the
+ * mid layer (the tall fir and the slope below the overlook) as the fog closes in, leaving only the valley.
+ */
+const DEPTH: Record<LayerName, { depth: number; shift: number }> = {
+  far: { depth: 1, shift: 0.4 },
+  mid: { depth: 0.6, shift: 1 },
+  near: { depth: 0.4, shift: 2 },
 };
+
+/**
+ * A camera dolly through flat cutouts. A plane facing the camera only ever scales and moves under
+ * perspective, so a CSS transform draws it exactly; no 3D engine needed.
+ * `zoom` is how much bigger the far layer looks; returns a cutout's scale at that point, and how visible it
+ * is: a cutout fades out as the camera reaches it (scale 3.5 → 7) instead of filling the frame with blur.
+ */
+export function dolly(depth: number, zoom: number) {
+  const travel = 1 - 1 / zoom; // how far the camera has moved toward the far layer
+  if (travel >= depth) return { scale: Infinity, opacity: 0 };
+  const scale = depth / (depth - travel);
+  return { scale, opacity: 1 - smoothstep(3.5, 7, scale) };
+}
 
 /**
  * The far / mid / near cutouts of a photo (tools/hero-layers.py), in their own <img> slots.
@@ -14,7 +33,7 @@ const DEPTH: Record<LayerName, { zoom: number; shift: number }> = {
  * At rest the cutouts stack back into the photo, so swapping one for the other doesn't show.
  */
 export class PhotoLayers {
-  readonly parts: { el: HTMLImageElement; zoom: number; shift: number }[];
+  readonly parts: { el: HTMLImageElement; depth: number; shift: number }[];
   active = false;
   private cancelled = false;
 

@@ -20,7 +20,7 @@ Work in phases. Each phase should ship a page that works on its own.
 ## Phase 3 – 3D fly-through (optional)
 
 - [x] Add `three` and build `src/effects/fog3d.ts`: a full-screen shader fog (fbm noise) that replaces the canvas fog. Three is loaded lazily (`src/effects/fog-layer.ts`); the canvas fog draws until it's in and stays as the no-WebGL fallback
-- [ ] Camera dolly through layered planes, driven by the same ScrollTrigger timeline
+- [x] Camera dolly through layered planes, driven by the same ScrollTrigger timeline: each overlook cutout has a depth (`dolly()` in `src/effects/photo-layers.ts`) and the camera flies past the near branches and the fir into the valley. Flat planes facing the camera only scale and move under perspective, so CSS transforms draw this exactly; no Three.js needed
 - [ ] Only if needed: volumetric clouds (takram `three-geospatial`) or React Three Fiber + drei
 
 ## Useful references

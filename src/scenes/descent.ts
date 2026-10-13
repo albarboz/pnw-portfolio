@@ -4,7 +4,7 @@ import { motionScale, prefersReducedMotion } from '../core/motion';
 import { pointer } from '../core/pointer';
 import { DepthPhoto } from '../effects/depth-photo';
 import { FogLayer } from '../effects/fog-layer';
-import { PhotoLayers } from '../effects/photo-layers';
+import { dolly, PhotoLayers } from '../effects/photo-layers';
 import { site } from '../content/site';
 import type { SceneHandle } from './types';
 
@@ -56,9 +56,9 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     render();
   });
 
-  // Layered overlook: once its cutouts are in, they replace the flat photo, and the nearer ones zoom and shift
-  // faster so the firs sweep past the peaks. With reduced motion they would only stack back into the same
-  // photo, so they aren't loaded.
+  // Layered overlook: once its cutouts are in, they replace the flat photo, and the dive becomes a camera dolly
+  // through them (see dolly()): the near firs rush up and the camera flies past them into the valley.
+  // With reduced motion they would only stack back into the same photo, so they aren't loaded.
   const part = (name: string) => $<HTMLImageElement>(`[data-overlook-part="${name}"]`);
   const overlookLayers = new PhotoLayers(
     { far: part('far'), mid: part('mid'), near: part('near') },
@@ -131,12 +131,15 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     // Once the trail fully covers it, stop drawing the big zoomed overlook (opacity, not visibility: keeps its alt text).
     const covered = state.landing >= 1;
     overlook.style.opacity = covered || overlookLayers.active ? '0' : '';
-    parts.forEach((p) => (p.el.style.opacity = covered ? '0' : ''));
-    if (!covered) {
+    if (covered) parts.forEach((p) => (p.el.style.opacity = '0'));
+    else {
       const z = 1 + (ZMAX - 1) * state.dive * m;
       if (overlookLayers.active) {
         for (const p of parts) {
-          placeOverlook(p.el, z ** p.zoom, state.pan * m, pointer.x * -12 * p.shift * m, pointer.y * -6 * p.shift * m);
+          const { scale, opacity } = dolly(p.depth, z);
+          p.el.style.opacity = String(opacity);
+          if (opacity > 0)
+            placeOverlook(p.el, scale, state.pan * m, pointer.x * -12 * p.shift * m, pointer.y * -6 * p.shift * m);
         }
       } else {
         placeOverlook(overlook, z, state.pan * m, pointer.x * -12 * m, pointer.y * -6 * m);
