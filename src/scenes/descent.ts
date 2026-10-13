@@ -16,6 +16,9 @@ import type { SceneHandle } from './types';
  *
  *   progress  0 ──── 0.16 ──── 0.4 ──── 0.62 ──── 0.78 ──── 0.95 ── 1
  *             hero out   dive & fog thicken  whiteout   trail resolves  caption
+ *
+ * Reduced motion: no pin and no timeline. The stage becomes three still bands in the page flow (overlook with the
+ * hero, a band of fog with its caption, the trail with its caption; `.scene.still` in sections.css), drawn once.
  */
 export function createDescentScene(opts: { onProgress?: (p: number) => void } = {}): SceneHandle | null {
   const root = document.querySelector<HTMLElement>('[data-scene="descent"]');
@@ -29,6 +32,9 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   const heroCopy = $('[data-layer="hero"]');
   const capFog = $('[data-layer="cap-fog"]');
   const capLanding = $('[data-layer="cap-landing"]');
+
+  const still = prefersReducedMotion();
+  root.classList.toggle('still', still);
 
   const fogHigh = new FogLayer($<HTMLCanvasElement>('[data-fog="high"]'), {
     count: 30,
@@ -81,7 +87,8 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
 
   const layout = () => {
     const vw = stage.clientWidth;
-    const vh = stage.clientHeight;
+    // still: the stage is three bands tall; the photos fill one screen-high band each
+    const vh = still ? landingWrap.clientHeight : stage.clientHeight;
     const dpr = window.devicePixelRatio;
     // Phones fire resize whenever the toolbar slides in or out, but the svh stage keeps its size:
     // skip, or every scroll flick would reallocate (and blank) the fog and depth canvases.
@@ -96,7 +103,8 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   // ---------- render: the only place that writes to the DOM ----------
   const render = () => {
     const m = motionScale();
-    overlook.render({ dive: state.dive * m, pan: state.pan * m, x: pointer.x * m, y: pointer.y * m }, state.landing >= 1);
+    // hidden under a fully landed trail, except in the still layout, where both photos show
+    overlook.render({ dive: state.dive * m, pan: state.pan * m, x: pointer.x * m, y: pointer.y * m }, !still && state.landing >= 1);
 
     heroCopy.style.opacity = String(1 - state.heroOut);
     heroCopy.style.transform = `translate3d(0, ${state.heroY * m}px, 0)`;
@@ -130,19 +138,23 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   };
 
   // ---------- timeline: the only place that knows about timing (total duration = 1) ----------
-  const tl = gsap.timeline({
-    defaults: { ease: 'none' },
-    scrollTrigger: {
-      trigger: root,
-      pin: stage,
-      start: 'top top',
-      end: () => `+=${tuning.scroll * 100}%`, // a function, so ScrollTrigger.refresh() picks up a new length
-      scrub: prefersReducedMotion() ? true : 0.6,
-      onUpdate: (self) => opts.onProgress?.(self.progress),
-    },
-  });
+  // Still: every layer at its readable state at once, in its own band.
+  if (still) Object.assign(state, { capFog: 1, whiteout: 1, landing: 1, land: 1, fogLow: 0.12, capLanding: 1 });
+  const tl = still
+    ? null
+    : gsap.timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: {
+          trigger: root,
+          pin: stage,
+          start: 'top top',
+          end: () => `+=${tuning.scroll * 100}%`, // a function, so ScrollTrigger.refresh() picks up a new length
+          scrub: 0.6,
+          onUpdate: (self) => opts.onProgress?.(self.progress),
+        },
+      });
 
-  tl.to(state, { heroY: -160, duration: 1 }, 0)
+  tl?.to(state, { heroY: -160, duration: 1 }, 0)
     .to(state, { heroOut: 1, duration: 0.13, ease: 'power1.in' }, 0.03)
     .to(state, { pan: 1, duration: 0.46, ease: 'power1.inOut' }, 0.04)
     .to(state, { dive: 1, duration: 0.56, ease: 'power2.in' }, 0.06)
@@ -167,12 +179,12 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   const tick = (time: number) => {
     if (!visible) return;
     render();
-    const p = tl.progress();
-    grain.update(p !== lastProgress && !prefersReducedMotion(), time); // fresh grain only while scrolling
+    const p = tl?.progress() ?? 0;
+    grain.update(p !== lastProgress && !still, time); // fresh grain only while scrolling
     lastProgress = p;
-    const t = prefersReducedMotion() ? 0 : time;
+    const t = still ? 0 : time;
     // Timeline progress, not scroll progress: with scrub lag, the scroll runs ahead of the whiteout.
-    if (tl.progress() < 0.72) fogHigh.draw(t);
+    if (p < 0.72) fogHigh.draw(t);
     else fogHigh.clear();
     fogLow.draw(t * 0.8);
   };
@@ -197,8 +209,9 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
       overlook.destroy();
       grain.destroy();
       window.removeEventListener('resize', onResize);
-      tl.scrollTrigger?.kill();
-      tl.kill();
+      tl?.scrollTrigger?.kill();
+      tl?.kill();
+      root.classList.remove('still');
     },
   };
 }

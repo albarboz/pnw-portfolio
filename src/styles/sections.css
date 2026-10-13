@@ -202,6 +202,51 @@
   text-shadow: 0 2px 26px var(--shadow-forest);
 }
 
+/* Reduced motion (descent.ts sets .still): no pin. The stage stacks three still bands, and each layer is placed in
+   one: the overlook with the hero, a band of fog with its caption, the trail with its caption. An absolutely
+   positioned child with grid lines is laid out inside those rows; give both lines, since a missing end line means
+   the bottom of the whole grid. The photos melt into the fog instead of cutting. */
+.scene.still .stage {
+  --band: 55lvh;
+  --melt: 30lvh;
+  height: auto;
+  display: grid;
+  grid-template-rows: 100lvh var(--band) 100lvh;
+}
+.still img.overlook,
+.still canvas[data-layer='overlook-3d'],
+.still .overlook-veil,
+.still canvas[data-fog='high'],
+.still .hero-copy {
+  grid-row: 1 / 2;
+}
+/* Reaches up over the bottom of the overlook and fades in, so the valley sinks into the fog. It runs on behind the
+   trail, so the trail's faded top shows fog (and covers the overlook photo, which is taller than its band). */
+.still .whiteout {
+  grid-row: 2 / -1;
+  top: calc(-1 * var(--melt));
+  -webkit-mask-image: linear-gradient(180deg, transparent, var(--night) var(--melt));
+  mask-image: linear-gradient(180deg, transparent, var(--night) var(--melt));
+}
+.still .cap-fog {
+  grid-row: 2 / 3;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+/* the trail comes up out of the fog band */
+.still .landing-wrap {
+  grid-row: 3 / 4;
+  -webkit-mask-image: linear-gradient(180deg, transparent, var(--night) var(--melt));
+  mask-image: linear-gradient(180deg, transparent, var(--night) var(--melt));
+}
+.still canvas[data-fog='low'],
+.still .cap-landing {
+  grid-row: 3 / 4;
+}
+.still .grain {
+  grid-row: 1 / -1;
+}
+
 /* ===================== content sections ===================== */
 .section {
   --blend: min(360px, 45vh);
