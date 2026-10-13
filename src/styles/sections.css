@@ -130,10 +130,16 @@
   line-height: 0.92;
   letter-spacing: -0.01em;
 }
+/* The tagline sits on the bright band of sky above the peaks, where light text measured under 2:1. So it's set
+   in fog ink with a fog halo, like the fog caption (.cap-fog): 7–9:1 without shading the photo. */
 .hero-copy p {
   margin: 0;
-  max-width: 34ch;
+  max-width: 44ch;
   font-size: clamp(16px, 1.6vw, 19px);
+  font-weight: 500;
+  text-wrap: balance;
+  color: var(--fog-ink);
+  text-shadow: 0 0 10px var(--fog), 0 0 28px var(--fog);
 }
 .scroll-cue {
   margin-top: 18px;
@@ -145,6 +151,12 @@
   font-weight: 500;
   letter-spacing: 0.01em;
   color: var(--sky-text);
+  /* it crosses from bright cloud onto the dark peaks, so it stays light; a halo that hugs the glyphs carries it
+     over the cloud */
+  text-shadow:
+    0 0 1px var(--shadow-sky),
+    0 1px 4px var(--shadow-sky),
+    0 0 16px var(--shadow-sky);
 }
 .scroll-cue .drip {
   width: 1px;
