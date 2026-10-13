@@ -6,7 +6,7 @@ import './styles/sections.css';
 import { initScroll, ScrollTrigger } from './core/scroll';
 import { renderContent } from './ui/content';
 import { createReveal } from './ui/reveal';
-import { createSectionIndex } from './ui/section-index';
+import { createTrailSign } from './ui/trail-sign';
 import { initCopyEmail } from './ui/copy-email';
 import { createProjectDialog } from './ui/project-dialog';
 import { createScenes } from './scenes';
@@ -20,7 +20,7 @@ const lenis = initScroll();
 // 3. scenes and widgets
 const scenes = createScenes();
 const reveal = createReveal(); // after scenes, so pinned scroll space is measured
-const sectionIndex = createSectionIndex(lenis); // same reason
+const trailSign = createTrailSign(lenis);
 initCopyEmail();
 const projectDialog = createProjectDialog(lenis);
 
@@ -36,7 +36,7 @@ if (import.meta.hot) {
     tune?.then((pane) => pane.dispose());
     scenes.forEach((s) => s.destroy());
     reveal.destroy();
-    sectionIndex.destroy();
+    trailSign.destroy();
     projectDialog.destroy();
     lenis?.destroy();
   });

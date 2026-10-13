@@ -30,7 +30,7 @@ src/
   core/              shared plumbing (scroll, pointer, motion prefs, math, tuning)
   effects/           reusable visual effects (fog layer: shader + canvas fallback, depth photo, photo layers)
   scenes/            one file per pinned scroll scene
-  ui/                small DOM widgets (section index, copy button, project list)
+  ui/                small DOM widgets (trail sign, reveals, copy button, project list)
   dev/               dev-only tools (Tweakpane tuning panel); stripped from the build
   styles/            tokens.css → base.css → sections.css
 public/images/       photos (credit every one in docs/ASSET-CREDITS.md)
@@ -50,7 +50,7 @@ Each scene in `src/scenes/` exports `create<Name>Scene(): SceneHandle` and follo
 
 This keeps the timing (timeline) separate from the drawing (render), so timing can be retuned without touching the math.
 
-**ScrollTrigger order matters:** pinned scenes add scroll space, so create triggers in page order. Anything that measures positions below a pinned scene (like the section index or the reveals) must be created after the scenes in `main.ts`. Copy `docs/SCENE-RECIPE.md` to start a new scene, and register it in `src/scenes/index.ts`.
+**ScrollTrigger order matters:** pinned scenes add scroll space, so create triggers in page order. Anything that measures positions below a pinned scene (like the reveals) must be created after the scenes in `main.ts`. Copy `docs/SCENE-RECIPE.md` to start a new scene, and register it in `src/scenes/index.ts`.
 
 ## Rules
 

@@ -10,8 +10,6 @@
   <body>
     <!-- Text and images are filled from src/content/site.ts (data-text / data-img). -->
 
-    <!-- Section index, filled from site.index: src/ui/section-index.ts -->
-    <nav class="index" data-index></nav>
 
     <main>
       <!-- Scene: descent (src/scenes/descent.ts) -->
@@ -41,9 +39,10 @@
           <div class="hero-copy" data-layer="hero">
             <h1><span data-text="name.first"></span> <span data-text="name.last"></span></h1>
             <p data-text="tagline"></p>
-            <div class="scroll-cue" aria-hidden="true">
-              <span data-text="scrollCue"></span><span class="drip"></span>
-            </div>
+            <!-- Trail sign: planks filled from site.sign by src/ui/trail-sign.ts -->
+            <nav class="trail-sign" data-sign>
+              <ul></ul>
+            </nav>
           </div>
 
           <div class="caption cap-fog" data-layer="cap-fog">
@@ -104,10 +103,10 @@
         <article class="pd-panel" data-pd="panel">
           <div class="pd-sheet" data-pd="sheet" aria-hidden="true"></div>
           <header class="pd-head" data-pd-fade>
-            <span class="mono label" data-pd="meta"></span>
-            <button class="pd-close mono" type="button" data-pd="close" data-text="work.detail.close"></button>
+            <button class="pd-close" type="button" data-pd="close" data-text="work.detail.close"></button>
           </header>
           <h2 class="pd-title" id="pd-title" data-pd="title"></h2>
+          <p class="pd-meta meta" data-pd="meta" data-pd-fade></p>
           <img class="pd-image" data-pd="image" data-pd-fade alt="" hidden />
           <div class="pd-body" data-pd="body" data-pd-fade></div>
           <dl class="pd-facts" data-pd="facts" data-pd-fade></dl>

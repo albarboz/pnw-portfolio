@@ -15,7 +15,6 @@
   --text-soft: #cdd5d0;
   --muted: #94a39c;
   --rule: rgba(231, 235, 232, 0.14);
-  --glass: rgba(15, 21, 19, 0.62);
   --shade: rgba(15, 21, 19, 0.88);
   --veil: rgba(28, 40, 48, 0.42);
   --shadow-sky: rgba(14, 22, 28, 0.55);
@@ -27,9 +26,13 @@
   /* Sun shafts in the trail photo (src/effects/light-shafts.ts): pale, faintly warm light through the mist */
   --light-shaft: #e8e8d9;
 
-  --display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
-  --body: 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
-  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* Barlow: grotesk drawn from highway and park signage; condensed and bold for display, like a trail sign */
+  --display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --body: 'Barlow', 'Helvetica Neue', Arial, sans-serif;
+
+  /* Display sizes: three steps under the hero name, so the hierarchy reads at a glance */
+  --size-section: clamp(40px, 6vw, 72px); /* section headings, the project dialog's title */
+  --size-title: clamp(30px, 4.2vw, 50px); /* project titles, the contact lead, photo captions */
 
   --gutter: 20px;
   --max: 1080px;

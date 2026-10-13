@@ -64,7 +64,15 @@ export const site = {
 
   name: { first: 'Alan', last: 'Barboza' },
   tagline: 'Design and development from the west side of the pnw.',
-  scrollCue: 'scroll',
+  /** Trail sign under the tagline: one plank per section. `target` is the section's id in index.html. */
+  sign: {
+    label: 'Sections',
+    links: [
+      { label: 'Work', target: 'work' },
+      { label: 'About', target: 'about' },
+      { label: 'Contact', target: 'contact' },
+    ],
+  },
 
   descent: {
     /** Opening photo: the view the visitor starts in. */
@@ -167,16 +175,6 @@ export const site = {
     leadEmphasis: 'clouds?',
     leadAfter: 'Let’s talk.',
     email: 'hello@yourdomain.com',
-  },
-
-  /** Section index (top right): a way past the descent. `target` is the section's id in index.html. */
-  index: {
-    label: 'Sections',
-    links: [
-      { label: 'About', target: 'about' },
-      { label: 'Work', target: 'work' },
-      { label: 'Contact', target: 'contact' },
-    ],
   },
 
   /** Small interface labels. */

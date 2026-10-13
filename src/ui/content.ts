@@ -51,7 +51,7 @@ export function renderContent() {
         row.setAttribute('aria-haspopup', 'dialog');
 
         const meta = document.createElement('span');
-        meta.className = 'work-meta mono';
+        meta.className = 'work-meta meta';
         meta.textContent = `${p.year} · ${p.kind}`;
 
         const desc = document.createElement('span');

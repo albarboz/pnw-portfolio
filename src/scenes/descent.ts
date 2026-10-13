@@ -107,6 +107,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     overlook.render({ dive: state.dive * m, pan: state.pan * m, x: pointer.x * m, y: pointer.y * m }, !still && state.landing >= 1);
 
     heroCopy.style.opacity = String(1 - state.heroOut);
+    heroCopy.style.visibility = state.heroOut >= 1 ? 'hidden' : ''; // faded out: the trail sign can't be clicked or tabbed to
     heroCopy.style.transform = `translate3d(0, ${state.heroY * m}px, 0)`;
     capFog.style.opacity = String(state.capFog);
     whiteout.style.opacity = String(state.whiteout);

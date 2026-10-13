@@ -100,7 +100,7 @@ export function createProjectDialog(lenis: Lenis | null): { destroy: () => void 
       [detail.tools, p.tools?.join(', ')],
     ];
     facts.replaceChildren(
-      ...rows.filter(([, value]) => value).flatMap(([label, value]) => [el('dt', label, 'mono'), el('dd', value!)]),
+      ...rows.filter(([, value]) => value).flatMap(([label, value]) => [el('dt', label), el('dd', value!)]),
     );
     facts.hidden = !facts.children.length;
 

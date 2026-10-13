@@ -125,7 +125,7 @@
 .hero-copy h1 {
   margin: 0;
   font-family: var(--display);
-  font-weight: 400;
+  font-weight: 700;
   font-size: clamp(56px, 11vw, 148px);
   line-height: 0.92;
   letter-spacing: -0.01em;
@@ -134,41 +134,84 @@
    in fog ink with a fog halo, like the fog caption (.cap-fog): 7–9:1 without shading the photo. */
 .hero-copy p {
   margin: 0;
-  max-width: 44ch;
+  max-width: 30ch; /* two balanced lines */
   font-size: clamp(16px, 1.6vw, 19px);
   font-weight: 500;
   text-wrap: balance;
   color: var(--fog-ink);
-  text-shadow: 0 0 10px var(--fog), 0 0 28px var(--fog);
-}
-.scroll-cue {
-  margin-top: 18px;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--sky-text);
-  /* it crosses from bright cloud onto the dark peaks, so it stays light; a halo that hugs the glyphs carries it
-     over the cloud */
+  /* a lighter halo than the fog caption's: just enough to lift the ink off the ridge */
   text-shadow:
-    0 0 1px var(--shadow-sky),
-    0 1px 4px var(--shadow-sky),
-    0 0 16px var(--shadow-sky);
+    0 0 8px color-mix(in srgb, var(--fog) 70%, transparent),
+    0 0 20px color-mix(in srgb, var(--fog) 35%, transparent);
 }
-.scroll-cue .drip {
-  width: 1px;
-  height: 46px;
-  background: linear-gradient(var(--sky-text-soft), transparent);
-  transform-origin: top;
-  animation: drip 2.4s ease-in-out infinite;
+/* Trail sign (src/ui/trail-sign.ts): one frosted board just under the tagline, listing the sections like a trail
+   junction sign lists destinations, with hairlines between them. The glass blurs the sky and ridge behind it and
+   is dark enough to carry light text on either. Lettered like a trail sign: small tracked capitals (the links
+   carry plain-case aria-labels). */
+.trail-sign {
+  margin-top: -2px; /* with the hero's 14px gap, ~12px under the tagline's last line */
+  pointer-events: auto; /* .hero-copy lets clicks through to the photo; the board takes them */
+  text-shadow: none;
 }
-@keyframes drip {
-  0% { transform: scaleY(0); opacity: 1; }
-  60% { transform: scaleY(1); opacity: 1; }
-  100% { transform: scaleY(1); opacity: 0; }
+.trail-sign ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  width: 164px;
+  overflow: hidden; /* the row highlights follow the rounded corners */
+  border: 1px solid color-mix(in srgb, var(--sky-text) 22%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--night) 52%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  backdrop-filter: blur(10px) saturate(1.15);
+  /* a faint lit top edge and a soft drop, so the glass stands off the photo */
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--sky-text) 12%, transparent),
+    0 10px 28px -14px var(--shadow-sky);
+}
+.trail-sign li + li {
+  border-top: 1px solid color-mix(in srgb, var(--sky-text) 14%, transparent);
+}
+.trail-sign a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 14px 11px 15px;
+  color: var(--sky-text);
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color 0.2s var(--ease-out);
+}
+.trail-sign a:focus-visible {
+  outline-offset: -3px; /* inside the board, which clips anything outside it */
+}
+.trail-sign svg {
+  width: 9px;
+  height: 9px;
+  fill: none;
+  stroke: var(--lichen);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .trail-sign a:hover {
+    background-color: color-mix(in srgb, var(--night) 40%, transparent);
+  }
+  .trail-sign a:hover svg {
+    transform: translateY(2px);
+  }
+}
+/* headings the trail sign lands on take focus from script; the scroll already shows where you are */
+h2[tabindex='-1']:focus {
+  outline: none;
 }
 
 .caption {
@@ -183,8 +226,8 @@
 .caption p {
   margin: 0;
   font-family: var(--display);
-  font-style: italic;
-  font-size: clamp(28px, 4vw, 46px);
+  font-weight: 600;
+  font-size: var(--size-title);
   line-height: 1.1;
   text-wrap: balance;
 }
@@ -260,11 +303,11 @@
 .label {
   color: var(--lichen);
 }
-/* Places along the descent (Old growth, Trailhead …) are named like labels on a trail map: serif italic,
+/* Places along the descent (Old growth, Trailhead …) are named like a trail sign: condensed, semibold,
    sentence case. */
 .place {
   font-family: var(--display);
-  font-style: italic;
+  font-weight: 600;
   font-size: 22px;
   line-height: 1;
 }
@@ -285,8 +328,8 @@
 .about h2 {
   margin: 0;
   font-family: var(--display);
-  font-weight: 400;
-  font-size: clamp(38px, 5.4vw, 66px);
+  font-weight: 700;
+  font-size: var(--size-section);
   line-height: 1.02;
 }
 .about .label {
@@ -312,9 +355,9 @@
 .sec-head h2 {
   margin: 0;
   font-family: var(--display);
-  font-weight: 400;
-  font-size: clamp(40px, 6vw, 72px);
-  line-height: 1;
+  font-weight: 700;
+  font-size: var(--size-section);
+  line-height: 1.02;
 }
 
 /* Soft hand-offs: each section starts in the previous one's color and fades into its own over --blend,
@@ -378,14 +421,13 @@
 }
 .work-title {
   font-family: var(--display);
-  font-size: clamp(30px, 4.2vw, 50px);
+  font-weight: 700;
+  font-size: var(--size-title);
   line-height: 1.05;
   min-width: 0;
 }
 .work-meta {
-  color: var(--muted);
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
 }
 .work-desc {
   grid-column: 1 / -1;
@@ -399,10 +441,11 @@
   padding: 2px 8px;
   border: 1px solid var(--rule);
   border-radius: 999px;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-family: var(--body);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
   color: var(--muted);
   vertical-align: middle;
 }
@@ -412,13 +455,18 @@
 }
 .contact .lead {
   margin: 40px 0 0;
-  max-width: 14ch;
   font-family: var(--display);
-  font-size: clamp(38px, 6.5vw, 84px);
-  line-height: 1;
+  font-weight: 700;
+  font-size: var(--size-title);
+  line-height: 1.05;
   text-wrap: balance;
 }
+/* the answer on its own line, so a balanced wrap never splits the question */
+.contact .lead > span:last-of-type {
+  display: block;
+}
 .contact .lead em {
+  font-style: normal; /* the emphasis is the lichen */
   color: var(--lichen);
 }
 .email-row {
@@ -429,21 +477,21 @@
   gap: 14px;
 }
 .email {
-  font-family: var(--mono);
-  font-size: clamp(16px, 2.2vw, 22px);
+  font-size: clamp(18px, 2vw, 22px);
+  font-weight: 500;
   user-select: all;
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 .btn {
-  padding: 10px 16px;
+  padding: 10px 18px;
   border: 0;
   border-radius: 999px;
   background: var(--lichen);
   color: var(--night);
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
   transition: background-color 0.15s ease, transform 0.16s var(--ease-out);
 }
 /* press feedback: a slight give, on touch too (:active doesn't stick like :hover) */
@@ -464,7 +512,7 @@
   justify-content: space-between;
   gap: 10px 24px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 /* ===================== project detail dialog ===================== */
@@ -521,12 +569,13 @@ html:has(.project-dialog[open]) {
 }
 .pd-head {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: flex-end;
 }
 .pd-close {
-  padding: 8px 14px;
+  padding: 8px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.6;
   border: 1px solid var(--rule);
   border-radius: 999px;
   background: none;
@@ -543,12 +592,15 @@ html:has(.project-dialog[open]) {
   }
 }
 .pd-title {
-  margin: 26px 0 0;
+  margin: 18px 0 0;
   font-family: var(--display);
-  font-weight: 400;
-  font-size: clamp(40px, 6vw, 68px);
+  font-weight: 700;
+  font-size: var(--size-section);
   line-height: 1.02;
   overflow-wrap: break-word;
+}
+.pd-meta {
+  margin: 12px 0 0;
 }
 .pd-image {
   margin-top: 28px;
@@ -576,6 +628,8 @@ html:has(.project-dialog[open]) {
 }
 .pd-facts dt {
   color: var(--lichen);
+  font-size: 14px;
+  font-weight: 500;
 }
 .pd-facts dd {
   margin: 0;
@@ -590,56 +644,6 @@ html:has(.project-dialog[open]) {
 .pd-links .btn {
   text-decoration: none;
 }
-/* ===================== section index ===================== */
-/* A glass pill in the top right corner; section names in the place voice, the one on screen in lichen */
-.index {
-  position: fixed;
-  z-index: 20;
-  top: calc(16px + env(safe-area-inset-top, 0px));
-  right: 16px;
-  display: flex;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: var(--glass);
-  /* a hairline edge: over the dark sections the glass matches the page, and text passing under looked cut off */
-  box-shadow: inset 0 0 0 1px var(--rule);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-.index a {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  height: 34px;
-  padding: 0 9px;
-  border-radius: 999px;
-  font-family: var(--display);
-  font-style: italic;
-  font-size: 17px;
-  line-height: 1;
-  color: var(--text);
-  text-decoration: none;
-  transition: color 0.2s var(--ease-out);
-}
-/* a taller hit area than the pill shows, for thumbs */
-.index a::after {
-  content: '';
-  position: absolute;
-  inset: -5px 0;
-}
-.index a[aria-current] {
-  color: var(--lichen);
-}
-@media (hover: hover) and (pointer: fine) {
-  .index a:hover {
-    color: var(--lichen-hover);
-  }
-}
-/* headings the index lands on take focus from script; the scroll already shows where you are */
-h2[tabindex='-1']:focus {
-  outline: none;
-}
-
 /* ===================== responsive & motion ===================== */
 @media (max-width: 720px) {
   .about-grid {
@@ -653,13 +657,13 @@ h2[tabindex='-1']:focus {
   .work-meta {
     white-space: normal;
   }
-  .index {
-    right: 12px;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .scroll-cue .drip {
-    animation: none;
+  .trail-sign svg {
+    transition: none;
+  }
+  .trail-sign a:hover svg {
+    transform: none;
   }
   .work-row::before,
   .work-row .work-title,

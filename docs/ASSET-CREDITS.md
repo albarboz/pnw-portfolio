@@ -12,9 +12,7 @@ Every image, video, sound and font in `public/` needs a row here before launch.
 | `public/images/valley-far-depth.webp`, `valley-mid-depth.webp` | Depth maps of the far and mid cutouts for the 3D overlook, made with `tools/layer-depth.py` (Depth Anything 3, `DA3MONO-LARGE`) | Site owner (derived) | Same as `valley.webp`; DA3MONO-LARGE is Apache-2.0 and its output carries no extra terms | OK |
 | `public/images/valley-far-detail.webp` | The middle of `valley-far.webp` at twice the size (2330×2044), for the end of the dive, made with `tools/detail-patch.py`: Real-ESRGAN x4plus on the original `aerielmid.png` where the far layer still shows it, tones matched to the far layer | Site owner (derived) | Same as `valley.webp`; Real-ESRGAN is BSD-3-Clause and its output carries no extra terms | OK |
 | `public/favicon.svg` | Drawn for this site (fir on `--night`) | Site owner | Original | OK |
-| `public/fonts/instrument-serif-*.woff2` | Instrument Serif, Latin and Latin Extended subsets as served by Google Fonts | The Instrument Serif Project Authors | SIL Open Font License 1.1 (`public/fonts/OFL-instrument-serif.txt`) | OK |
-| `public/fonts/hanken-grotesk-*.woff2` | Hanken Grotesk (variable), same subsets | The Hanken Grotesk Project Authors | SIL Open Font License 1.1 (`public/fonts/OFL-hanken-grotesk.txt`) | OK |
-| `public/fonts/jetbrains-mono-*.woff2` | JetBrains Mono (variable), same subsets | The JetBrains Mono Project Authors | SIL Open Font License 1.1 (`public/fonts/OFL-jetbrains-mono.txt`) | OK |
+| `public/fonts/barlow-*.woff2`, `barlow-condensed-*.woff2` | Barlow and Barlow Condensed, static weights (Barlow 400/500/600, Condensed 600/700), Latin and Latin Extended subsets as served by Google Fonts | The Barlow Project Authors | SIL Open Font License 1.1 (`public/fonts/OFL-barlow.txt`) | OK |
 
 Both images were generated on a paid Midjourney plan, which allows commercial use. Per Midjourney's terms, a company with more than $1M a year in gross revenue needs the Pro or Mega plan; re-check the current terms if that changes. The originals carry the IPTC `trainedAlgorithmicMedia` tag, which marks them as AI-generated.
 
