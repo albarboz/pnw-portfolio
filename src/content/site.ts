@@ -107,13 +107,13 @@ export const site = {
     /** Point the landing photo pushes in toward, in CSS percentages. Currently: the runner. */
     landingFocus: { x: 48, y: 58 },
 
-    fogCaption: { text: 'lets hit the trail' },
-    landingCaption: { text: 'Keep pace.' },
+    fogCaption: { text: 'swoosh' },
+    landingCaption: { text: 'keep your pace' },
   },
 
   about: {
     label: 'About',
-    heading: 'I make things that feel like weather.',
+    heading: 'I like making things.',
     paragraphs: [
       'Interfaces with atmosphere: quiet, layered, and paced like a run through old growth on a grey morning.',
       'I care about craft, calm motion, and pages that reward the second look. Replace this with your own story.',
