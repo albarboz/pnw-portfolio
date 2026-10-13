@@ -1,3 +1,8 @@
+import { tuning } from '../core/tuning';
+import { cssRgb } from '../core/tokens';
+import { linkProgram } from './gl-program';
+import { LightShafts, SHAFT_UNIT } from './light-shafts';
+
 /** Where the camera sits. 1 / 0 / 0 / 0 draws the photo exactly as its <img> would. */
 export interface DepthCamera {
   /** Zoom of the whole frame around the <img>'s transform-origin. */
@@ -24,13 +29,17 @@ void main() {
 
 // For each screen point, find the photo point that lands on it. Its depth decides how far it moved,
 // so iterate: guess, read the depth there, re-solve. Damped, so it settles at silhouettes instead of flickering.
+// Then screen in the baked sun shafts (src/effects/light-shafts.ts): they hang in the air in front of the scene,
+// so they show fully over the far trees and only faintly on the near ferns.
 const FRAG = `
 precision highp float;
 varying vec2 vUv;
 uniform sampler2D uColor;
 uniform sampler2D uDepth;
+uniform sampler2D uShafts;
 uniform vec2 uScale, uOffset, uOrigin, uShift;
-uniform float uZoom, uDolly, uFocus;
+uniform float uZoom, uDolly, uFocus, uShaftStrength;
+uniform vec3 uShaftTint;
 vec2 photo(vec2 s) { return uOffset + s * uScale; }
 void main() {
   vec2 s = vUv;
@@ -39,7 +48,12 @@ void main() {
     s = uOrigin + (vUv - uOrigin - uShift * (d - uFocus)) / (uZoom * (1.0 + uDolly * d));
     d = mix(d, texture2D(uDepth, photo(s)).r, 0.6);
   }
-  gl_FragColor = vec4(texture2D(uColor, clamp(photo(s), 0.0, 1.0)).rgb, 1.0);
+  vec2 p = clamp(photo(s), 0.0, 1.0);
+  vec3 col = texture2D(uColor, p).rgb;
+  float shaft = texture2D(uShafts, p).r * uShaftStrength * (1.0 - 0.7 * d);
+  // a little noise, so the soft 8-bit shafts don't band on the dark trees
+  shaft += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0 * step(0.002, shaft);
+  gl_FragColor = vec4(1.0 - (1.0 - col) * (1.0 - clamp(shaft, 0.0, 1.0) * uShaftTint), 1.0);
 }`;
 
 /**
@@ -51,6 +65,8 @@ void main() {
  */
 export class DepthPhoto {
   private gl: WebGLRenderingContext | null;
+  private prog: WebGLProgram | null = null;
+  private shafts: LightShafts | null = null;
   private u: Record<string, WebGLUniformLocation | null> = {};
   private texSize = { w: 1, h: 1 };
   private view = { vw: 0, vh: 0 };
@@ -81,9 +97,12 @@ export class DepthPhoto {
   draw(cam: DepthCamera) {
     const gl = this.gl;
     if (!gl || !this.active) return;
-    const key = `${cam.zoom}|${cam.dolly}|${cam.x}|${cam.y}`;
+    const sh = tuning.shafts;
+    if (this.bakeShafts()) this.last = '';
+    const key = `${cam.zoom}|${cam.dolly}|${cam.x}|${cam.y}|${sh.strength}`;
     if (key === this.last) return;
     this.last = key;
+    gl.uniform1f(this.u.uShaftStrength, sh.strength);
     gl.uniform2f(this.u.uShift, cam.x / this.view.vw, cam.y / this.view.vh);
     gl.uniform1f(this.u.uZoom, cam.zoom);
     gl.uniform1f(this.u.uDolly, cam.dolly);
@@ -99,26 +118,19 @@ export class DepthPhoto {
   }
 
   private init(gl: WebGLRenderingContext) {
-    const shader = (type: number, src: string) => {
-      const s = gl.createShader(type)!;
-      gl.shaderSource(s, src);
-      gl.compileShader(s);
-      return s;
-    };
-    const prog = gl.createProgram()!;
-    gl.attachShader(prog, shader(gl.VERTEX_SHADER, VERT));
-    gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FRAG));
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return false;
-    gl.useProgram(prog);
+    const prog = linkProgram(gl, VERT, FRAG);
+    if (!prog) return false;
+    this.prog = prog;
 
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW); // one full-screen triangle
-    const aPos = gl.getAttribLocation(prog, 'aPos');
-    gl.enableVertexAttribArray(aPos);
-    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(0); // aPos, in both this program and the shafts bake
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    this.shafts = LightShafts.create(gl); // optional: without it the photo just has no shafts
 
-    for (const name of ['uColor', 'uDepth', 'uScale', 'uOffset', 'uOrigin', 'uShift', 'uZoom', 'uDolly', 'uFocus']) {
+    gl.useProgram(prog);
+    const uniforms = ['uColor', 'uDepth', 'uScale', 'uOffset', 'uOrigin', 'uShift', 'uZoom', 'uDolly', 'uFocus'];
+    for (const name of [...uniforms, 'uShafts', 'uShaftStrength', 'uShaftTint']) {
       this.u[name] = gl.getUniformLocation(prog, name);
     }
     [0, 1].forEach((unit) => {
@@ -131,6 +143,19 @@ export class DepthPhoto {
     });
     gl.uniform1i(this.u.uColor, 0);
     gl.uniform1i(this.u.uDepth, 1);
+    gl.uniform1i(this.u.uShafts, SHAFT_UNIT);
+    gl.uniform3fv(this.u.uShaftTint, cssRgb('--light-shaft').map((c) => c / 255));
+    return true;
+  }
+
+  /** Bake the sun shafts if their settings changed. Returns true if it did (the frame needs a redraw). */
+  private bakeShafts() {
+    const gl = this.gl;
+    const { w, h } = this.texSize;
+    if (!gl || !this.shafts || !this.prog || w <= 1) return false;
+    if (!this.shafts.bake(w, h, tuning.shafts)) return false;
+    gl.useProgram(this.prog);
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     return true;
   }
 
@@ -152,6 +177,7 @@ export class DepthPhoto {
     });
     this.texSize = { w: this.img.naturalWidth, h: this.img.naturalHeight };
     this.fitCanvas();
+    this.bakeShafts(); // now, not on the first frame the trail shows
     this.setActive(true);
   }
 

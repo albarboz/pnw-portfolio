@@ -44,6 +44,24 @@ export const tuning = {
     smooth: 0.04,
   },
 
+  /**
+   * Sun shafts in the trail photo (src/effects/light-shafts.ts), falling from the bright gap in the canopy.
+   * Baked once per setting, so moving these sliders costs one redraw, not a per-frame cost.
+   */
+  shafts: {
+    /** Brightness. 0 = off. */
+    strength: 0.4,
+    /** Where the light comes from, as a fraction of the photo (0, 0 = top left; y < 0 = above the frame). */
+    x: 0.75,
+    y: -0.25,
+    /** How far each shaft reaches back toward the light: 1 = all the way. Shorter = shorter, crisper streaks. */
+    length: 1,
+    /** How bright a far pixel must be to let light through (0–1). Lower = more gaps glow. */
+    threshold: 0.3,
+    /** How wide the light is, as a fraction of the photo. Wider = beams that feather out as they fall. 0 = sharp. */
+    softness: 0.2,
+  },
+
   /** Distance of each overlook cutout from the camera's start (far = 1). Smaller = the camera passes it sooner. */
   dolly: {
     /** The tall fir and the slope below the overlook. */

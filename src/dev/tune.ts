@@ -46,18 +46,27 @@ export function createTunePanel() {
   p3.addBinding(tuning.photo3d, 'sway', { label: 'pointer sway', min: 0, max: 0.01, step: 0.0005 });
   p3.addBinding(tuning.photo3d, 'smooth', { label: 'depth smoothing', min: 0, max: 0.05, step: 0.001 });
 
+  const sh = pane.addFolder({ title: 'Trail light shafts' });
+  sh.addBinding(tuning.shafts, 'strength', { min: 0, max: 1, step: 0.01 });
+  sh.addBinding(tuning.shafts, 'x', { label: 'light x', min: 0, max: 1, step: 0.01 });
+  sh.addBinding(tuning.shafts, 'y', { label: 'light y', min: -0.5, max: 0.5, step: 0.01 });
+  sh.addBinding(tuning.shafts, 'length', { min: 0.1, max: 1, step: 0.01 });
+  sh.addBinding(tuning.shafts, 'threshold', { label: 'gap brightness', min: 0, max: 0.6, step: 0.01 });
+  sh.addBinding(tuning.shafts, 'softness', { min: 0, max: 0.6, step: 0.01 });
+
   // For scripts and the console: window.tuning is the live object the scenes read.
   (window as unknown as { tuning: typeof tuning }).tuning = tuning;
 
   pane.addButton({ title: 'Copy values' }).on('click', () => {
     const r = (n: number) => Math.round(n * 1000) / 1000;
-    const { fog: f, dolly: d, photo3d: s } = tuning;
+    const { fog: f, dolly: d, photo3d: s, shafts: l } = tuning;
     const text = [
       '// src/core/tuning.ts',
       `scroll: ${r(tuning.scroll)},`,
       `fog: { strength: ${r(f.strength)}, haze: ${r(f.haze)}, banks: ${r(f.banks)}, near: ${r(f.near)} },`,
       `dolly: { mid: ${r(d.mid)}, near: ${r(d.near)} },`,
       `photo3d: { show: ${s.show}, sky: ${r(s.sky)}, fly: ${r(s.fly)}, fov: ${r(s.fov)}, sway: ${r(s.sway)}, near: ${r(s.near)}, smooth: ${r(s.smooth)} },`,
+      `shafts: { strength: ${r(l.strength)}, x: ${r(l.x)}, y: ${r(l.y)}, length: ${r(l.length)}, threshold: ${r(l.threshold)}, softness: ${r(l.softness)} },`,
       '// src/content/site.ts',
       `diveZoom: ${r(site.descent.diveZoom)},`,
     ].join('\n');

@@ -44,7 +44,7 @@ Researched 2026-10-13. Ordered by how much a visitor would notice. Each new depe
 **Atmosphere**
 
 - [ ] Fog that parts around the cursor: a small low-resolution velocity field (advect + splat, 64×64) that `fog3d.ts` samples, after [WebGL-Fluid-Simulation](https://github.com/PavelDoGreat/WebGL-Fluid-Simulation) (MIT; study and port the few passes, don't vendor it). Mouse only, like `src/core/pointer.ts`; off with reduced motion
-- [ ] Light shafts in the trail photo: a radial blur from the bright gap in the canopy, masked by `trail-depth.webp`, inside `depth-photo.ts`. Written in house: [three-good-godrays](https://github.com/ameobea/three-good-godrays) needs shadow-casting 3D geometry, which a photo doesn't have
+- [x] Light shafts in the trail photo: a radial blur toward a light above the top right, fed only by pixels that are bright and far (`trail-depth.webp`), baked once into a quarter-size texture (`src/effects/light-shafts.ts`) and screened in by `depth-photo.ts`, faint on the near ferns. No per-frame cost; knobs in `tuning.shafts`. Written in house: [three-good-godrays](https://github.com/ameobea/three-good-godrays) needs shadow-casting 3D geometry, which a photo doesn't have
 - [ ] Fine film grain and one color grade shared by the fog shader, trail shader and relief meshes, so the three WebGL layers read as one camera. Written in house (about 20 lines); `postprocessing` would need everything in one three.js scene
 - [ ] Optional: [SunCalc](https://github.com/mourner/suncalc) (BSD-2) for the visitor's time of day. Only as a subtle shift in fog tint, never a darker hero
 

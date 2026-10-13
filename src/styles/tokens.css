@@ -24,6 +24,8 @@
   /* Canvas fog tints (hex only: read by cssRgb() in src/core/tokens.ts) */
   --fog-high: #e2e7e9;
   --fog-low: #cdd7d0;
+  /* Sun shafts in the trail photo (src/effects/light-shafts.ts): pale, faintly warm light through the mist */
+  --light-shaft: #e8e8d9;
 
   --display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
   --body: 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
