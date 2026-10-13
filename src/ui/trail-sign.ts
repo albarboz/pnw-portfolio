@@ -1,8 +1,10 @@
 import type Lenis from 'lenis';
 import { clamp } from '../core/math';
+import { tuning } from '../core/tuning';
 import { site } from '../content/site';
 
-const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+// sine in-out: eases away from the hero and settles at the section without a hard push in the middle
+const easeInOut = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
 const ARROW = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.5v9M2.5 7 6 10.5 9.5 7"/></svg>';
 
 /**
@@ -28,10 +30,11 @@ export function createTrailSign(lenis: Lenis | null): { destroy: () => void } {
       land(section);
       return;
     }
-    // longer trips take a little longer, so the dive still reads as a dive
+    // longer trips take longer, so the dive plays at a pace you can watch
     const screens = Math.abs(section.getBoundingClientRect().top) / innerHeight;
+    const { base, perScreen, max } = tuning.sign;
     lenis.scrollTo(section, {
-      duration: clamp(0.8 + screens * 0.25, 0.8, 1.8),
+      duration: clamp(base + screens * perScreen, base, max),
       easing: easeInOut,
       onComplete: () => land(section),
     });

@@ -33,6 +33,11 @@ export function createTunePanel() {
   // ≤ 3: the 1792 px overlook gets soft beyond that (CLAUDE.md)
   dive.addBinding(site.descent, 'diveZoom', { label: 'zoom', min: 1.5, max: 3, step: 0.05 });
 
+  const sign = pane.addFolder({ title: 'Trail sign trip (seconds)' });
+  sign.addBinding(tuning.sign, 'base', { min: 0.4, max: 2, step: 0.05 });
+  sign.addBinding(tuning.sign, 'perScreen', { label: 'per screen', min: 0, max: 1.2, step: 0.05 });
+  sign.addBinding(tuning.sign, 'max', { min: 1, max: 6, step: 0.1 });
+
   const depth = pane.addFolder({ title: 'Dolly depth (far = 1)' });
   depth.addBinding(tuning.dolly, 'mid', { label: 'fir & slope', min: 0.3, max: 1, step: 0.01 });
   depth.addBinding(tuning.dolly, 'near', { label: 'edge branches', min: 0.2, max: 1, step: 0.01 });
@@ -63,7 +68,7 @@ export function createTunePanel() {
 
   pane.addButton({ title: 'Copy values' }).on('click', () => {
     const r = (n: number) => Math.round(n * 1000) / 1000;
-    const { fog: f, dolly: d, photo3d: s, shafts: l, grain: g } = tuning;
+    const { fog: f, dolly: d, photo3d: s, shafts: l, grain: g, sign: t } = tuning;
     const text = [
       '// src/core/tuning.ts',
       `scroll: ${r(tuning.scroll)},`,
@@ -72,6 +77,7 @@ export function createTunePanel() {
       `photo3d: { show: ${s.show}, sky: ${r(s.sky)}, fly: ${r(s.fly)}, fov: ${r(s.fov)}, sway: ${r(s.sway)}, near: ${r(s.near)}, smooth: ${r(s.smooth)} },`,
       `shafts: { strength: ${r(l.strength)}, x: ${r(l.x)}, y: ${r(l.y)}, length: ${r(l.length)}, threshold: ${r(l.threshold)}, softness: ${r(l.softness)} },`,
       `grain: { amount: ${r(g.amount)}, size: ${r(g.size)} },`,
+      `sign: { base: ${r(t.base)}, perScreen: ${r(t.perScreen)}, max: ${r(t.max)} },`,
       '// src/content/site.ts',
       `diveZoom: ${r(site.descent.diveZoom)},`,
     ].join('\n');

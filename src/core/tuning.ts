@@ -70,6 +70,16 @@ export const tuning = {
     size: 1,
   },
 
+  /**
+   * The trail sign's trip to a section (src/ui/trail-sign.ts): the dive plays on the way down, so a long trip
+   * takes long enough to watch. Seconds = base + perScreen × screens travelled, capped at max.
+   */
+  sign: {
+    base: 1.1,
+    perScreen: 0.55,
+    max: 3.4,
+  },
+
   /** Distance of each overlook cutout from the camera's start (far = 1). Smaller = the camera passes it sooner. */
   dolly: {
     /** The tall fir and the slope below the overlook. */
