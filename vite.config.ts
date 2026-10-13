@@ -29,6 +29,12 @@ function siteMeta(): Plugin {
       meta('property', 'og:image:height', image.height),
       meta('property', 'og:image:alt', image.alt),
       meta('name', 'twitter:card', 'summary_large_image'),
+      // The overlook's src is set by JS, so without this the photo would wait for the script before it starts loading.
+      {
+        tag: 'link',
+        attrs: { rel: 'preload', as: 'image', href: site.descent.overlook.src.replace(/^\//, '') },
+        injectTo: 'head',
+      },
     ],
     generateBundle() {
       this.emitFile({

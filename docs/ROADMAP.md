@@ -36,8 +36,8 @@ Researched 2026-10-13. Ordered by how much a visitor would notice. Each new depe
 
 **Loading on phones** (the hero photo arrives about 4.5 s after load on a throttled phone)
 
-- [ ] Instant placeholder for the overlook: a [ThumbHash](https://github.com/evanw/thumbhash) (MIT), or simply a 24 px WebP, made at build time as a data URL in `site.ts`, so the valley shows at first paint instead of an empty frame. No runtime dependency
-- [ ] AVIF versions of the photos, made by the existing Python tools (Pillow ≥ 11.2 writes AVIF) with WebP fallback via `<picture>`. Measure before switching: aim for about 30 % fewer bytes at the same look
+- [x] Instant placeholder for the overlook: a 32 px WebP data URL (`tools/placeholder.py` → `placeholder` in `site.ts`, ~590 chars), stretched behind the photo until it loads. Plus a `<link rel=preload>` for the overlook (written by `siteMeta()`), since its src is set by JS: on a throttled phone the photo now starts at 0.6 s instead of 2.1 s and arrives 0.8 s sooner (Speed Index 5.8 → 4.1 s), for ~0.14 s later first text. `fetchpriority=high` on the preload measured no better
+- ~~AVIF versions of the photos~~ measured 2026-10-13 and dropped: at the same fidelity AVIF is no smaller than WebP for these grainy photos (overlook: AVIF q60 343 KB vs WebP q75 327 KB at matched error), and the smaller settings make the photo → cutouts swap visible
 - [ ] Quality tiers with [`@pmndrs/detect-gpu`](https://github.com/pmndrs/detect-gpu) (MIT): weak GPUs keep the flat cutouts and get a lower-resolution shader fog; tier 0 keeps the canvas fog. Self-host its benchmark data (it loads it from unpkg by default). Its data source stopped updating in Dec 2025, so new GPUs fall back to its estimate
 - [ ] Optional: [fontaine](https://github.com/unjs/fontaine) (MIT, dev only) for metric-matched fallback fonts, only if layout shift shows up once the site is deployed
 

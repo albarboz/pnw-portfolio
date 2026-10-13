@@ -4,7 +4,7 @@ import { afterHero } from '../core/after-hero';
 /**
  * Fills the page from src/content/site.ts.
  *   data-text="about.heading"   → textContent
- *   data-img="descent.overlook" → src, alt, width, height (src after the hero has loaded if data-defer)
+ *   data-img="descent.overlook" → src, alt, width, height, placeholder (src after the hero has loaded if data-defer)
  *   [data-projects]             → project rows (buttons that open the detail view)
  */
 export function renderContent() {
@@ -18,7 +18,7 @@ export function renderContent() {
 
   document.querySelectorAll<HTMLImageElement>('[data-img]').forEach((img) => {
     const asset = get(img.dataset.img!) as
-      | { src: string; alt: string; width: number; height: number }
+      | { src: string; alt: string; width: number; height: number; placeholder?: string }
       | undefined;
     if (!asset) return;
     // data-defer: a photo that isn't on screen yet waits until the hero has loaded
@@ -27,6 +27,8 @@ export function renderContent() {
     img.alt = asset.alt;
     img.width = asset.width;
     img.height = asset.height;
+    // a tiny blurred copy, stretched over the image box until the photo paints over it
+    if (asset.placeholder) img.style.backgroundImage = `url("${asset.placeholder}")`;
   });
 
   const about = document.querySelector('[data-about-body]');

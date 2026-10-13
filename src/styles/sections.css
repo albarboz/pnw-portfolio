@@ -11,6 +11,8 @@
   top: 0;
   left: 0;
   max-width: none;
+  /* the placeholder (site.ts), stretched to the image box until the photo arrives */
+  background-size: 100% 100%;
   will-change: transform;
   user-select: none;
 }

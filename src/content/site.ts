@@ -29,6 +29,8 @@ export interface PhotoAsset {
   layers?: { far: string; mid: string; near: string };
   /** Optional depth maps of the far and mid cutouts (tools/layer-depth.py), to fly through them in 3D. Credit them with the photo. */
   layerDepth?: { far: string; mid: string };
+  /** Optional tiny blurred copy (tools/placeholder.py), shown until the photo has loaded. Re-make it when the photo changes. */
+  placeholder?: string;
 }
 
 /**
@@ -75,6 +77,8 @@ export const site = {
       alt: 'Fir trees frame a deep mountain valley, with a river of fog winding below jagged blue peaks.',
       width: 1792,
       height: 2688,
+      placeholder:
+        'data:image/webp;base64,UklGRp4BAABXRUJQVlA4IJIBAACQCACdASogADAAPmksj0WkIqEYBVRABoSxgE6ZjZYQ7nbqsbPngVS++cOmJly+uc7m1/vDQXpyM0qy1zasevTgMTJ7Wt+qLKNSTBjsAAD99pQJOkCy8pSSl1Ahbcf47uS73vZxx2j+H3whihGYcH1pGWzsPcoFdIDWhrDZH6WqNkLgmHI48Uj+fIfdtcHAAOOjPsa6b4W+dkLH3/xZn2+FH0to5mczMoDCMxJ1APaw0H7Hc+fbEqAivjZNIZTW/pV/SCtShxtk18fk+kbI1zcKdUhjefRVtxcMVxdTQGUnUzUj6hho6CTTK691bTlT8p9vIMvKzCQWlubiNWLsP9EjF21eqgejZZGZjqj5bamyVCOIAg11KVfiW6Q8l6X9C70Qpo7Z6UhadM0nuWu7cKEYH2ziAqI7VI+vn8s8AVKGTThlSkLqYnaXHm+Sf1SBDQCumRzbINvKjCJQ7R9ovMsd5GpAh0mhvMYt2QNjEi/KgTUrVtZG9UbnchKI3sJOpM0lmSL5pEW7WC9Y38s3FwAAAAA=',
     } satisfies PhotoAsset,
     /** Where the camera dives, as a fraction of the opening photo (0–1). Currently: the fog pool in the valley. */
     diveTarget: { x: 0.51, y: 0.49 },
