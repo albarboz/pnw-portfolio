@@ -56,8 +56,8 @@ export const site = {
   },
 
   name: { first: 'Alan', last: 'Barboza' },
-  tagline: 'Design and development from the wet side of the mountains.',
-  scrollCue: 'Scroll to descend',
+  tagline: 'Design and development from the west side of the pnw.',
+  scrollCue: 'scroll',
 
   descent: {
     /** Opening photo: the view the visitor starts in. */
@@ -94,8 +94,8 @@ export const site = {
     /** Point the landing photo pushes in toward, in CSS percentages. Currently: the runner. */
     landingFocus: { x: 48, y: 58 },
 
-    fogCaption: { text: 'Below the fog, the trail is already wet.' },
-    landingCaption: { text: 'Keep pace. The work is just ahead.' },
+    fogCaption: { text: 'lets hit the trail' },
+    landingCaption: { text: 'Keep pace.' },
   },
 
   about: {
