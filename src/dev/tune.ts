@@ -21,7 +21,7 @@ export function createTunePanel() {
   };
 
   const fog = pane.addFolder({ title: 'Fog' });
-  fog.addBinding(tuning.fog, 'strength', { min: 0.3, max: 3, step: 0.05 });
+  fog.addBinding(tuning.fog, 'strength', { min: 0.2, max: .80, step: 0.05 });
   fog.addBinding(tuning.fog, 'haze', { min: 0, max: 0.4, step: 0.01 });
   fog.addBinding(tuning.fog, 'banks', { label: 'clear patches', min: 0, max: 1, step: 0.01 });
   fog.addBinding(tuning.fog, 'near', { label: 'bottom fade', min: 0, max: 1, step: 0.01 });
