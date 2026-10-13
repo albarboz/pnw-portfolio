@@ -37,6 +37,10 @@
   -webkit-mask-image: var(--fade);
   mask-image: var(--fade);
 }
+/* Fades in from src/effects/overlook.ts once the 3D layers have loaded. */
+.stage canvas[data-layer='overlook-3d'] {
+  opacity: 0;
+}
 .whiteout {
   position: absolute;
   inset: 0;

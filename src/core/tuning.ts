@@ -20,6 +20,25 @@ export const tuning = {
     near: 0.45,
   },
 
+  /** The overlook in 3D: the far and mid cutouts pushed back by their depth maps (src/effects/depth-layers.ts). */
+  photo3d: {
+    /** Off = keep the flat cutouts, to compare. Switches only while the camera is at rest. */
+    show: true,
+    /** How far away the sky and the last ridges stand, × the distance to the dive target. More = a deeper valley. */
+    sky: 1.5,
+    /**
+     * How much of the dive is the camera flying in (the rest is the lens zooming). More = the trees rush past
+     * sooner. The total magnification stays `diveZoom` in src/content/site.ts.
+     */
+    fly: 0.25,
+    /** Vertical field of view of the photo, in degrees. Wider = stronger perspective as the camera moves. */
+    fov: 55,
+    /** How far the camera sways with the pointer, × the distance to the dive target. */
+    sway: 0.001,
+    /** Distance of the near branches (a flat card above the fog), × the distance to the dive target. */
+    near: 0.12,
+  },
+
   /** Distance of each overlook cutout from the camera's start (far = 1). Smaller = the camera passes it sooner. */
   dolly: {
     /** The tall fir and the slope below the overlook. */

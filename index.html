@@ -23,6 +23,8 @@
           <!-- Layered overlook: far and mid sit behind the fog, near in front of it. Filled in by descent.ts. -->
           <img class="overlook" data-overlook-part="far" alt="" hidden />
           <img class="overlook" data-overlook-part="mid" alt="" hidden />
+          <!-- Far and mid in 3D (relief meshes from their depth maps), taking over from the flat cutouts at rest: src/effects/overlook.ts -->
+          <canvas data-layer="overlook-3d" aria-hidden="true"></canvas>
           <div class="overlook-veil" aria-hidden="true"></div>
           <canvas data-fog="high" aria-hidden="true"></canvas>
           <img class="overlook" data-overlook-part="near" alt="" hidden />

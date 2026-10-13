@@ -27,6 +27,8 @@ export interface PhotoAsset {
   depth?: string;
   /** Optional far / mid / near cutouts (tools/hero-layers.py) for layered parallax. Credit them with the photo. */
   layers?: { far: string; mid: string; near: string };
+  /** Optional depth maps of the far and mid cutouts (tools/layer-depth.py), to fly through them in 3D. Credit them with the photo. */
+  layerDepth?: { far: string; mid: string };
 }
 
 /** Path to a file in public/, relative to the site root (works in dev, build and sub-folder hosting). */
@@ -45,6 +47,10 @@ export const site = {
         far: asset('images/valley-far.webp'),
         mid: asset('images/valley-mid.webp'),
         near: asset('images/valley-near.webp'),
+      },
+      layerDepth: {
+        far: asset('images/valley-far-depth.webp'),
+        mid: asset('images/valley-mid-depth.webp'),
       },
       alt: 'Fir trees frame a deep mountain valley, with a river of fog winding below jagged blue peaks.',
       width: 1792,
