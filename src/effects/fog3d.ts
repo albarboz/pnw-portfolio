@@ -67,14 +67,19 @@ void main() {
     p.x += uTime * (0.012 + 0.006 * fi) * (mod(fi, 2.0) < 0.5 ? 1.0 : -1.0);
     vec3 q = vec3(p * vec2(1.3, 2.9), seed + uTime * 0.04); // stretched flat, like valley fog
     q.xy += 0.6 * vec2(noise(q * 0.7 + 4.0), noise(q * 0.7 + 9.0)) - 0.3; // a little warp makes wisps
-    float s = 0.15 + 0.85 * smoothstep(0.3, 0.75, fbm(q)); // thin haze everywhere, thicker wisps
+    float s = 0.04 + 0.96 * smoothstep(0.34, 0.78, fbm(q)); // a breath of haze, then wisps with clear air between
     float w = sin(3.14159265 * phase);
     thick += s * w * w / 1.5;
   }
-  // Over the overlook the fog lies low in the valley; as we fly into it, it fills the frame.
-  float band = smoothstep(uYMin - 0.15, uYMin + 0.3, vUv.y);
-  thick *= mix(band, 1.0, smoothstep(0.0, 1.0, uRush));
-  float a = 1.0 - exp(-thick * pow(uDensity, 0.7) * 1.6);
+  // Real mist drifts in banks: a slow, large pattern thins it to a third in places so it never reads as a flat veil.
+  float bank = smoothstep(0.3, 0.75, noise(vec3(c * vec2(0.8, 1.7) + vec2(uTime * 0.008, 0.0), uSeed + 50.0 + uTime * 0.015)));
+  // Less air between you and the nearest trees: the fog thins toward the bottom of the frame.
+  float near = smoothstep(0.62, 1.0, vUv.y);
+  // Over the overlook the fog lies low in the valley; as we fly into it, it fills the frame evenly.
+  float inside = smoothstep(0.0, 1.0, uRush);
+  float band = smoothstep(uYMin - 0.15, uYMin + 0.3, vUv.y) * mix(0.35, 1.0, bank) * (1.0 - 0.45 * near);
+  thick *= mix(band, 1.0, inside);
+  float a = 1.0 - exp(-thick * pow(uDensity, 0.7) * 1.4);
   gl_FragColor = vec4(uTint * a, a); // premultiplied, like the canvas expects
 }`;
 
