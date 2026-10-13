@@ -296,21 +296,28 @@
   z-index: -1;
   background: linear-gradient(90deg, var(--lichen-wash), transparent 70%);
   opacity: 0;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.22s ease;
 }
 .work-row .work-title,
 .work-row .work-desc {
-  transition: transform 0.35s ease;
+  transition: transform 0.22s ease;
 }
-.work-row:hover::before,
 .work-row:focus-visible::before {
   opacity: 1;
 }
-.work-row:hover .work-title,
-.work-row:hover .work-desc,
 .work-row:focus-visible .work-title,
 .work-row:focus-visible .work-desc {
   transform: translateX(14px);
+}
+/* hover only where a real mouse can hover: a tap on a phone would otherwise leave the row shifted */
+@media (hover: hover) and (pointer: fine) {
+  .work-row:hover::before {
+    opacity: 1;
+  }
+  .work-row:hover .work-title,
+  .work-row:hover .work-desc {
+    transform: translateX(14px);
+  }
 }
 .work-title {
   font-family: var(--display);
@@ -381,8 +388,10 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.btn:hover {
-  background: var(--lichen-hover);
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    background: var(--lichen-hover);
+  }
 }
 .credits {
   margin-top: 90px;
@@ -461,9 +470,11 @@ html:has(.project-dialog[open]) {
   background: none;
   color: var(--text);
 }
-.pd-close:hover {
-  border-color: var(--lichen);
-  color: var(--lichen);
+@media (hover: hover) and (pointer: fine) {
+  .pd-close:hover {
+    border-color: var(--lichen);
+    color: var(--lichen);
+  }
 }
 .pd-title {
   margin: 26px 0 0;
