@@ -1,8 +1,12 @@
 /* ===================== descent scene ===================== */
+/* lvh: as tall as the screen with the phone's toolbar tucked away, which is how the dive is seen (the toolbar
+   hides while scrolling down). svh left a strip of the page below the stage showing whenever it hid. Both stay
+   fixed as the toolbar slides, so the canvases never resize mid-scroll. With the toolbar out, the bottom of the
+   stage sits behind it, so nothing important is anchored there. */
 .stage {
   position: relative;
   height: 100vh;
-  height: 100svh;
+  height: 100lvh;
   overflow: hidden;
   background: var(--fog);
 }
@@ -152,6 +156,8 @@
 }
 .cap-landing {
   bottom: 12vh;
+  /* 12 % of the small screen above its bottom, so the toolbar never covers it */
+  bottom: calc(100lvh - 88svh);
   color: var(--text);
   text-shadow: 0 2px 26px var(--shadow-forest);
 }
