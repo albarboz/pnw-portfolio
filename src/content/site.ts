@@ -34,7 +34,6 @@ const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 
 export const site = {
   name: { first: 'Alan', last: 'Barboza' },
-  eyebrow: 'Portfolio · Cascades · 47° N',
   tagline: 'Design and development from the wet side of the mountains.',
   scrollCue: 'Scroll to descend',
 
@@ -69,8 +68,8 @@ export const site = {
     /** Point the landing photo pushes in toward, in CSS percentages. Currently: the runner. */
     landingFocus: { x: 48, y: 58 },
 
-    fogCaption: { label: 'Cloud line', text: 'Below the fog, the trail is already wet.' },
-    landingCaption: { label: 'On the trail', text: 'Keep pace. The work is just ahead.' },
+    fogCaption: { text: 'Below the fog, the trail is already wet.' },
+    landingCaption: { text: 'Keep pace. The work is just ahead.' },
   },
 
   about: {

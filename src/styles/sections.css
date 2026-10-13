@@ -84,9 +84,6 @@
   text-shadow: 0 2px 30px var(--shadow-sky);
   pointer-events: none;
 }
-.hero-copy .mono {
-  color: var(--sky-text-soft);
-}
 .hero-copy h1 {
   margin: 0;
   font-family: var(--display);
@@ -94,9 +91,6 @@
   font-size: clamp(56px, 11vw, 148px);
   line-height: 0.92;
   letter-spacing: -0.01em;
-}
-.hero-copy h1 em {
-  color: var(--lichen-hover);
 }
 .hero-copy p {
   margin: 0;
@@ -108,7 +102,11 @@
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--sky-text);
 }
 .scroll-cue .drip {
   width: 1px;
@@ -133,7 +131,7 @@
   pointer-events: none;
 }
 .caption p {
-  margin: 10px 0 0;
+  margin: 0;
   font-family: var(--display);
   font-style: italic;
   font-size: clamp(28px, 4vw, 46px);
@@ -146,16 +144,10 @@
   /* fog-colored halo keeps dark text readable while the photo still shows through */
   text-shadow: 0 0 10px var(--fog), 0 0 28px var(--fog);
 }
-.cap-fog .mono {
-  color: var(--fog-ink-soft);
-}
 .cap-landing {
   bottom: 12vh;
   color: var(--text);
   text-shadow: 0 2px 26px var(--shadow-forest);
-}
-.cap-landing .mono {
-  color: var(--lichen);
 }
 
 /* ===================== content sections ===================== */
@@ -170,6 +162,14 @@
 }
 .label {
   color: var(--lichen);
+}
+/* Places along the descent (Old growth, Trailhead …) are named like labels on a trail map: serif italic,
+   sentence case. Elevations next to them are instrument readings in the body face (see .altimeter). */
+.place {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1;
 }
 
 .about {
@@ -485,19 +485,22 @@ html:has(.project-dialog[open]) {
   left: 16px;
   bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 10px;
-  padding: 8px 12px;
+  padding: 8px 14px 9px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
+/* the place, named like the section labels; the reading beside it in the body face */
 .altimeter i {
-  font-style: normal;
+  font-family: var(--display);
+  font-size: 17px;
+  line-height: 1;
   color: var(--lichen);
 }
 .altimeter b {
-  min-width: 6.4ch;
-  text-align: right;
-  font-weight: 500;
+  font-weight: 600; /* tabular digits: the reading counts down without jittering */
+  letter-spacing: 0.01em;
   color: var(--text);
 }
 
