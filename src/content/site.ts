@@ -203,6 +203,29 @@ export const site = {
     ] as Project[],
   },
 
+  /**
+   * The trail run (src/scenes/run.ts): a filmed run down the trail, scrubbed by scroll between Work and Contact.
+   * The video has a keyframe on every frame (see docs/ASSET-CREDITS.md for the ffmpeg line), so any scroll
+   * position shows its frame at once.
+   */
+  run: {
+    label: 'Trail run',
+    /** For screen readers, in place of the video. */
+    description:
+      'A runner, seen from behind, runs down a winding dirt trail through a misty old-growth forest, crosses a ' +
+      'wooden footbridge over a creek and disappears into the trees.',
+    video: asset('video/trail-run.mp4'),
+    /** First frame, shown until the video has loaded. */
+    poster: asset('images/trail-run-poster.webp'),
+    /** Shown instead of the video with reduced motion. */
+    still: {
+      src: asset('images/trail-run-still.webp'),
+      alt: 'A runner, seen from behind, crosses a wooden footbridge over a creek in a misty old-growth forest.',
+      width: 768,
+      height: 512,
+    },
+  },
+
   contact: {
     heading: 'Contact',
     label: 'Trailhead · 600 ft',

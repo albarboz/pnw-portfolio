@@ -75,6 +75,21 @@
         </div>
       </section>
 
+      <!-- Scene: the trail run (src/scenes/run.ts), filled from site.run -->
+      <section class="scene run" id="run" data-scene="run" aria-labelledby="run-h">
+        <h2 class="sr-only" id="run-h" data-text="run.label"></h2>
+        <p class="sr-only" data-text="run.description"></p>
+        <div class="stage" data-stage>
+          <video data-layer="run-video" muted playsinline preload="none" aria-hidden="true"></video>
+          <img class="run-still" data-layer="run-still" alt="" hidden />
+          <!-- Film grain like the descent's (src/effects/grain.ts) -->
+          <div class="grain" data-layer="grain" aria-hidden="true"><div class="grain-tile"></div></div>
+          <div class="run-melt run-melt-top" data-layer="melt-top" aria-hidden="true"></div>
+          <div class="run-melt run-melt-bottom" data-layer="melt-bottom" aria-hidden="true"></div>
+          <div class="run-night" data-layer="night" aria-hidden="true"></div>
+        </div>
+      </section>
+
       <section class="section contact" id="contact" aria-labelledby="contact-h">
         <div class="wrap">
           <div class="sec-head" data-reveal>

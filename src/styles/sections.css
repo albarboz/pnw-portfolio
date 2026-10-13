@@ -363,7 +363,13 @@ h2[tabindex='-1']:focus {
 /* Soft hand-offs: each section starts in the previous one's color and fades into its own over --blend,
    so there is no hard line where one ends and the next begins. */
 .work {
-  background: linear-gradient(180deg, var(--night), var(--forest) var(--blend));
+  background: linear-gradient(
+    180deg,
+    var(--night),
+    var(--forest) var(--blend),
+    var(--forest) calc(100% - var(--blend)),
+    var(--night)
+  );
 }
 .work-list {
   list-style: none;
@@ -512,7 +518,83 @@ h2[tabindex='-1']:focus {
 }
 
 .contact {
-  background: linear-gradient(180deg, var(--forest), var(--night) var(--blend));
+  padding-top: 0;
+}
+
+/* ===================== trail run scene ===================== */
+.run .stage {
+  background: var(--night);
+}
+.run video,
+.run-still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Portrait screens: filling the height would blow the 768 px footage up ~2.4× (soft, and the AI glitches show).
+   Instead a wide band across the middle, 1.6× the screen's width (the runner stays in the middle third), its top
+   and bottom melting into the night. */
+@media (max-aspect-ratio: 1/1) {
+  .run video,
+  .run-still {
+    inset: auto;
+    top: 50%;
+    left: -30%;
+    width: 160%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    transform: translateY(-50%);
+    -webkit-mask-image: linear-gradient(180deg, transparent, var(--night) 22%, var(--night) 78%, transparent);
+    mask-image: linear-gradient(180deg, transparent, var(--night) 22%, var(--night) 78%, transparent);
+  }
+}
+/* the grain fades out at both edges, where the run melts into the night */
+.run .grain {
+  -webkit-mask-image: linear-gradient(180deg, transparent 4%, var(--night) 20%, var(--night) 80%, transparent 96%);
+  mask-image: linear-gradient(180deg, transparent 4%, var(--night) 20%, var(--night) 80%, transparent 96%);
+}
+/* Soft hand-offs: the stage's top melts out of the night as it scrolls in, its bottom back into it as it leaves.
+   Eased stops: a straight ramp shows a line. run.ts fades each one away while the run plays. */
+.run-melt {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 42%;
+  pointer-events: none;
+}
+.run-melt-top {
+  top: 0;
+  background: linear-gradient(
+    180deg,
+    var(--night),
+    color-mix(in srgb, var(--night) 70%, transparent) 30%,
+    color-mix(in srgb, var(--night) 25%, transparent) 65%,
+    transparent
+  );
+}
+.run-melt-bottom {
+  bottom: 0;
+  background: linear-gradient(
+    0deg,
+    var(--night),
+    color-mix(in srgb, var(--night) 70%, transparent) 30%,
+    color-mix(in srgb, var(--night) 25%, transparent) 65%,
+    transparent
+  );
+}
+/* the last frame dimming a little as the run ends */
+.run-night {
+  position: absolute;
+  inset: 0;
+  background: var(--night);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.contact {
+  background: var(--night);
 }
 .contact .lead {
   margin: 40px 0 0;

@@ -80,6 +80,12 @@ export const tuning = {
     max: 3.4,
   },
 
+  /** The trail run (src/scenes/run.ts). */
+  run: {
+    /** Scroll length of the run, in screen heights. More = a slower run for the same scroll. */
+    scroll: 2.6,
+  },
+
   /** Distance of each overlook cutout from the camera's start (far = 1). Smaller = the camera passes it sooner. */
   dolly: {
     /** The tall fir and the slope below the overlook. */

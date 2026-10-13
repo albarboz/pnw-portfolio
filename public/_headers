@@ -11,6 +11,10 @@
 /images/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
+# The trail-run video (~4 MB): same as the photos.
+/video/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
 # GPU benchmark data for src/core/quality.ts; changes only when the package is updated.
 /benchmarks/*
   Cache-Control: public, max-age=604800

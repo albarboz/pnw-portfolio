@@ -59,6 +59,10 @@ export function createTunePanel() {
   sh.addBinding(tuning.shafts, 'threshold', { label: 'gap brightness', min: 0, max: 0.6, step: 0.01 });
   sh.addBinding(tuning.shafts, 'softness', { min: 0, max: 0.6, step: 0.01 });
 
+  const rn = pane.addFolder({ title: 'Trail run' });
+  rn.addBinding(tuning.run, 'scroll', { label: 'length', min: 1, max: 6, step: 0.1 })
+    .on('change', (e) => e.last && ScrollTrigger.refresh());
+
   const gr = pane.addFolder({ title: 'Film grain' });
   gr.addBinding(tuning.grain, 'amount', { min: 0, max: 0.5, step: 0.01 });
   gr.addBinding(tuning.grain, 'size', { min: 0.5, max: 3, step: 0.05 });
@@ -68,7 +72,7 @@ export function createTunePanel() {
 
   pane.addButton({ title: 'Copy values' }).on('click', () => {
     const r = (n: number) => Math.round(n * 1000) / 1000;
-    const { fog: f, dolly: d, photo3d: s, shafts: l, grain: g, sign: t } = tuning;
+    const { fog: f, dolly: d, photo3d: s, shafts: l, grain: g, sign: t, run: n } = tuning;
     const text = [
       '// src/core/tuning.ts',
       `scroll: ${r(tuning.scroll)},`,
@@ -78,6 +82,7 @@ export function createTunePanel() {
       `shafts: { strength: ${r(l.strength)}, x: ${r(l.x)}, y: ${r(l.y)}, length: ${r(l.length)}, threshold: ${r(l.threshold)}, softness: ${r(l.softness)} },`,
       `grain: { amount: ${r(g.amount)}, size: ${r(g.size)} },`,
       `sign: { base: ${r(t.base)}, perScreen: ${r(t.perScreen)}, max: ${r(t.max)} },`,
+      `run: { scroll: ${r(n.scroll)} },`,
       '// src/content/site.ts',
       `diveZoom: ${r(site.descent.diveZoom)},`,
     ].join('\n');
