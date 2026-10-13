@@ -12,10 +12,20 @@ export interface Project {
   tools?: string[];
   /** Live site, repo, case study … shown as buttons in the detail view. */
   links?: { label: string; href: string }[];
-  /** Optional cover image for the detail view. Credit it in docs/ASSET-CREDITS.md. */
-  image?: PhotoAsset;
+  /** Optional cover image: the list's thumbnail and the detail view's picture. Credit it in docs/ASSET-CREDITS.md. */
+  image?: ProjectImage;
   /** Marks placeholder content. Remove once the project is real. */
   example?: boolean;
+}
+
+/**
+ * A project's cover. The list shows it as a 3:2 thumbnail (16:9 on phones), enlarged `zoom` times (default 1:
+ * the whole width) around `focus`, the spot that stays put (fractions of the image; default the middle).
+ * So focus x 0 keeps the left edge, 0.5 the middle, 1 the right edge. The detail view centers the crop there too.
+ */
+export interface ProjectImage extends PhotoAsset {
+  focus?: { x: number; y: number };
+  zoom?: number;
 }
 
 export interface PhotoAsset {
@@ -147,6 +157,15 @@ export const site = {
         role: 'Design and front end',
         tools: ['TypeScript', 'IndexedDB', 'Mapbox'],
         links: [{ label: 'Live site', href: 'https://example.com' }],
+        // Placeholder covers below are crops of the page's own photos. Swap in a screenshot of each project.
+        image: {
+          src: asset('images/trail.webp'),
+          alt: 'Sword ferns and moss-covered trunks in an old-growth forest.',
+          width: 2250,
+          height: 1500,
+          focus: { x: 0, y: 0.7 },
+          zoom: 2.6,
+        },
         example: true,
       },
       {
@@ -155,6 +174,14 @@ export const site = {
         kind: 'Data viz',
         description:
           'Live snow level, freezing line and pass conditions for the Cascades, drawn as a single elevation profile.',
+        image: {
+          src: asset('images/valley.webp'),
+          alt: 'Blue mountain ridges above a valley full of fog.',
+          width: 1792,
+          height: 2688,
+          focus: { x: 0.6, y: 0.3 },
+          zoom: 1.5,
+        },
         example: true,
       },
       {
@@ -163,6 +190,14 @@ export const site = {
         kind: 'Mobile UI',
         description:
           'Pace, elevation and segment splits for forest trails, designed to read at a glance mid-stride and in the rain.',
+        image: {
+          src: asset('images/trail.webp'),
+          alt: 'A runner on a dirt trail through old-growth forest.',
+          width: 2250,
+          height: 1500,
+          focus: { x: 0.49, y: 0.6 },
+          zoom: 2,
+        },
         example: true,
       },
     ] as Project[],

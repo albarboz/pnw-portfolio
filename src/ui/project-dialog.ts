@@ -90,7 +90,12 @@ export function createProjectDialog(lenis: Lenis | null): { destroy: () => void 
 
     const img = part<HTMLImageElement>('image');
     img.hidden = !p.image;
-    if (p.image) Object.assign(img, p.image);
+    if (p.image) {
+      const { src, alt, width, height, focus } = p.image;
+      Object.assign(img, { src, alt, width, height });
+      // a tall cover is cut to fit the view, around the same spot the thumbnail shows
+      img.style.objectPosition = focus ? `${focus.x * 100}% ${focus.y * 100}%` : '';
+    }
 
     part('body').replaceChildren(...(p.details ?? [p.description]).map((text) => el('p', text)));
 

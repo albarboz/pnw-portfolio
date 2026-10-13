@@ -382,13 +382,15 @@ h2[tabindex='-1']:focus {
   color: inherit;
   text-align: left;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6px 24px;
-  align-items: baseline;
-  /* right padding leaves room for the 14px hover shift, so text never pokes past the row */
-  padding: 28px 18px 28px 4px;
+  grid-template-columns: clamp(180px, 26vw, 300px) minmax(0, 1fr) auto;
+  gap: 16px clamp(24px, 3.4vw, 44px);
+  align-items: center;
+  padding: 26px 4px;
 }
-/* hover: a lichen wash fades in and the text slides right (opacity + transform only) */
+.work-row.no-thumb {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+/* hover: a lichen wash fades in, the picture leans in and the arrow fills (opacity + transform only) */
 .work-row::before {
   content: '';
   position: absolute;
@@ -398,25 +400,88 @@ h2[tabindex='-1']:focus {
   opacity: 0;
   transition: opacity 0.22s ease;
 }
-.work-row .work-title,
-.work-row .work-desc {
-  transition: transform 0.22s ease;
+.work-thumb {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 3 / 2;
+  border-radius: 4px;
+  background: var(--night);
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+/* cropped by enlarging around the focus point (set from site.ts); the hover lean multiplies on top */
+.work-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--focus, 50% 50%);
+  transform-origin: var(--focus, 50% 50%);
+  transform: scale(var(--zoom, 1));
+  transition: transform 0.7s var(--ease-out);
+}
+/* fog over the picture, lifted by reveal.ts as the row arrives; clear without script or motion */
+.work-fog {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 70%, var(--fog), color-mix(in srgb, var(--fog) 80%, transparent));
+  opacity: 0;
+  pointer-events: none;
+}
+.work-text {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.work-cue {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid color-mix(in srgb, var(--lichen) 45%, transparent);
+  border-radius: 50%;
+  color: var(--lichen);
+  transition:
+    background-color 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease;
+}
+.work-cue svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.22s var(--ease-out);
 }
 .work-row:focus-visible::before {
   opacity: 1;
 }
-.work-row:focus-visible .work-title,
-.work-row:focus-visible .work-desc {
-  transform: translateX(14px);
+.work-row:focus-visible .work-thumb img {
+  transform: scale(calc(var(--zoom, 1) * 1.04));
 }
-/* hover only where a real mouse can hover: a tap on a phone would otherwise leave the row shifted */
+.work-row:focus-visible .work-cue {
+  border-color: var(--lichen);
+  background-color: var(--lichen);
+  color: var(--night);
+}
+/* hover only where a real mouse can hover: a tap on a phone would otherwise leave the row leaning in */
 @media (hover: hover) and (pointer: fine) {
   .work-row:hover::before {
     opacity: 1;
   }
-  .work-row:hover .work-title,
-  .work-row:hover .work-desc {
-    transform: translateX(14px);
+  .work-row:hover .work-thumb img {
+    transform: scale(calc(var(--zoom, 1) * 1.04));
+  }
+  .work-row:hover .work-cue {
+    border-color: var(--lichen);
+    background-color: var(--lichen);
+    color: var(--night);
+  }
+  .work-row:hover .work-cue svg {
+    transform: translateX(2px);
   }
 }
 .work-title {
@@ -426,11 +491,7 @@ h2[tabindex='-1']:focus {
   line-height: 1.05;
   min-width: 0;
 }
-.work-meta {
-  white-space: nowrap;
-}
 .work-desc {
-  grid-column: 1 / -1;
   max-width: 62ch;
   color: var(--muted);
   font-size: 16px;
@@ -606,6 +667,8 @@ html:has(.project-dialog[open]) {
   margin-top: 28px;
   width: 100%;
   height: auto;
+  max-height: min(62vh, 560px); /* a tall cover is cut to fit, around its focus (project-dialog.ts) */
+  object-fit: cover;
   border-radius: 4px;
 }
 .pd-body {
@@ -651,11 +714,19 @@ html:has(.project-dialog[open]) {
   }
 }
 @media (max-width: 560px) {
+  /* picture on top, full width; the arrow beside the text */
   .work-row {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    padding-block: 24px 28px;
   }
-  .work-meta {
-    white-space: normal;
+  .work-thumb {
+    grid-column: 1 / -1;
+    aspect-ratio: 16 / 9;
+  }
+  .work-cue {
+    width: 40px;
+    height: 40px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -666,14 +737,16 @@ html:has(.project-dialog[open]) {
     transform: none;
   }
   .work-row::before,
-  .work-row .work-title,
-  .work-row .work-desc {
+  .work-thumb img,
+  .work-cue,
+  .work-cue svg {
     transition: none;
   }
-  .work-row:hover .work-title,
-  .work-row:hover .work-desc,
-  .work-row:focus-visible .work-title,
-  .work-row:focus-visible .work-desc {
+  .work-row:hover .work-thumb img,
+  .work-row:focus-visible .work-thumb img {
+    transform: scale(var(--zoom, 1));
+  }
+  .work-row:hover .work-cue svg {
     transform: none;
   }
   .btn:active,

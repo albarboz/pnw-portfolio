@@ -3,6 +3,7 @@ import { gsap, ScrollTrigger } from '../core/scroll';
 /**
  * Fades and lifts every [data-reveal] element into place as it scrolls into view.
  * Elements that arrive together (a heading and its text, the project rows) stagger in order.
+ * A [data-lift] inside one is a veil of fog over a picture, which clears a moment after it arrives.
  * Section headings ([data-drift]) also drift a little slower than the page while they pass through view.
  * A [data-drift] element must not also be [data-reveal]: the reveal's overwrite would cancel the drift.
  *
@@ -17,8 +18,14 @@ export function createReveal(): { destroy: () => void } {
     const items = gsap.utils.toArray<HTMLElement>('[data-reveal]');
     gsap.set(items, { opacity: 0, y: 28 });
 
-    const show = (els: Element[]) =>
+    const lifts = (els: Element[]) => els.flatMap((el) => [...el.querySelectorAll('[data-lift]')]);
+    gsap.set(lifts(items), { opacity: 0.8 });
+    const show = (els: Element[]) => {
       gsap.to(els, { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', stagger: 0.09, overwrite: true });
+      const fog = lifts(els);
+      if (!fog.length) return;
+      gsap.to(fog, { opacity: 0, duration: 1.6, delay: 0.1, ease: 'power2.inOut', stagger: 0.09, overwrite: true });
+    };
 
     // onLeave too: covers loading the page already scrolled past an item.
     ScrollTrigger.batch(items, { start: 'top 88%', once: true, onEnter: show, onLeave: show });
@@ -39,7 +46,10 @@ export function createReveal(): { destroy: () => void } {
 
     const onFocus = (e: FocusEvent) => {
       const el = (e.target as Element | null)?.closest('[data-reveal]');
-      if (el) gsap.set(el, { opacity: 1, y: 0, overwrite: true });
+      if (!el) return;
+      gsap.set(el, { opacity: 1, y: 0, overwrite: true });
+      const fog = lifts([el]);
+      if (fog.length) gsap.set(fog, { opacity: 0, overwrite: true });
     };
     document.addEventListener('focusin', onFocus);
     return () => document.removeEventListener('focusin', onFocus);
