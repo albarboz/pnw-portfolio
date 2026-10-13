@@ -2,6 +2,7 @@ import { gsap, ScrollTrigger } from '../core/scroll';
 import { clamp, lerp } from '../core/math';
 import { motionScale, prefersReducedMotion } from '../core/motion';
 import { pointer } from '../core/pointer';
+import { tuning } from '../core/tuning';
 import { DepthPhoto } from '../effects/depth-photo';
 import { FogLayer } from '../effects/fog-layer';
 import { dolly, PhotoLayers } from '../effects/photo-layers';
@@ -42,7 +43,6 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   const { width: OW, height: OH, layers } = site.descent.overlook;
   const T = site.descent.diveTarget;
   const S = site.descent.startFocus;
-  const ZMAX = site.descent.diveZoom;
   const F = site.descent.landingFocus;
   landing.style.transformOrigin = `${F.x}% ${F.y}%`;
   landing.style.objectPosition = `${F.x}% ${F.y}%`;
@@ -133,7 +133,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     overlook.style.opacity = covered || overlookLayers.active ? '0' : '';
     if (covered) parts.forEach((p) => (p.el.style.opacity = '0'));
     else {
-      const z = 1 + (ZMAX - 1) * state.dive * m;
+      const z = 1 + (site.descent.diveZoom - 1) * state.dive * m;
       if (overlookLayers.active) {
         for (const p of parts) {
           const { scale, opacity } = dolly(p.depth, z);
@@ -184,7 +184,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
       trigger: root,
       pin: stage,
       start: 'top top',
-      end: '+=320%',
+      end: () => `+=${tuning.scroll * 100}%`, // a function, so ScrollTrigger.refresh() picks up a new length
       scrub: prefersReducedMotion() ? true : 0.6,
       onUpdate: (self) => opts.onProgress?.(self.progress),
     },

@@ -13,7 +13,7 @@ Ask before adding any other dependency.
 
 ## Commands
 
-- `npm run dev` – dev server at http://localhost:5173
+- `npm run dev` – dev server at http://localhost:5173, with a **Tune** slider panel (top right) for the feel numbers
 - `npm run build` – type-check, then production build to `dist/`
 - `npm run typecheck` – types only
 
@@ -25,10 +25,11 @@ Run `npm run build` after changes and fix all errors before calling a task done.
 src/
   main.ts            boot: content → scroll → scenes → ui
   content/site.ts    ALL editable copy, projects, links, image paths
-  core/              shared plumbing (scroll, pointer, motion prefs, math)
+  core/              shared plumbing (scroll, pointer, motion prefs, math, tuning)
   effects/           reusable visual effects (fog layer: shader + canvas fallback, depth photo, photo layers)
   scenes/            one file per pinned scroll scene
   ui/                small DOM widgets (altimeter, copy button, project list)
+  dev/               dev-only tools (Tweakpane tuning panel); stripped from the build
   styles/            tokens.css → base.css → sections.css
 public/images/       photos (credit every one in docs/ASSET-CREDITS.md)
 docs/                roadmap, asset credits, scene recipe
@@ -57,6 +58,7 @@ This keeps the timing (timeline) separate from the drawing (render), so timing c
 - **No horizontal scroll at 375 px wide.** Test phone width for every scene.
 - **Styles:** colors and fonts only from tokens in `src/styles/tokens.css`. No inline colors in TS.
 - **Assets:** every image gets a row in `docs/ASSET-CREDITS.md` with source and license. The current images are AI-generated with Midjourney on a paid plan (see the credits file).
+- **Feel numbers** (fog look, dive length, dolly depths) live in `src/core/tuning.ts` and are read live, so the dev panel can move them. Add new knobs there and to `src/dev/tune.ts`; never import `src/dev/` outside the `import.meta.env.DEV` check in `main.ts`.
 - Keep files small. If a scene file passes ~250 lines, split helpers into `core/` or `effects/`.
 
 ## Done checklist

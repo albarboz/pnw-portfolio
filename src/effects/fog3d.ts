@@ -10,6 +10,7 @@ import {
   WebGLRenderer,
 } from 'three';
 import { cssRgb } from '../core/tokens';
+import { tuning } from '../core/tuning';
 import type { FogOptions } from './fog';
 
 const VERT = `
@@ -29,6 +30,7 @@ uniform vec2 uRes;
 uniform vec2 uOffset;
 uniform vec3 uTint;
 uniform float uTime, uDensity, uRush, uYMin, uSeed;
+uniform float uStrength, uHaze, uBanks, uNear; // src/core/tuning.ts
 
 float hash(vec3 p) {
   p = fract(p * 0.3183099 + 0.1);
@@ -67,19 +69,19 @@ void main() {
     p.x += uTime * (0.012 + 0.006 * fi) * (mod(fi, 2.0) < 0.5 ? 1.0 : -1.0);
     vec3 q = vec3(p * vec2(1.3, 2.9), seed + uTime * 0.04); // stretched flat, like valley fog
     q.xy += 0.6 * vec2(noise(q * 0.7 + 4.0), noise(q * 0.7 + 9.0)) - 0.3; // a little warp makes wisps
-    float s = 0.04 + 0.96 * smoothstep(0.34, 0.78, fbm(q)); // a breath of haze, then wisps with clear air between
+    float s = uHaze + (1.0 - uHaze) * smoothstep(0.34, 0.78, fbm(q)); // a breath of haze, then wisps with clear air between
     float w = sin(3.14159265 * phase);
     thick += s * w * w / 1.5;
   }
-  // Real mist drifts in banks: a slow, large pattern thins it to a third in places so it never reads as a flat veil.
+  // Real mist drifts in banks: a slow, large pattern thins it in places so it never reads as a flat veil.
   float bank = smoothstep(0.3, 0.75, noise(vec3(c * vec2(0.8, 1.7) + vec2(uTime * 0.008, 0.0), uSeed + 50.0 + uTime * 0.015)));
   // Less air between you and the nearest trees: the fog thins toward the bottom of the frame.
   float near = smoothstep(0.62, 1.0, vUv.y);
   // Over the overlook the fog lies low in the valley; as we fly into it, it fills the frame evenly.
   float inside = smoothstep(0.0, 1.0, uRush);
-  float band = smoothstep(uYMin - 0.15, uYMin + 0.3, vUv.y) * mix(0.35, 1.0, bank) * (1.0 - 0.45 * near);
+  float band = smoothstep(uYMin - 0.15, uYMin + 0.3, vUv.y) * mix(uBanks, 1.0, bank) * (1.0 - uNear * near);
   thick *= mix(band, 1.0, inside);
-  float a = 1.0 - exp(-thick * pow(uDensity, 0.7) * 1.4);
+  float a = 1.0 - exp(-thick * pow(uDensity, 0.7) * uStrength);
   gl_FragColor = vec4(uTint * a, a); // premultiplied, like the canvas expects
 }`;
 
@@ -136,6 +138,10 @@ export class Fog3D {
         uRush: { value: 0 },
         uYMin: { value: this.opts.yMin },
         uSeed: { value: Math.random() * 100 },
+        uStrength: { value: 0 },
+        uHaze: { value: 0 },
+        uBanks: { value: 0 },
+        uNear: { value: 0 },
       },
     });
     this.scene.add(new Mesh(new PlaneGeometry(2, 2), this.material));
@@ -159,10 +165,15 @@ export class Fog3D {
   /** @param time seconds; pass 0 for a still frame */
   draw(time: number) {
     if (this.density <= 0.005) return this.clear();
-    const key = `${time}|${this.density}|${this.rush}|${this.offsetX}|${this.offsetY}`;
+    const f = tuning.fog;
+    const key = `${time}|${this.density}|${this.rush}|${this.offsetX}|${this.offsetY}|${f.strength}|${f.haze}|${f.banks}|${f.near}`;
     if (key === this.last) return;
     this.last = key;
     const u = this.material.uniforms;
+    u.uStrength.value = f.strength;
+    u.uHaze.value = f.haze;
+    u.uBanks.value = f.banks;
+    u.uNear.value = f.near;
     u.uTime.value = time;
     u.uDensity.value = this.density;
     u.uRush.value = this.rush;

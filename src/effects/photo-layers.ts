@@ -1,17 +1,14 @@
 import { smoothstep } from '../core/math';
+import { tuning } from '../core/tuning';
 
 export type LayerName = 'far' | 'mid' | 'near';
 
 /**
- * Where each cutout stands: its distance from the camera's starting point (far = 1), and how much it
- * shifts with the pointer (× `shift`). The camera flies past the near branches early in the dive, and past the
- * mid layer (the tall fir and the slope below the overlook) as the fog closes in, leaving only the valley.
+ * How much each cutout shifts with the pointer. Where each one stands (its distance from the camera, far = 1)
+ * is in src/core/tuning.ts: the camera flies past the near branches early in the dive, and past the mid layer
+ * (the tall fir and the slope below the overlook) as the fog closes in, leaving only the valley.
  */
-const DEPTH: Record<LayerName, { depth: number; shift: number }> = {
-  far: { depth: 1, shift: 0.4 },
-  mid: { depth: 0.6, shift: 1 },
-  near: { depth: 0.4, shift: 2 },
-};
+const SHIFT: Record<LayerName, number> = { far: 0.4, mid: 1, near: 2 };
 
 /**
  * A camera dolly through flat cutouts. A plane facing the camera only ever scales and moves under
@@ -42,8 +39,14 @@ export class PhotoLayers {
     srcs: Record<LayerName, string> | undefined,
     onActive: () => void,
   ) {
-    const names = Object.keys(DEPTH) as LayerName[];
-    this.parts = names.map((name) => ({ el: slots[name], ...DEPTH[name] }));
+    const names = Object.keys(SHIFT) as LayerName[];
+    this.parts = names.map((name) => ({
+      el: slots[name],
+      shift: SHIFT[name],
+      get depth() {
+        return name === 'far' ? 1 : tuning.dolly[name]; // read live, so the dev panel can move it
+      },
+    }));
     if (!srcs) return;
     names.forEach((name) => {
       slots[name].decoding = 'async';

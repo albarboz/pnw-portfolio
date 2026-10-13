@@ -28,9 +28,13 @@ const projectDialog = createProjectDialog(lenis);
 document.fonts?.ready.then(() => ScrollTrigger.refresh());
 window.addEventListener('load', () => ScrollTrigger.refresh());
 
+// Dev only: slider panel for the feel numbers in src/core/tuning.ts. Vite strips this from the build.
+const tune = import.meta.env.DEV ? import('./dev/tune').then((m) => m.createTunePanel()) : null;
+
 // Vite hot reload: tear down scenes cleanly so triggers don't stack up.
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
+    tune?.then((pane) => pane.dispose());
     scenes.forEach((s) => s.destroy());
     altimeter.destroy();
     reveal.destroy();
