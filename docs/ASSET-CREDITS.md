@@ -1,6 +1,6 @@
 # Asset credits
 
-Every image, video and sound in `public/` needs a row here before launch.
+Every image, video, sound and font in `public/` needs a row here before launch.
 
 | File | Source | Author | License | Status |
 | --- | --- | --- | --- | --- |
@@ -9,6 +9,9 @@ Every image, video and sound in `public/` needs a row here before launch.
 | `public/images/trail-depth.webp` | Depth map of `trail.webp`, made with `tools/depth-map.py` (Depth Anything V2 Base) | Site owner (derived) | Same as `trail.webp`; the model's output carries no extra terms | OK |
 | `public/images/valley-far.webp`, `valley-mid.webp`, `valley-near.webp` | Far / mid / near cutouts of `valley.webp` for the layered hero, made with `tools/hero-layers.py` (Depth Anything V2 Base for depth, ViTMatte for the cutouts). What the trees hid is repainted by the owner in Midjourney's Editor (plates in `tools/plates/`, not committed), blended with LaMa | Site owner (derived) | Same as `valley.webp` (Midjourney paid plan); ViTMatte and LaMa are Apache-2.0 and their output carries no extra terms | OK |
 | `public/favicon.svg` | Drawn for this site (fir on `--night`) | Site owner | Original | OK |
+| `public/fonts/instrument-serif-*.woff2` | Instrument Serif, Latin and Latin Extended subsets as served by Google Fonts | The Instrument Serif Project Authors | SIL Open Font License 1.1 (`public/fonts/OFL-instrument-serif.txt`) | OK |
+| `public/fonts/hanken-grotesk-*.woff2` | Hanken Grotesk (variable), same subsets | The Hanken Grotesk Project Authors | SIL Open Font License 1.1 (`public/fonts/OFL-hanken-grotesk.txt`) | OK |
+| `public/fonts/jetbrains-mono-*.woff2` | JetBrains Mono (variable), same subsets | The JetBrains Mono Project Authors | SIL Open Font License 1.1 (`public/fonts/OFL-jetbrains-mono.txt`) | OK |
 
 Both images were generated on a paid Midjourney plan, which allows commercial use. Per Midjourney's terms, a company with more than $1M a year in gross revenue needs the Pro or Mega plan; re-check the current terms if that changes. The originals carry the IPTC `trainedAlgorithmicMedia` tag, which marks them as AI-generated.
 
