@@ -8,7 +8,6 @@ import { createAltimeter } from './ui/altimeter';
 import { createReveal } from './ui/reveal';
 import { initCopyEmail } from './ui/copy-email';
 import { createProjectDialog } from './ui/project-dialog';
-import { createWind } from './effects/wind';
 import { createScenes } from './scenes';
 
 // 1. content first, so scenes measure real layout
@@ -24,10 +23,6 @@ altimeter.attach(); // after scenes, so pinned scroll space is measured
 const reveal = createReveal(); // same reason
 initCopyEmail();
 const projectDialog = createProjectDialog(lenis);
-createWind(
-  document.querySelector<HTMLButtonElement>('[data-wind]')!,
-  document.querySelector<HTMLElement>('[data-wind-state]')!,
-);
 
 // Recalculate trigger positions once fonts and images have settled.
 document.fonts?.ready.then(() => ScrollTrigger.refresh());

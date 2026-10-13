@@ -5,7 +5,7 @@ Work in phases. Each phase should ship a page that works on its own.
 ## Phase 1 – 2D descent (current)
 
 - [x] Overlook → fog dive → trail scene with GSAP ScrollTrigger + Lenis
-- [x] Canvas fog, altimeter, optional wind audio
+- [x] Canvas fog, altimeter
 - [x] Replace placeholder photos with licensed, high-res images (≥ 2000 px)
 - [ ] Real bio, projects and contact in `src/content/site.ts`
 - [x] Project detail pages or modals

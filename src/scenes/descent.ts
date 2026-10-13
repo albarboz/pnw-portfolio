@@ -52,6 +52,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   const depth = new DepthPhoto(depthCanvas, landing, site.descent.landing.depth, (on) => {
     depthCanvas.hidden = !on;
     landing.style.opacity = on ? '0' : ''; // not visibility: that would drop its alt text from screen readers
+    landing.style.willChange = on ? 'auto' : ''; // the canvas moves now; don't keep a GPU layer for a still <img>
     render();
   });
 
@@ -62,7 +63,10 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   const overlookLayers = new PhotoLayers(
     { far: part('far'), mid: part('mid'), near: part('near') },
     prefersReducedMotion() ? undefined : layers,
-    () => render(),
+    () => {
+      overlook.style.willChange = 'auto'; // same: the cutouts move, the flat photo only waits under them
+      render();
+    },
   );
   const parts = overlookLayers.parts;
 
@@ -86,11 +90,15 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   // A little bigger than cover, so even at rest the cutouts have room to shift with the pointer.
   const ASPECT = OW / OH;
   const OVERSCAN = 1.04;
-  let L = { vw: 0, vh: 0, w: 0, h: 0 };
+  let L = { vw: 0, vh: 0, dpr: 0, w: 0, h: 0 };
 
   const layout = () => {
     const vw = stage.clientWidth;
     const vh = stage.clientHeight;
+    const dpr = window.devicePixelRatio;
+    // Phones fire resize whenever the toolbar slides in or out, but the svh stage keeps its size:
+    // skip, or every scroll flick would reallocate (and blank) the fog and depth canvases.
+    if (vw === L.vw && vh === L.vh && dpr === L.dpr) return;
     const cover = vw / vh > ASPECT;
     const w = (cover ? vw : vh * ASPECT) * OVERSCAN;
     const h = (cover ? vw / ASPECT : vh) * OVERSCAN;
@@ -99,7 +107,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
       el.style.height = `${h}px`;
       el.style.transformOrigin = `${T.x * w}px ${T.y * h}px`;
     }
-    L = { vw, vh, w, h };
+    L = { vw, vh, dpr, w, h };
     fogHigh.resize();
     fogLow.resize();
     depth.resize(vw, vh);

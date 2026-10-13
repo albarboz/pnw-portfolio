@@ -19,4 +19,3 @@ Originals live outside the repo; the files here are WebP exports under the 400 K
 - Unsplash / Pexels: free for commercial use, no attribution required (credit anyway)
 - National Park Service and other US government photos: usually public domain; check the caption
 - Wikimedia Commons: check each file's license
-- Freesound.org: filter by CC0 for audio

@@ -26,12 +26,11 @@ src/
   main.ts            boot: content → scroll → scenes → ui
   content/site.ts    ALL editable copy, projects, links, image paths
   core/              shared plumbing (scroll, pointer, motion prefs, math)
-  effects/           reusable visual effects (fog, wind audio)
+  effects/           reusable visual effects (fog, depth photo, photo layers)
   scenes/            one file per pinned scroll scene
   ui/                small DOM widgets (altimeter, copy button, project list)
   styles/            tokens.css → base.css → sections.css
 public/images/       photos (credit every one in docs/ASSET-CREDITS.md)
-public/audio/        ambient audio (optional)
 docs/                roadmap, asset credits, scene recipe
 tools/               optional Python asset scripts (depth maps, hero layers); not part of the build
 ```
@@ -57,7 +56,7 @@ This keeps the timing (timeline) separate from the drawing (render), so timing c
 - **Performance:** animate only `transform` and `opacity`. Fog canvases render at ≤ 0.35× resolution. Hero images ≤ 400 KB as JPEG/WebP, ≥ 2000 px on the long side; the overlook at 1792 px wide keeps `diveZoom` ≤ 3 so it stays reasonably sharp.
 - **No horizontal scroll at 375 px wide.** Test phone width for every scene.
 - **Styles:** colors and fonts only from tokens in `src/styles/tokens.css`. No inline colors in TS.
-- **Assets:** every image or sound gets a row in `docs/ASSET-CREDITS.md` with source and license. The current images are AI-generated with Midjourney on a paid plan (see the credits file).
+- **Assets:** every image gets a row in `docs/ASSET-CREDITS.md` with source and license. The current images are AI-generated with Midjourney on a paid plan (see the credits file).
 - Keep files small. If a scene file passes ~250 lines, split helpers into `core/` or `effects/`.
 
 ## Done checklist
