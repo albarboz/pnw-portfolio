@@ -1,4 +1,4 @@
-import { gsap, ScrollTrigger } from '../core/scroll';
+import { gsap } from '../core/scroll';
 import { clamp, lerp } from '../core/math';
 import { motionScale, prefersReducedMotion } from '../core/motion';
 import { pointer } from '../core/pointer';
@@ -59,16 +59,15 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   // Layered overlook: once its cutouts are in, they replace the flat photo, and the dive becomes a camera dolly
   // through them (see dolly()): the near firs rush up and the camera flies past them into the valley.
   // With reduced motion they would only stack back into the same photo, so they aren't loaded.
+  // They load after the hero, so render() swaps them in only while the camera is at rest (see `layered`).
   const part = (name: string) => $<HTMLImageElement>(`[data-overlook-part="${name}"]`);
   const overlookLayers = new PhotoLayers(
     { far: part('far'), mid: part('mid'), near: part('near') },
     prefersReducedMotion() ? undefined : layers,
-    () => {
-      overlook.style.willChange = 'auto'; // same: the cutouts move, the flat photo only waits under them
-      render();
-    },
+    () => render(),
   );
   const parts = overlookLayers.parts;
+  let layered = false;
 
   // ---------- state: the timeline tweens these numbers, render() reads them ----------
   const state = {
@@ -128,13 +127,19 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   // ---------- render: the only place that writes to the DOM ----------
   const render = () => {
     const m = motionScale();
+    // The cutouts take over only at rest, where they stack exactly into the photo; mid-dive they'd jump.
+    if (overlookLayers.ready && !layered && state.dive === 0) {
+      layered = true;
+      overlookLayers.show();
+      overlook.style.willChange = 'auto'; // same: the cutouts move, the flat photo only waits under them
+    }
     // Once the trail fully covers it, stop drawing the big zoomed overlook (opacity, not visibility: keeps its alt text).
     const covered = state.landing >= 1;
-    overlook.style.opacity = covered || overlookLayers.active ? '0' : '';
+    overlook.style.opacity = covered || layered ? '0' : '';
     if (covered) parts.forEach((p) => (p.el.style.opacity = '0'));
     else {
       const z = 1 + (site.descent.diveZoom - 1) * state.dive * m;
-      if (overlookLayers.active) {
+      if (layered) {
         for (const p of parts) {
           const { scale, opacity } = dolly(p.depth, z);
           p.el.style.opacity = String(opacity);
@@ -230,7 +235,6 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   render();
   gsap.ticker.add(tick);
   window.addEventListener('resize', onResize);
-  overlook.decode?.().then(() => ScrollTrigger.refresh()).catch(() => {});
 
   return {
     destroy() {

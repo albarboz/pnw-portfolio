@@ -1,9 +1,10 @@
 import { site, type Project } from '../content/site';
+import { afterHero } from '../core/after-hero';
 
 /**
  * Fills the page from src/content/site.ts.
  *   data-text="about.heading"   → textContent
- *   data-img="descent.overlook" → src, alt, width, height
+ *   data-img="descent.overlook" → src, alt, width, height (src after the hero has loaded if data-defer)
  *   [data-projects]             → project rows (buttons that open the detail view)
  */
 export function renderContent() {
@@ -20,7 +21,9 @@ export function renderContent() {
       | { src: string; alt: string; width: number; height: number }
       | undefined;
     if (!asset) return;
-    img.src = asset.src;
+    // data-defer: a photo that isn't on screen yet waits until the hero has loaded
+    if (img.hasAttribute('data-defer')) afterHero.then(() => (img.src = asset.src));
+    else img.src = asset.src;
     img.alt = asset.alt;
     img.width = asset.width;
     img.height = asset.height;

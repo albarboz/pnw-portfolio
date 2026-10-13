@@ -136,6 +136,8 @@ export class DepthPhoto {
 
   /** Upload the photo and its depth map. Until both are in, the <img> keeps showing. */
   private async load(depthSrc: string) {
+    // The <img> may get its src late (data-defer in src/ui/content.ts); fetch the depth map once it has one.
+    if (!this.img.getAttribute('src')) await new Promise((r) => this.img.addEventListener('load', r, { once: true }));
     const depth = new Image();
     depth.src = depthSrc;
     const ok = await Promise.all([this.img.decode(), depth.decode()]).then(

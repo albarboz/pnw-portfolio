@@ -1,10 +1,11 @@
+import { afterHero } from '../core/after-hero';
 import { Fog, type FogOptions } from './fog';
 import type { Fog3D } from './fog3d';
 
 /**
- * One fog layer for a scene: the canvas `Fog` draws at once, and the shader fog (three.js, loaded lazily so
- * the first paint stays light) takes over when it's ready. It draws on a copy of the canvas, since a canvas
- * that has a 2D context can't get a WebGL one. No WebGL or a lost GPU context leave the canvas fog showing.
+ * One fog layer for a scene: the canvas `Fog` draws at once, and the shader fog (three.js, fetched only after
+ * the hero has loaded so the first paint stays light) takes over when it's ready. It draws on a copy of the
+ * canvas, since a canvas that has a 2D context can't get a WebGL one. No WebGL or a lost GPU context leave the canvas fog showing.
  * Set the same knobs as on `Fog`.
  */
 export class FogLayer {
@@ -22,7 +23,8 @@ export class FogLayer {
     options: FogOptions = {},
   ) {
     this.flat = new Fog(canvas, options);
-    import('./fog3d')
+    afterHero
+      .then(() => import('./fog3d'))
       .then(({ Fog3D }) => {
         if (this.dead) return;
         const copy = canvas.cloneNode(false) as HTMLCanvasElement; // keeps data-fog, so its CSS mask still applies

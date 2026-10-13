@@ -1,3 +1,4 @@
+import { afterHero } from '../core/after-hero';
 import { smoothstep } from '../core/math';
 import { tuning } from '../core/tuning';
 
@@ -25,19 +26,19 @@ export function dolly(depth: number, zoom: number) {
 
 /**
  * The far / mid / near cutouts of a photo (tools/hero-layers.py), in their own <img> slots.
- * Loads them and calls `onActive` once every one has decoded; until then (or for good, if one fails or
- * `srcs` is missing) `active` stays false and the flat photo stays in charge.
- * At rest the cutouts stack back into the photo, so swapping one for the other doesn't show.
+ * Loads them once the hero is in and calls `onReady` once every one has decoded; until then (or for good, if one
+ * fails or `srcs` is missing) `ready` stays false. The caller swaps them in for the flat photo by calling `show()`,
+ * at rest, where the cutouts stack back into the photo so the swap doesn't show.
  */
 export class PhotoLayers {
   readonly parts: { el: HTMLImageElement; depth: number; shift: number }[];
-  active = false;
+  ready = false;
   private cancelled = false;
 
   constructor(
     slots: Record<LayerName, HTMLImageElement>,
     srcs: Record<LayerName, string> | undefined,
-    onActive: () => void,
+    onReady: () => void,
   ) {
     const names = Object.keys(SHIFT) as LayerName[];
     this.parts = names.map((name) => ({
@@ -48,18 +49,25 @@ export class PhotoLayers {
       },
     }));
     if (!srcs) return;
-    names.forEach((name) => {
-      slots[name].decoding = 'async';
-      slots[name].src = srcs[name];
-    });
-    Promise.all(names.map((name) => slots[name].decode()))
+    afterHero
+      .then(() => {
+        if (this.cancelled) return Promise.reject();
+        names.forEach((name) => {
+          slots[name].decoding = 'async';
+          slots[name].src = srcs[name];
+        });
+        return Promise.all(names.map((name) => slots[name].decode()));
+      })
       .then(() => {
         if (this.cancelled) return;
-        this.active = true;
-        this.parts.forEach((p) => (p.el.hidden = false));
-        onActive();
+        this.ready = true;
+        onReady();
       })
       .catch(() => {});
+  }
+
+  show() {
+    this.parts.forEach((p) => (p.el.hidden = false));
   }
 
   destroy() {
