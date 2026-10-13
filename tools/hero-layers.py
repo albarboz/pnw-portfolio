@@ -1,7 +1,7 @@
 """
 Split a photo into far / mid / near layers for the layered parallax hero (src/effects/photo-layers.ts).
 
-    .venv-tools/bin/pip install torch transformers pillow numpy     # same setup as depth-map.py
+    .venv-tools/bin/pip install torch transformers pillow numpy     # depth-map.py's V2 setup
     .venv-tools/bin/python tools/hero-layers.py public/images/valley.webp --cuts 0.27 0.5
 
 Peels the photo front to back with three open models (downloaded on the first run, ~800 MB in all):
@@ -61,12 +61,12 @@ def to8(x: np.ndarray) -> np.ndarray:
     return (np.clip(x, 0, 1) * 255).round().astype(np.uint8)
 
 
-def depth_of(image: np.ndarray) -> np.ndarray:
-    """Relative depth, 0 = far, 1 = near (Depth Anything V2, via depth-map.py)."""
+def depth_of(image: np.ndarray, model: str = "v2") -> np.ndarray:
+    """Relative depth, 0 = far, 1 = near (via depth-map.py). V2 by default: --cuts were picked from its histogram."""
     spec = importlib.util.spec_from_file_location("depth_map", Path(__file__).with_name("depth-map.py"))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    d = mod.depth_map(Image.fromarray(to8(image)))
+    d = mod.depth_map(Image.fromarray(to8(image)), model)
     free()
     return d
 

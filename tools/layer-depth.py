@@ -1,14 +1,15 @@
 """
 Depth maps for the overlook cutouts, so the dive can fly through them in 3D (src/effects/depth-layers.ts).
 
-    .venv-tools/bin/python tools/layer-depth.py public/images/valley.webp     # same setup as depth-map.py
+    ~/.cache/hero-layers/venv-da3/bin/python tools/layer-depth.py public/images/valley.webp     # setup: depth-map.py
 
 Reads the far and mid cutouts made by hero-layers.py (<photo>-far.webp, <photo>-mid.webp) and writes
 <photo>-far-depth.webp and <photo>-mid-depth.webp next to them: grayscale at a quarter size, 0 = farthest
 (the sky), 1 = nearest, stored as the square root (the shader squares it back): relative depth crowds the whole
 distant valley into a few percent of the range, and 8 bits there would show as terraces. Both share one scale, so the mid trees stand at the right distance in front of the valley:
-  1. Depth Anything V2 on the far layer alone (it is opaque: the whole valley, with what the trees hid repainted).
-  2. Depth Anything V2 on mid over far; its values where only the far layer shows are matched to step 1
+  1. Depth Anything 3 (see depth-map.py; `--model v2` for V2) on the far layer alone (it is opaque: the whole
+     valley, with what the trees hid repainted).
+  2. The same on mid over far; its values where only the far layer shows are matched to step 1
      (its depth is relative: right up to a scale and an offset), and that fit carries the mid trees over.
   3. The mid depth is kept only well inside the cutout and spread outward from there, so the cutout's soft
      edge stands with the tree instead of peeling back to the valley behind it.
@@ -34,7 +35,9 @@ def tool(name: str):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("photo", help="the flat photo; its cutouts sit next to it")
+    ap.add_argument("--model", choices=("da3", "v2"), default="da3")
     ap.add_argument("--quality", type=int, default=85)
+    ap.add_argument("--out", help="folder to write to (default: next to the photo)")
     a = ap.parse_args()
 
     hl = tool("hero-layers")
@@ -44,8 +47,8 @@ def main():
     mid, alpha = mid_rgba[..., :3], mid_rgba[..., 3]
     r = max(4, round(far.shape[1] * 0.006))
 
-    d_far = hl.depth_of(far)
-    d_comp = hl.depth_of(mid * alpha[..., None] + far * (1 - alpha[..., None]))
+    d_far = hl.depth_of(far, a.model)
+    d_comp = hl.depth_of(mid * alpha[..., None] + far * (1 - alpha[..., None]), a.model)
 
     # Where only the far layer shows, both runs saw the same pixels: fit d_comp = s * d_far + t there.
     bare = ~hl.grow(alpha > 0.02, 2 * r)
@@ -67,7 +70,7 @@ def main():
     for name, d in (("far", d_far), ("mid", d_mid)):
         x = np.sqrt(np.clip((d - lo) / (hi - lo), 0, 1))
         im = Image.fromarray((x * 255).round().astype(np.uint8), "L").resize((w // 4, h // 4), Image.LANCZOS)
-        out = src.with_name(f"{src.stem}-{name}-depth.webp")
+        out = (Path(a.out) if a.out else src.parent) / f"{src.stem}-{name}-depth.webp"
         im.filter(ImageFilter.GaussianBlur(1)).save(out, quality=a.quality, method=6)
         print(f"{out}  {im.width}×{im.height}  {out.stat().st_size / 1024:.0f} KB")
 
