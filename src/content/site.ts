@@ -31,10 +31,30 @@ export interface PhotoAsset {
   layerDepth?: { far: string; mid: string };
 }
 
-/** Path to a file in public/, relative to the site root (works in dev, build and sub-folder hosting). */
-const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+/**
+ * Path to a file in public/, relative to the site root (works in dev, build and sub-folder hosting).
+ * vite.config.ts also reads this file (for `meta`), where import.meta.env doesn't exist yet.
+ */
+const asset = (path: string) => `${import.meta.env?.BASE_URL ?? '/'}${path}`;
 
 export const site = {
+  /**
+   * Link previews (Open Graph, X/Twitter), search results, robots.txt and sitemap.xml. vite.config.ts writes
+   * these into the built HTML, so they work without JavaScript. Change `url` when the site gets its own domain.
+   */
+  meta: {
+    url: 'https://pnw-portfolio.alansoftwareengineer.workers.dev/',
+    title: 'Into the Fog',
+    description: 'An immersive portfolio that descends through Cascade valley fog.',
+    /** 1200×630, relative to `url`. A crop of the overlook. */
+    image: {
+      src: 'images/share.jpg',
+      alt: 'Fir trees frame blue mountain peaks above a valley filled with fog.',
+      width: 1200,
+      height: 630,
+    },
+  },
+
   name: { first: 'Alan', last: 'Barboza' },
   tagline: 'Design and development from the wet side of the mountains.',
   scrollCue: 'Scroll to descend',
