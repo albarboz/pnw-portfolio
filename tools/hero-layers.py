@@ -34,7 +34,7 @@ from PIL import Image
 
 # The dive in src/scenes/descent.ts and src/effects/photo-layers.ts (DEPTH), mirrored to work out which
 # hidden pixels ever come into view. Keep in step with those files (the guides add a margin for small drift).
-DIVE = dict(target=(0.51, 0.49), start=(0.5, 0.34), zoom_max=3, overscan=1.04, zoom_pow=(1, 1.35, 1.8), shift=(0.4, 1, 2))
+DIVE = dict(target=(0.51, 0.49), start=(0.5, 0.34), zoom_max=4.5, overscan=1.04, zoom_pow=(1, 1.35, 1.8), shift=(0.4, 1, 2))
 VIEWPORTS = [(1440, 900), (1920, 1080), (1280, 720), (1024, 1366), (768, 1024), (390, 844), (375, 667)]
 
 LAMA_URL = "https://github.com/enesmsahin/simple-lama-inpainting/releases/download/v0.1.0/big-lama.pt"

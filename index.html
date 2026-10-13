@@ -21,6 +21,8 @@
           <img class="overlook" data-layer="overlook" data-img="descent.overlook" alt="" fetchpriority="high" />
           <!-- Layered overlook: far and mid sit behind the fog, near in front of it. Filled in by descent.ts. -->
           <img class="overlook" data-overlook-part="far" alt="" hidden />
+          <!-- The far layer's sharper middle, blended in as the dive zooms: src/effects/overlook.ts -->
+          <img class="overlook" data-overlook-part="detail" alt="" hidden />
           <img class="overlook" data-overlook-part="mid" alt="" hidden />
           <!-- Far and mid in 3D (relief meshes from their depth maps), taking over from the flat cutouts at rest: src/effects/overlook.ts -->
           <canvas data-layer="overlook-3d" aria-hidden="true"></canvas>

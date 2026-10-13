@@ -29,6 +29,11 @@ export interface PhotoAsset {
   layers?: { far: string; mid: string; near: string };
   /** Optional depth maps of the far and mid cutouts (tools/layer-depth.py), to fly through them in 3D. Credit them with the photo. */
   layerDepth?: { far: string; mid: string };
+  /**
+   * Optional sharper copy of the middle of the far cutout (tools/detail-patch.py), at twice the size, that the
+   * dive blends in as it zooms; `x`, `y`, `w`, `h` say where it sits, as fractions of the photo. Credit it with the photo.
+   */
+  detail?: { src: string; x: number; y: number; w: number; h: number };
   /** Optional tiny blurred copy (tools/placeholder.py), shown until the photo has loaded. Re-make it when the photo changes. */
   placeholder?: string;
 }
@@ -74,6 +79,7 @@ export const site = {
         far: asset('images/valley-far-depth.webp'),
         mid: asset('images/valley-mid-depth.webp'),
       },
+      detail: { src: asset('images/valley-far-detail.webp'), x: 0.1998, y: 0.2999, w: 0.6501, h: 0.3802 },
       alt: 'Fir trees frame a deep mountain valley, with a river of fog winding below jagged blue peaks.',
       width: 1792,
       height: 2688,
@@ -84,8 +90,11 @@ export const site = {
     diveTarget: { x: 0.51, y: 0.49 },
     /** Center of the opening frame, as a fraction of the photo. Used when the photo is cropped. */
     startFocus: { x: 0.5, y: 0.34 },
-    /** How far the camera zooms into the dive target (1 = no zoom). The 1792 px overlook gets soft above ~3. */
-    diveZoom: 3,
+    /**
+     * How far the camera zooms into the dive target (1 = no zoom). The 1792 px overlook alone gets soft above ~3;
+     * past that, the sharper `detail` of the valley carries it.
+     */
+    diveZoom: 4.5,
 
     /** Landing photo: what the fog clears to. */
     landing: {

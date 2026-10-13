@@ -10,6 +10,8 @@ import type { DepthLayers, DepthView } from './depth-layers';
 const OVERSCAN = 1.04;
 /** The 3D layers draw the same picture as the flat ones at rest; a short fade hides any resampling difference. */
 const FADE_MS = 400;
+/** The far layer's sharper middle (`detail` in site.ts) blends in over this zoom range, once the dive is moving. */
+const DETAIL_ZOOM = [1.1, 1.8] as const;
 
 /** The camera: `dive` and `pan` 0–1, the pointer `x`/`y` −1…1; all already scaled by motionScale(). */
 export interface OverlookView {
@@ -26,12 +28,15 @@ export interface OverlookView {
  * 3. the far and mid cutouts in 3D, pushed back by their depth maps (depth-layers.ts), under the fog;
  *    the near branches stay a flat card above the fog, moved by the same camera.
  * Stages 2 and 3 load after the hero, and not at all with reduced motion (they'd only show the same still).
+ * After the cutouts, a sharper copy of the valley's middle loads too, for the far layer to blend in as it zooms.
  * Without WebGL, below quality level 2 (src/core/quality.ts), or if a depth map fails, the flat cutouts stay.
  */
 export class Overlook {
   private photo: HTMLImageElement;
   private layers: PhotoLayers;
   private canvas: HTMLCanvasElement;
+  private detail: HTMLImageElement;
+  private detailReady = false;
   private relief: DepthLayers | null = null;
   private reliefReady = false;
   private layered = false;
@@ -41,10 +46,11 @@ export class Overlook {
 
   constructor(stage: HTMLElement, onReady: () => void) {
     const $ = <T extends HTMLElement>(sel: string) => stage.querySelector<T>(sel)!;
-    const { layers, layerDepth }: PhotoAsset = site.descent.overlook;
+    const { layers, layerDepth, detail }: PhotoAsset = site.descent.overlook;
     this.photo = $<HTMLImageElement>('[data-layer="overlook"]');
     this.canvas = $<HTMLCanvasElement>('[data-layer="overlook-3d"]');
     const part = (name: string) => $<HTMLImageElement>(`[data-overlook-part="${name}"]`);
+    this.detail = part('detail');
     // The cutouts load after the hero; once they're in, the 3D layers build on the same images.
     this.layers = new PhotoLayers(
       { far: part('far'), mid: part('mid'), near: part('near') },
@@ -52,6 +58,7 @@ export class Overlook {
       () => {
         onReady();
         if (layerDepth) this.loadRelief(layerDepth, onReady);
+        if (detail) this.loadDetail(detail.src);
       },
     );
   }
@@ -67,6 +74,17 @@ export class Overlook {
       el.style.width = `${w}px`;
       el.style.height = `${h}px`;
       el.style.transformOrigin = `${T.x * w}px ${T.y * h}px`;
+    }
+    const d = site.descent.overlook.detail;
+    if (d) {
+      // Over the far cutout, offset to its spot; same transform, so its origin is the dive target too
+      Object.assign(this.detail.style, {
+        width: `${d.w * w}px`,
+        height: `${d.h * h}px`,
+        left: `${d.x * w}px`,
+        top: `${d.y * h}px`,
+        transformOrigin: `${(T.x - d.x) * w}px ${(T.y - d.y) * h}px`,
+      });
     }
     this.L = { vw, vh, w, h };
     this.relief?.resize(vw, vh);
@@ -90,12 +108,15 @@ export class Overlook {
     this.photo.style.opacity = covered || this.layered || fade === 1 ? '0' : '';
     if (covered) {
       parts.forEach((p) => (p.el.style.opacity = '0'));
+      this.detail.style.opacity = '0';
       return;
     }
 
     const z = 1 + (site.descent.diveZoom - 1) * v.dive;
     if (!this.layered) return this.place(this.photo, z, v.pan, v.x * -12, v.y * -6);
-    const cam = fade > 0 ? this.camera(v) : null;
+    const detail = this.detailReady ? smoothstep(DETAIL_ZOOM[0], DETAIL_ZOOM[1], z) : 0;
+    this.detail.style.opacity = '0';
+    const cam = fade > 0 ? this.camera(v, detail) : null;
     if (cam) this.relief?.draw(cam);
     for (const p of parts) {
       const near = p.el.dataset.overlookPart === 'near';
@@ -110,6 +131,10 @@ export class Overlook {
       const { scale, opacity } = dolly(p.depth, z);
       p.el.style.opacity = String(opacity);
       if (opacity > 0) this.place(p.el, scale, v.pan, v.x * -12 * p.shift, v.y * -6 * p.shift);
+      if (p.el.dataset.overlookPart === 'far' && detail > 0) {
+        this.detail.style.opacity = String(detail * opacity);
+        this.detail.style.transform = p.el.style.transform;
+      }
     }
   }
 
@@ -141,10 +166,26 @@ export class Overlook {
       })
       .then(() => {
         if (this.dead || !this.relief) return;
+        if (this.detailReady) this.relief.setDetail(this.detail, site.descent.overlook.detail!);
         this.reliefReady = true;
         onReady();
       })
       .catch(() => this.dropRelief()); // no WebGL, or the chunk or a depth map failed: keep the flat cutouts
+  }
+
+  /** The far layer's sharper middle: loads after the cutouts, then serves both the flat far layer and the 3D one. */
+  private loadDetail(src: string) {
+    this.detail.decoding = 'async';
+    this.detail.src = src;
+    this.detail
+      .decode()
+      .then(() => {
+        if (this.dead) return;
+        this.detail.hidden = false; // stays at opacity 0 until the dive zooms in
+        this.detailReady = true;
+        this.relief?.setDetail(this.detail, site.descent.overlook.detail!);
+      })
+      .catch(() => {}); // the plain far layer stays
   }
 
   /**
@@ -152,7 +193,7 @@ export class Overlook {
    * but only part of it is flying (`fly`): the rest is the lens zooming in. Flying all the way would pass every
    * tree in the first moments, since the valley is so much farther away than they are.
    */
-  private camera(v: OverlookView): DepthView {
+  private camera(v: OverlookView, detail: number): DepthView {
     const s = tuning.photo3d;
     const c = this.crop(v.pan);
     const magnify = 1 + (site.descent.diveZoom - 1) * v.dive;
@@ -169,6 +210,7 @@ export class Overlook {
       fov: s.fov,
       sky: s.sky,
       smooth: s.smooth,
+      detail,
     };
   }
 

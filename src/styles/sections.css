@@ -43,6 +43,17 @@
   -webkit-mask-image: var(--fade);
   mask-image: var(--fade);
 }
+/* The far layer's sharper middle (src/effects/overlook.ts): feathered at its edges, so it melts into the far layer.
+   The 3D far layer feathers it the same way (5% of each side). A mask reads only alpha; the token is any opaque color. */
+.stage img[data-overlook-part='detail'] {
+  opacity: 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, var(--night) 5%, var(--night) 95%, transparent),
+    linear-gradient(180deg, transparent, var(--night) 5%, var(--night) 95%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, var(--night) 5%, var(--night) 95%, transparent),
+    linear-gradient(180deg, transparent, var(--night) 5%, var(--night) 95%, transparent);
+  mask-composite: intersect;
+}
 /* Fades in from src/effects/overlook.ts once the 3D layers have loaded. */
 .stage canvas[data-layer='overlook-3d'] {
   opacity: 0;

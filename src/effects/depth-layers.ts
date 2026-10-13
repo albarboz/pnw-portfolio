@@ -9,6 +9,7 @@ import {
   ShaderMaterial,
   Texture,
   Vector2,
+  Vector4,
   WebGLRenderer,
 } from 'three';
 import { cssRgb } from '../core/tokens';
@@ -56,14 +57,36 @@ void main() {
 // A point the camera flies up to fades out (3.5× → 7× nearer) instead of filling the frame with blur. Taken per
 // pixel, not per vertex: the foreground stands nearer than the camera flies, and a triangle the camera is passing
 // through spans from "far ahead" to "just passed", so a per-vertex fade misses parts of it.
+// DETAIL (the far layer, once its sharper middle has loaded): blends that in by `uMix`, feathered at its edges.
+// uRect is where it sits in uv (which runs up from the bottom, like the textures).
 const FRAG = `
 uniform sampler2D uColor;
+#ifdef DETAIL
+uniform sampler2D uDetail;
+uniform vec4 uRect;
+uniform float uMix;
+#endif
 varying vec3 vUvW;
 varying vec2 vDist;
 void main() {
-  vec4 c = texture2D(uColor, vUvW.xy / vUvW.z);
+  vec2 uv = vUvW.xy / vUvW.z;
+  vec4 c = texture2D(uColor, uv);
+#ifdef DETAIL
+  vec2 d = (uv - uRect.xy) / uRect.zw;
+  float edge = min(min(d.x, 1.0 - d.x), min(d.y, 1.0 - d.y));
+  float k = uMix * smoothstep(0.0, 0.05, edge);
+  if (k > 0.0) c.rgb = mix(c.rgb, texture2D(uDetail, d).rgb, k); // the far layer is opaque
+#endif
   gl_FragColor = c * (1.0 - smoothstep(3.5, 7.0, vDist.x / max(vDist.y, 1e-4)));
 }`;
+
+/** Where a detail image sits on its layer, as fractions of the photo from the top left. */
+export interface DetailRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 /** One cutout and the depth map that goes with it. */
 export interface DepthLayer {
@@ -78,7 +101,8 @@ export interface DepthLayer {
  * (`vw` × `vh` px at `left`, `top`), the dive target (`target`, 0–1 of the photo, at distance 1), how far the
  * camera has flown toward it (`travel`, 0–1), the lens zoom around it (`zoom`), and the camera's sideways
  * offset (`x`, `y`, in the same units). `fov` is the photo's vertical field of view in degrees; `sky` how far
- * the sky stands, × the dive target's distance; `smooth` how much the depth steps are softened.
+ * the sky stands, × the dive target's distance; `smooth` how much the depth steps are softened; `detail` how much
+ * of the far layer's sharper middle shows (0–1, see setDetail).
  */
 export interface DepthView {
   w: number;
@@ -96,6 +120,7 @@ export interface DepthView {
   sky: number;
   /** Depth smoothing radius, as a fraction of the photo's width (tuning.photo3d.smooth). */
   smooth: number;
+  detail: number;
 }
 
 /**
@@ -115,6 +140,7 @@ export class DepthLayers {
   private tan = new Vector2();
   private inv = new Vector2();
   private smooth = new Vector2(); // shared by every layer's material
+  private detailMix = { value: 0 }; // shared with the far layer's material once it has a detail image
   private targetDepth = 0; // stored depth value at the dive target, read from the far layer's map
   private last = '';
 
@@ -159,6 +185,7 @@ export class DepthLayers {
     const ty = Math.tan(((v.fov / 2) * Math.PI) / 180);
     this.tan.set(ty * (v.w / v.h), ty);
     this.smooth.set(v.smooth, v.smooth * (v.w / v.h)); // same distance across and down
+    this.detailMix.value = v.detail;
 
     const cam = this.camera;
     cam.fov = v.fov;
@@ -176,12 +203,27 @@ export class DepthLayers {
     this.renderer.render(this.scene, cam);
   }
 
+  /** A sharper copy of part of the first (far) layer, blended in by `DepthView.detail`. Call once `loaded` resolves. */
+  setDetail(img: HTMLImageElement, r: DetailRect) {
+    const m = this.materials[0];
+    if (!m) return;
+    const tex = new Texture(img);
+    tex.needsUpdate = true;
+    m.uniforms.uDetail = { value: tex };
+    m.uniforms.uRect = { value: new Vector4(r.x, 1 - r.y - r.h, r.w, r.h) };
+    m.uniforms.uMix = this.detailMix;
+    m.defines = { DETAIL: '' };
+    m.needsUpdate = true;
+    this.last = '';
+  }
+
   destroy() {
     this.canvas.removeEventListener('webglcontextlost', this.lost);
     this.scene.traverse((o) => (o as Mesh).geometry?.dispose());
     this.materials.forEach((m) => {
       (m.uniforms.uColor.value as Texture).dispose();
       (m.uniforms.uDepth.value as Texture).dispose();
+      (m.uniforms.uDetail?.value as Texture | undefined)?.dispose();
       m.dispose();
     });
     this.renderer.dispose();

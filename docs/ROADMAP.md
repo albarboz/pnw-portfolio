@@ -51,7 +51,7 @@ Researched 2026-10-13. Ordered by how much a visitor would notice. Each new depe
 **Sharper depth and photos** (tools only; nothing ships to the browser)
 
 - [ ] Regenerate the depth maps with [Depth Anything 3](https://github.com/ByteDance-Seed/Depth-Anything-3), `DA3MONO-LARGE` (Apache 2.0; the Large and Giant checkpoints are CC BY-NC, so don't use those). Compare edges around the tall fir and the trail against the V2 maps. [MoGe-2](https://github.com/microsoft/MoGe) (MIT code; check the weights' license) is the second option
-- [ ] Upscale the overlook from 1792 px to 3584 px with [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) `x4plus` (BSD-3), or Midjourney's own upscaler, so `diveZoom` can go back above 3 and stay sharp. This re-runs the whole cutout pipeline (`hero-layers.py` → `layer-depth.py`), so do it together with the depth refresh. Stay within the 400 KB image budget (AVIF helps)
+- [x] Sharper dive with [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) `x4plus` (BSD-3), so `diveZoom` is back at 4.5. The whole overlook at 2× measured ~1 MB as WebP (cutouts ~1.5 MB more), far past the budget, so only the valley the zoom looks into is upscaled: `tools/detail-patch.py` → `valley-far-detail.webp` (2330×2044, 75 KB, after the hero), from the lossless original where the far layer still shows it (an upscaled repaint grows speckled needles), tones matched to the far layer. The far layer blends it in from 1.1× to 1.8× zoom, in 3D (`setDetail()` in `depth-layers.ts`) and in the flat fallback (an `<img>` over the far cutout)
 
 **Smaller polish**
 

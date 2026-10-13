@@ -18,6 +18,7 @@ const SHIFT: Record<LayerName, number> = { far: 0.4, mid: 1, near: 2 };
  * is: a cutout fades out as the camera reaches it (scale 3.5 → 7) instead of filling the frame with blur.
  */
 export function dolly(depth: number, zoom: number) {
+  if (depth >= 1) return { scale: zoom, opacity: 1 }; // the valley: what the camera dives into, never passed
   const travel = 1 - 1 / zoom; // how far the camera has moved toward the far layer
   if (travel >= depth) return { scale: Infinity, opacity: 0 };
   const scale = depth / (depth - travel);
