@@ -30,8 +30,8 @@ Researched 2026-10-13. Ordered by how much a visitor would notice. Each new depe
 
 **Launch**
 
-- [ ] Deploy it (Cloudflare Pages or Netlify, both free for static sites) and push the repo to GitHub. Nothing else on this list matters until there's a URL
-- [ ] Share preview: Open Graph / Twitter meta tags and a 1200×630 share image cropped from the overlook, plus a real `robots.txt` and `sitemap.xml` (Lighthouse SEO 92 came from the missing robots file)
+- [x] Deploy it: private GitHub repo `albarboz/pnw-portfolio`, built and served by Cloudflare (static assets, `wrangler.jsonc`) at https://pnw-portfolio.alansoftwareengineer.workers.dev/. Every push to `main` redeploys. Caching rules in `public/_headers`
+- [x] Share preview: Open Graph / Twitter tags, `robots.txt` and `sitemap.xml`, all built from `site.meta` by the `siteMeta()` plugin in `vite.config.ts`; share image `public/images/share.jpg` (1200×630 crop of the overlook)
 - [ ] Optional: [Umami](https://github.com/umami-software/umami) (MIT, no cookies, free cloud plan up to 100k events a month) to see how far people scroll and which projects they open
 
 **Loading on phones** (the hero photo arrives about 4.5 s after load on a throttled phone)
