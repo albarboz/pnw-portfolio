@@ -4,6 +4,7 @@ import { motionScale, prefersReducedMotion } from '../core/motion';
 import { pointer } from '../core/pointer';
 import { DepthPhoto } from '../effects/depth-photo';
 import { Fog } from '../effects/fog';
+import { PhotoLayers } from '../effects/photo-layers';
 import { site } from '../content/site';
 import type { SceneHandle } from './types';
 
@@ -38,7 +39,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     yMin: 0,
   });
 
-  const { width: OW, height: OH } = site.descent.overlook;
+  const { width: OW, height: OH, layers } = site.descent.overlook;
   const T = site.descent.diveTarget;
   const S = site.descent.startFocus;
   const ZMAX = site.descent.diveZoom;
@@ -53,6 +54,17 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     landing.style.opacity = on ? '0' : ''; // not visibility: that would drop its alt text from screen readers
     render();
   });
+
+  // Layered overlook: once its cutouts are in, they replace the flat photo, and the nearer ones zoom and shift
+  // faster so the firs sweep past the peaks. With reduced motion they would only stack back into the same
+  // photo, so they aren't loaded.
+  const part = (name: string) => $<HTMLImageElement>(`[data-overlook-part="${name}"]`);
+  const overlookLayers = new PhotoLayers(
+    { far: part('far'), mid: part('mid'), near: part('near') },
+    prefersReducedMotion() ? undefined : layers,
+    () => render(),
+  );
+  const parts = overlookLayers.parts;
 
   // ---------- state: the timeline tweens these numbers, render() reads them ----------
   const state = {
@@ -71,26 +83,30 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   };
 
   // ---------- layout: size the overlook so it always covers the stage ----------
+  // A little bigger than cover, so even at rest the cutouts have room to shift with the pointer.
   const ASPECT = OW / OH;
+  const OVERSCAN = 1.04;
   let L = { vw: 0, vh: 0, w: 0, h: 0 };
 
   const layout = () => {
     const vw = stage.clientWidth;
     const vh = stage.clientHeight;
     const cover = vw / vh > ASPECT;
-    const w = cover ? vw : vh * ASPECT;
-    const h = cover ? vw / ASPECT : vh;
-    overlook.style.width = `${w}px`;
-    overlook.style.height = `${h}px`;
-    overlook.style.transformOrigin = `${T.x * w}px ${T.y * h}px`;
+    const w = (cover ? vw : vh * ASPECT) * OVERSCAN;
+    const h = (cover ? vw / ASPECT : vh) * OVERSCAN;
+    for (const el of [overlook, ...parts.map((p) => p.el)]) {
+      el.style.width = `${w}px`;
+      el.style.height = `${h}px`;
+      el.style.transformOrigin = `${T.x * w}px ${T.y * h}px`;
+    }
     L = { vw, vh, w, h };
     fogHigh.resize();
     fogLow.resize();
     depth.resize(vw, vh);
   };
 
-  /** Position the overlook at zoom z, panning toward the dive target, never revealing an edge. */
-  const placeOverlook = (z: number, pan: number, ox: number, oy: number) => {
+  /** Position the overlook, or one of its cutouts, at zoom z: pan toward the dive target, never reveal an edge. */
+  const placeOverlook = (el: HTMLElement, z: number, pan: number, ox: number, oy: number) => {
     const { vw, vh, w, h } = L;
     const ax = T.x * w;
     const ay = T.y * h;
@@ -98,7 +114,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     const startT = clamp(vh / 2 - S.y * h, vh - h, 0);
     const left = clamp(lerp(startL, vw / 2 - ax, pan) + ox, vw - ax - (w - ax) * z, ax * (z - 1));
     const top = clamp(lerp(startT, vh / 2 - ay, pan) + oy, vh - ay - (h - ay) * z, ay * (z - 1));
-    overlook.style.transform = `translate3d(${left}px, ${top}px, 0) scale(${z})`;
+    el.style.transform = `translate3d(${left}px, ${top}px, 0) scale(${z})`;
   };
 
   // ---------- render: the only place that writes to the DOM ----------
@@ -106,10 +122,17 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     const m = motionScale();
     // Once the trail fully covers it, stop drawing the big zoomed overlook (opacity, not visibility: keeps its alt text).
     const covered = state.landing >= 1;
-    overlook.style.opacity = covered ? '0' : '';
+    overlook.style.opacity = covered || overlookLayers.active ? '0' : '';
+    parts.forEach((p) => (p.el.style.opacity = covered ? '0' : ''));
     if (!covered) {
       const z = 1 + (ZMAX - 1) * state.dive * m;
-      placeOverlook(z, state.pan * m, pointer.x * -12 * m, pointer.y * -6 * m);
+      if (overlookLayers.active) {
+        for (const p of parts) {
+          placeOverlook(p.el, z ** p.zoom, state.pan * m, pointer.x * -12 * p.shift * m, pointer.y * -6 * p.shift * m);
+        }
+      } else {
+        placeOverlook(overlook, z, state.pan * m, pointer.x * -12 * m, pointer.y * -6 * m);
+      }
     }
 
     heroCopy.style.opacity = String(1 - state.heroOut);
@@ -203,6 +226,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
       gsap.ticker.remove(tick);
       observer.disconnect();
       depth.destroy();
+      overlookLayers.destroy();
       window.removeEventListener('resize', onResize);
       tl.scrollTrigger?.kill();
       tl.kill();

@@ -3,3 +3,6 @@ dist
 .DS_Store
 *.local
 .claude/settings.local.json
+__pycache__/
+# erase guides and editor plates for tools/hero-layers.py (large source files)
+tools/plates/

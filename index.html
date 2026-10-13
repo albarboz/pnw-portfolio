@@ -31,8 +31,12 @@
       <section class="scene" data-scene="descent" aria-label="Introduction">
         <div class="stage" data-stage>
           <img class="overlook" data-layer="overlook" data-img="descent.overlook" alt="" fetchpriority="high" />
+          <!-- Layered overlook: far and mid sit behind the fog, near in front of it. Filled in by descent.ts. -->
+          <img class="overlook" data-overlook-part="far" alt="" hidden />
+          <img class="overlook" data-overlook-part="mid" alt="" hidden />
           <div class="overlook-veil" aria-hidden="true"></div>
           <canvas data-fog="high" aria-hidden="true"></canvas>
+          <img class="overlook" data-overlook-part="near" alt="" hidden />
           <div class="whiteout" data-layer="whiteout" aria-hidden="true"></div>
           <div class="landing-wrap" data-layer="landing-wrap">
             <img data-layer="landing" data-img="descent.landing" alt="" fetchpriority="low" />

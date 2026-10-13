@@ -33,7 +33,7 @@ src/
 public/images/       photos (credit every one in docs/ASSET-CREDITS.md)
 public/audio/        ambient audio (optional)
 docs/                roadmap, asset credits, scene recipe
-tools/               optional Python asset scripts (depth maps); not part of the build
+tools/               optional Python asset scripts (depth maps, hero layers); not part of the build
 ```
 
 ## How scenes work

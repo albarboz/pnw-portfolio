@@ -12,7 +12,7 @@ Work in phases. Each phase should ship a page that works on its own.
 
 ## Phase 2 – Depth
 
-- [ ] Split hero photos into layers (sky, peaks, fog, foreground firs) for true parallax
+- [x] Split the overlook into layers for true parallax: `tools/hero-layers.py` (far / mid / near cutouts) → `src/effects/photo-layers.ts`; the scroll fog sits between mid and near
 - [x] Depth-map "2.5D" camera move on the trail photo: `tools/depth-map.py` (Depth Anything V2) → WebGL displacement in `src/effects/depth-photo.ts`
 - [ ] A short fog timelapse video loop as an alternative hero
 - [ ] Page transitions between sections
