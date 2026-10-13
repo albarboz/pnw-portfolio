@@ -3,7 +3,7 @@ import { clamp, lerp } from '../core/math';
 import { motionScale, prefersReducedMotion } from '../core/motion';
 import { pointer } from '../core/pointer';
 import { DepthPhoto } from '../effects/depth-photo';
-import { Fog } from '../effects/fog';
+import { FogLayer } from '../effects/fog-layer';
 import { PhotoLayers } from '../effects/photo-layers';
 import { site } from '../content/site';
 import type { SceneHandle } from './types';
@@ -28,12 +28,12 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   const capFog = $('[data-layer="cap-fog"]');
   const capLanding = $('[data-layer="cap-landing"]');
 
-  const fogHigh = new Fog($<HTMLCanvasElement>('[data-fog="high"]'), {
+  const fogHigh = new FogLayer($<HTMLCanvasElement>('[data-fog="high"]'), {
     count: 30,
     tint: '--fog-high',
     yMin: 0.3,
   });
-  const fogLow = new Fog($<HTMLCanvasElement>('[data-fog="low"]'), {
+  const fogLow = new FogLayer($<HTMLCanvasElement>('[data-fog="low"]'), {
     count: 22,
     tint: '--fog-low',
     yMin: 0,
@@ -234,6 +234,8 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
       gsap.ticker.remove(tick);
       observer.disconnect();
       depth.destroy();
+      fogHigh.destroy();
+      fogLow.destroy();
       overlookLayers.destroy();
       window.removeEventListener('resize', onResize);
       tl.scrollTrigger?.kill();

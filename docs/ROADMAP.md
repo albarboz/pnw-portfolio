@@ -19,7 +19,7 @@ Work in phases. Each phase should ship a page that works on its own.
 
 ## Phase 3 – 3D fly-through (optional)
 
-- [ ] Add `three` and build `src/effects/fog3d.ts`: a full-screen shader fog (fbm noise) that replaces the canvas fog
+- [x] Add `three` and build `src/effects/fog3d.ts`: a full-screen shader fog (fbm noise) that replaces the canvas fog. Three is loaded lazily (`src/effects/fog-layer.ts`); the canvas fog draws until it's in and stays as the no-WebGL fallback
 - [ ] Camera dolly through layered planes, driven by the same ScrollTrigger timeline
 - [ ] Only if needed: volumetric clouds (takram `three-geospatial`) or React Three Fiber + drei
 

@@ -31,7 +31,7 @@ Claude reads `CLAUDE.md` automatically, so it already knows the stack, the folde
 | Name, copy, projects, email, image paths | `src/content/site.ts` |
 | Colors and fonts | `src/styles/tokens.css` |
 | The fog dive animation timing | `src/scenes/descent.ts` (the timeline block) |
-| The fog look | `src/effects/fog.ts` |
+| The fog look | `src/effects/fog3d.ts` (shader), `src/effects/fog.ts` (fallback) |
 | Photos | `public/images/` + `docs/ASSET-CREDITS.md` |
 | Where the camera dives / what the landing pushes toward | `diveTarget`, `startFocus`, `landingFocus` in `src/content/site.ts` |
 
