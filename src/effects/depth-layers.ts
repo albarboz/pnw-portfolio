@@ -24,30 +24,45 @@ const MAX_DPR = 3;
 // each triangle flat on screen: at rest that is exact, while the usual perspective-correct spread shifts it by
 // a fraction of a pixel in triangles that span a depth jump (a ridge against the sky). WebGL has no
 // noperspective, so vUvW carries uv × w and w, and the fragment shader divides the GPU's correction back out.
+// The depth map is smoothed here (5×5 taps, `uSmooth` = the radius in uv): a near tree right in front of a farther
+// slope is a step in depth, and the triangles across that step stretch into streaks as the camera moves. Smoothed,
+// the step becomes a ramp and the tree leans a little instead. The rest view stays exact either way.
 const VERT = `
 uniform sampler2D uDepth;
 uniform vec2 uTan; // tan of half the photo's field of view, across and up
 uniform vec2 uInv; // inverse distance = uInv.x × depth + uInv.y (the dive target at 1)
+uniform vec2 uSmooth; // depth smoothing radius, across and down, in uv
 varying vec3 vUvW;
-varying float vPass;
+varying vec2 vDist; // distance at rest, distance now: both vary linearly across a triangle, so they interpolate exactly
 void main() {
-  float e = texture2D(uDepth, uv).r;
+  float e = 0.0, sum = 0.0;
+  for (int i = -2; i <= 2; i++) {
+    for (int j = -2; j <= 2; j++) {
+      vec2 o = vec2(float(i), float(j)) * 0.5;
+      float wt = exp(-2.0 * dot(o, o));
+      e += wt * texture2D(uDepth, uv + o * uSmooth).r;
+      sum += wt;
+    }
+  }
+  e /= sum;
   float z = 1.0 / (uInv.x * e * e + uInv.y); // stored as the square root (tools/layer-depth.py)
   vec4 mv = modelViewMatrix * vec4(vec3((uv - 0.5) * 2.0 * uTan, -1.0) * z, 1.0);
-  vPass = z / max(-mv.z, 1e-4); // how much nearer the camera has flown to this point
+  vDist = vec2(z, -mv.z);
   gl_Position = projectionMatrix * mv;
   vUvW = vec3(uv * gl_Position.w, gl_Position.w);
 }`;
 
 // Premultiplied, like the browser draws the <img> cutouts: their soft edges blend the same way.
-// A point the camera flies up to fades out (3.5× → 7× nearer) instead of filling the frame with blur.
+// A point the camera flies up to fades out (3.5× → 7× nearer) instead of filling the frame with blur. Taken per
+// pixel, not per vertex: the foreground stands nearer than the camera flies, and a triangle the camera is passing
+// through spans from "far ahead" to "just passed", so a per-vertex fade misses parts of it.
 const FRAG = `
 uniform sampler2D uColor;
 varying vec3 vUvW;
-varying float vPass;
+varying vec2 vDist;
 void main() {
   vec4 c = texture2D(uColor, vUvW.xy / vUvW.z);
-  gl_FragColor = c * (1.0 - smoothstep(3.5, 7.0, vPass));
+  gl_FragColor = c * (1.0 - smoothstep(3.5, 7.0, vDist.x / max(vDist.y, 1e-4)));
 }`;
 
 /** One cutout and the depth map that goes with it. */
@@ -63,7 +78,7 @@ export interface DepthLayer {
  * (`vw` × `vh` px at `left`, `top`), the dive target (`target`, 0–1 of the photo, at distance 1), how far the
  * camera has flown toward it (`travel`, 0–1), the lens zoom around it (`zoom`), and the camera's sideways
  * offset (`x`, `y`, in the same units). `fov` is the photo's vertical field of view in degrees; `sky` how far
- * the sky stands, × the dive target's distance.
+ * the sky stands, × the dive target's distance; `smooth` how much the depth steps are softened.
  */
 export interface DepthView {
   w: number;
@@ -79,6 +94,8 @@ export interface DepthView {
   y: number;
   fov: number;
   sky: number;
+  /** Depth smoothing radius, as a fraction of the photo's width (tuning.photo3d.smooth). */
+  smooth: number;
 }
 
 /**
@@ -97,6 +114,7 @@ export class DepthLayers {
   private materials: ShaderMaterial[] = [];
   private tan = new Vector2();
   private inv = new Vector2();
+  private smooth = new Vector2(); // shared by every layer's material
   private targetDepth = 0; // stored depth value at the dive target, read from the far layer's map
   private last = '';
 
@@ -140,6 +158,7 @@ export class DepthLayers {
     this.inv.set((1 - 1 / v.sky) / Math.max(dT, 1e-4), 1 / v.sky);
     const ty = Math.tan(((v.fov / 2) * Math.PI) / 180);
     this.tan.set(ty * (v.w / v.h), ty);
+    this.smooth.set(v.smooth, v.smooth * (v.w / v.h)); // same distance across and down
 
     const cam = this.camera;
     cam.fov = v.fov;
@@ -180,7 +199,13 @@ export class DepthLayers {
     const material = new ShaderMaterial({
       vertexShader: VERT,
       fragmentShader: FRAG,
-      uniforms: { uColor: { value: color }, uDepth: { value: depth }, uTan: { value: this.tan }, uInv: { value: this.inv } },
+      uniforms: {
+        uColor: { value: color },
+        uDepth: { value: depth },
+        uTan: { value: this.tan },
+        uInv: { value: this.inv },
+        uSmooth: { value: this.smooth },
+      },
       transparent: true,
       premultipliedAlpha: true,
       blending: NormalBlending,

@@ -165,6 +165,7 @@ export class Overlook {
       y: -v.y * s.sway * 0.5,
       fov: s.fov,
       sky: s.sky,
+      smooth: s.smooth,
     };
   }
 

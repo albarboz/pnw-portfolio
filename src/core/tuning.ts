@@ -37,6 +37,11 @@ export const tuning = {
     sway: 0.001,
     /** Distance of the near branches (a flat card above the fog), × the distance to the dive target. */
     near: 0.12,
+    /**
+     * How much the depth steps are softened, as a fraction of the photo's width. A near tree in front of a farther
+     * slope smears as the camera moves; softened, it leans a little instead. 0 = sharp depth.
+     */
+    smooth: 0.04,
   },
 
   /** Distance of each overlook cutout from the camera's start (far = 1). Smaller = the camera passes it sooner. */

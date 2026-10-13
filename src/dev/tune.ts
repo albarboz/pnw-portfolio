@@ -44,6 +44,7 @@ export function createTunePanel() {
   p3.addBinding(tuning.photo3d, 'near', { label: 'edge branches', min: 0.03, max: 0.5, step: 0.005 });
   p3.addBinding(tuning.photo3d, 'fov', { label: 'photo fov°', min: 20, max: 100, step: 0.5 });
   p3.addBinding(tuning.photo3d, 'sway', { label: 'pointer sway', min: 0, max: 0.01, step: 0.0005 });
+  p3.addBinding(tuning.photo3d, 'smooth', { label: 'depth smoothing', min: 0, max: 0.05, step: 0.001 });
 
   // For scripts and the console: window.tuning is the live object the scenes read.
   (window as unknown as { tuning: typeof tuning }).tuning = tuning;
@@ -56,7 +57,7 @@ export function createTunePanel() {
       `scroll: ${r(tuning.scroll)},`,
       `fog: { strength: ${r(f.strength)}, haze: ${r(f.haze)}, banks: ${r(f.banks)}, near: ${r(f.near)} },`,
       `dolly: { mid: ${r(d.mid)}, near: ${r(d.near)} },`,
-      `photo3d: { show: ${s.show}, sky: ${r(s.sky)}, fly: ${r(s.fly)}, fov: ${r(s.fov)}, sway: ${r(s.sway)}, near: ${r(s.near)} },`,
+      `photo3d: { show: ${s.show}, sky: ${r(s.sky)}, fly: ${r(s.fly)}, fov: ${r(s.fov)}, sway: ${r(s.sway)}, near: ${r(s.near)}, smooth: ${r(s.smooth)} },`,
       '// src/content/site.ts',
       `diveZoom: ${r(site.descent.diveZoom)},`,
     ].join('\n');
