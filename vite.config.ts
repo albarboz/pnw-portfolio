@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig, type HtmlTagDescriptor, type Plugin } from 'vite';
 import { site } from './src/content/site';
 
@@ -55,10 +57,34 @@ function siteMeta(): Plugin {
   };
 }
 
+/**
+ * Serves @pmndrs/detect-gpu's benchmark data from this site at /benchmarks (src/core/quality.ts), instead of the
+ * library's default CDN. Copied from the installed package at build time, so it always matches its version.
+ * Each visitor fetches only the one file for their GPU family.
+ */
+function benchmarks(): Plugin {
+  const dir = fileURLToPath(new URL('./node_modules/@pmndrs/detect-gpu/dist/benchmarks/', import.meta.url));
+  const files = () => readdirSync(dir).filter((f) => f.endsWith('.json'));
+  return {
+    name: 'gpu-benchmarks',
+    configureServer(server) {
+      server.middlewares.use('/benchmarks', (req, res, next) => {
+        const name = (req.url ?? '').split('?')[0].replace(/^\//, '');
+        if (!files().includes(name)) return next();
+        res.setHeader('Content-Type', 'application/json');
+        res.end(readFileSync(dir + name));
+      });
+    },
+    generateBundle() {
+      for (const f of files()) this.emitFile({ type: 'asset', fileName: `benchmarks/${f}`, source: readFileSync(dir + f) });
+    },
+  };
+}
+
 export default defineConfig({
   // Relative asset paths, so the built site works from any folder or subpath.
   base: './',
-  plugins: [siteMeta()],
+  plugins: [siteMeta(), benchmarks()],
   build: {
     // three.js (~520 kB, ~130 kB gzipped) is its own chunk, loaded after first paint by src/effects/fog-layer.ts.
     chunkSizeWarningLimit: 600,

@@ -2,6 +2,7 @@ import { gsap } from '../core/scroll';
 import { lerp } from '../core/math';
 import { motionScale, prefersReducedMotion } from '../core/motion';
 import { pointer } from '../core/pointer';
+import { quality } from '../core/quality';
 import { tuning } from '../core/tuning';
 import { DepthPhoto } from '../effects/depth-photo';
 import { FogLayer } from '../effects/fog-layer';
@@ -52,6 +53,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     landing.style.willChange = on ? 'auto' : ''; // the canvas moves now; don't keep a GPU layer for a still <img>
     render();
   });
+  quality.then((level) => level === 0 && depth.destroy()); // the slowest GPUs keep the plain photo
 
   const grain = new Grain($('[data-layer="grain"]'));
 

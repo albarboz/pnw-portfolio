@@ -1,5 +1,6 @@
 import { clamp, lerp, smoothstep } from '../core/math';
 import { prefersReducedMotion } from '../core/motion';
+import { quality } from '../core/quality';
 import { tuning } from '../core/tuning';
 import { site, type PhotoAsset } from '../content/site';
 import { dolly, PhotoLayers } from './photo-layers';
@@ -25,7 +26,7 @@ export interface OverlookView {
  * 3. the far and mid cutouts in 3D, pushed back by their depth maps (depth-layers.ts), under the fog;
  *    the near branches stay a flat card above the fog, moved by the same camera.
  * Stages 2 and 3 load after the hero, and not at all with reduced motion (they'd only show the same still).
- * Without WebGL, or if a depth map fails, the flat cutouts stay.
+ * Without WebGL, below quality level 2 (src/core/quality.ts), or if a depth map fails, the flat cutouts stay.
  */
 export class Overlook {
   private photo: HTMLImageElement;
@@ -121,9 +122,11 @@ export class Overlook {
 
   private loadRelief(srcs: { far: string; mid: string }, onReady: () => void) {
     const part = (name: string) => this.layers.parts.find((p) => p.el.dataset.overlookPart === name)!.el;
-    import('./depth-layers')
-      .then(({ DepthLayers }) => {
-        if (this.dead) return;
+    quality
+      .then((level) => (level === 2 ? import('./depth-layers') : null))
+      .then((m) => {
+        if (!m || this.dead) return;
+        const { DepthLayers } = m;
         this.relief = new DepthLayers(
           this.canvas,
           [
