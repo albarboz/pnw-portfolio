@@ -21,6 +21,12 @@
   height: 100%;
   pointer-events: none;
 }
+/* The low fog sits above the trail's shade; fade it out toward the bottom so the shade still ends on solid
+   --night and the hand-off to About has no bright edge. (A mask reads only alpha; the token is any opaque color.) */
+.stage canvas[data-fog='low'] {
+  -webkit-mask-image: linear-gradient(180deg, var(--night) 62%, transparent 92%);
+  mask-image: linear-gradient(180deg, var(--night) 62%, transparent 92%);
+}
 .whiteout {
   position: absolute;
   inset: 0;
@@ -144,6 +150,7 @@
 
 /* ===================== content sections ===================== */
 .section {
+  --blend: min(360px, 45vh);
   padding-block: clamp(80px, 12vh, 140px);
   padding-inline: var(--gutter);
 }
@@ -203,8 +210,10 @@
   line-height: 1;
 }
 
+/* Soft hand-offs: each section starts in the previous one's color and fades into its own over --blend,
+   so there is no hard line where one ends and the next begins. */
 .work {
-  background: var(--forest);
+  background: linear-gradient(180deg, var(--night), var(--forest) var(--blend));
 }
 .work-list {
   list-style: none;
@@ -285,7 +294,7 @@
 }
 
 .contact {
-  background: var(--night);
+  background: linear-gradient(180deg, var(--forest), var(--night) var(--blend));
 }
 .contact .lead {
   margin: 40px 0 0;

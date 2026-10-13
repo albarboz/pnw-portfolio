@@ -67,7 +67,8 @@
 
       <section class="section about" id="about" aria-labelledby="about-h">
         <div class="wrap about-grid">
-          <h2 id="about-h" data-text="about.heading" data-reveal></h2>
+          <!-- data-reveal sits on a wrapper so the heading itself is free for the drift (src/ui/reveal.ts) -->
+          <div data-reveal><h2 id="about-h" data-text="about.heading" data-drift></h2></div>
           <div data-reveal>
             <span class="mono label" data-text="about.label"></span>
             <div data-about-body></div>
@@ -78,7 +79,7 @@
       <section class="section work" id="work" aria-labelledby="work-h">
         <div class="wrap">
           <div class="sec-head" data-reveal>
-            <h2 id="work-h" data-text="work.heading"></h2>
+            <h2 id="work-h" data-text="work.heading" data-drift></h2>
             <span class="mono label" data-text="work.label"></span>
           </div>
           <ul class="work-list" data-projects></ul>
@@ -88,7 +89,7 @@
       <section class="section contact" id="contact" aria-labelledby="contact-h">
         <div class="wrap">
           <div class="sec-head" data-reveal>
-            <h2 id="contact-h" data-text="contact.heading"></h2>
+            <h2 id="contact-h" data-text="contact.heading" data-drift></h2>
             <span class="mono label" data-text="contact.label"></span>
           </div>
           <p class="lead" data-reveal>
