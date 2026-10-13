@@ -169,23 +169,19 @@ export const site = {
     email: 'hello@yourdomain.com',
   },
 
+  /** Section index (top right): a way past the descent. `target` is the section's id in index.html. */
+  index: {
+    label: 'Sections',
+    links: [
+      { label: 'About', target: 'about' },
+      { label: 'Work', target: 'work' },
+      { label: 'Contact', target: 'contact' },
+    ],
+  },
+
   /** Small interface labels. */
   ui: {
     copyEmail: { label: 'Copy email', copied: 'Copied', selected: 'Selected — press Ctrl/⌘ C' },
-  },
-
-  /** Altimeter readings in feet. The descent scene interpolates between these. */
-  altitude: {
-    top: 6200,
-    landing: 1400,
-    bottom: 600,
-    labels: {
-      above: 'Overlook',
-      fog: 'Cloud line',
-      landing: 'Trail',
-      below: 'Old growth',
-      bottom: 'Trailhead',
-    },
   },
 
   credits: [

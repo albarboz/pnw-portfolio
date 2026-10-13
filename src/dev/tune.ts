@@ -9,9 +9,10 @@ import { site } from '../content/site';
  * numbers on the clipboard (and in the console) to paste back into those files. Never part of the build.
  */
 export function createTunePanel() {
-  // Fixed, so it stays in the corner while you scroll through the dive (Tweakpane's own wrapper scrolls away).
+  // Fixed, so it stays in the corner while you scroll through the dive (Tweakpane's own wrapper scrolls away),
+  // below the section index.
   const host = document.createElement('div');
-  host.style.cssText = 'position: fixed; top: 16px; right: 16px; width: 280px; z-index: 100;';
+  host.style.cssText = 'position: fixed; top: 64px; right: 16px; width: 280px; z-index: 100;';
   document.body.append(host);
   const pane = new Pane({ title: 'Tune', expanded: false, container: host });
   const dispose = pane.dispose.bind(pane);

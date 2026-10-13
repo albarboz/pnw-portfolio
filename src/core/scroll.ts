@@ -13,7 +13,7 @@ gsap.registerPlugin(ScrollTrigger);
 export function initScroll(): Lenis | null {
   if (prefersReducedMotion()) return null;
 
-  const lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 0.9 });
+  const lenis = new Lenis({ lerp: 0.09 });
   lenis.on('scroll', ScrollTrigger.update);
   gsap.ticker.add((time) => lenis.raf(time * 1000));
   gsap.ticker.lagSmoothing(0);

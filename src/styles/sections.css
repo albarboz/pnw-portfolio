@@ -216,7 +216,7 @@
   color: var(--lichen);
 }
 /* Places along the descent (Old growth, Trailhead …) are named like labels on a trail map: serif italic,
-   sentence case. Elevations next to them are instrument readings in the body face (see .altimeter). */
+   sentence case. */
 .place {
   font-family: var(--display);
   font-style: italic;
@@ -545,35 +545,54 @@ html:has(.project-dialog[open]) {
 .pd-links .btn {
   text-decoration: none;
 }
-/* ===================== fixed instruments ===================== */
-.altimeter {
+/* ===================== section index ===================== */
+/* A glass pill in the top right corner; section names in the place voice, the one on screen in lichen */
+.index {
   position: fixed;
   z-index: 20;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  right: 16px;
+  display: flex;
+  padding: 0 5px;
   border-radius: 999px;
   background: var(--glass);
+  /* a hairline edge: over the dark sections the glass matches the page, and text passing under looked cut off */
+  box-shadow: inset 0 0 0 1px var(--rule);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  color: var(--fog);
-  left: 16px;
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 8px 14px 9px;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
 }
-/* the place, named like the section labels; the reading beside it in the body face */
-.altimeter i {
+.index a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 9px;
+  border-radius: 999px;
   font-family: var(--display);
+  font-style: italic;
   font-size: 17px;
   line-height: 1;
+  color: var(--text);
+  text-decoration: none;
+  transition: color 0.2s var(--ease-out);
+}
+/* a taller hit area than the pill shows, for thumbs */
+.index a::after {
+  content: '';
+  position: absolute;
+  inset: -5px 0;
+}
+.index a[aria-current] {
   color: var(--lichen);
 }
-.altimeter b {
-  font-weight: 600; /* tabular digits: the reading counts down without jittering */
-  letter-spacing: 0.01em;
-  color: var(--text);
+@media (hover: hover) and (pointer: fine) {
+  .index a:hover {
+    color: var(--lichen-hover);
+  }
+}
+/* headings the index lands on take focus from script; the scroll already shows where you are */
+h2[tabindex='-1']:focus {
+  outline: none;
 }
 
 /* ===================== responsive & motion ===================== */
@@ -589,8 +608,8 @@ html:has(.project-dialog[open]) {
   .work-meta {
     white-space: normal;
   }
-  .altimeter {
-    left: 12px;
+  .index {
+    right: 12px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -5,8 +5,8 @@ import './styles/sections.css';
 
 import { initScroll, ScrollTrigger } from './core/scroll';
 import { renderContent } from './ui/content';
-import { createAltimeter } from './ui/altimeter';
 import { createReveal } from './ui/reveal';
+import { createSectionIndex } from './ui/section-index';
 import { initCopyEmail } from './ui/copy-email';
 import { createProjectDialog } from './ui/project-dialog';
 import { createScenes } from './scenes';
@@ -18,10 +18,9 @@ renderContent();
 const lenis = initScroll();
 
 // 3. scenes and widgets
-const altimeter = createAltimeter();
-const scenes = createScenes(altimeter);
-altimeter.attach(); // after scenes, so pinned scroll space is measured
-const reveal = createReveal(); // same reason
+const scenes = createScenes();
+const reveal = createReveal(); // after scenes, so pinned scroll space is measured
+const sectionIndex = createSectionIndex(lenis); // same reason
 initCopyEmail();
 const projectDialog = createProjectDialog(lenis);
 
@@ -36,8 +35,8 @@ if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     tune?.then((pane) => pane.dispose());
     scenes.forEach((s) => s.destroy());
-    altimeter.destroy();
     reveal.destroy();
+    sectionIndex.destroy();
     projectDialog.destroy();
     lenis?.destroy();
   });
