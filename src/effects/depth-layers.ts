@@ -13,34 +13,40 @@ import {
 } from 'three';
 import { cssRgb } from '../core/tokens';
 
-/** Past 1.5× device pixels the photo has no more detail to give, so a sharper canvas only costs GPU time. */
-const MAX_DPR = 1.5;
+/**
+ * Full device pixels, like the <img> cutouts this replaces: a smaller canvas stretched to fit softens the photo
+ * the moment it takes over. (It only redraws when the view changes.)
+ */
+const MAX_DPR = 3;
 
 // Each vertex of a grid over the photo is pushed back along its own ray by its depth, so at rest every pixel
-// lands exactly where it is in the photo, whatever the depth or the field of view.
+// lands exactly where it is in the photo, whatever the depth or the field of view. The photo is spread across
+// each triangle flat on screen: at rest that is exact, while the usual perspective-correct spread shifts it by
+// a fraction of a pixel in triangles that span a depth jump (a ridge against the sky). WebGL has no
+// noperspective, so vUvW carries uv × w and w, and the fragment shader divides the GPU's correction back out.
 const VERT = `
 uniform sampler2D uDepth;
 uniform vec2 uTan; // tan of half the photo's field of view, across and up
 uniform vec2 uInv; // inverse distance = uInv.x × depth + uInv.y (the dive target at 1)
-varying vec2 vUv;
+varying vec3 vUvW;
 varying float vPass;
 void main() {
-  vUv = uv;
   float e = texture2D(uDepth, uv).r;
   float z = 1.0 / (uInv.x * e * e + uInv.y); // stored as the square root (tools/layer-depth.py)
   vec4 mv = modelViewMatrix * vec4(vec3((uv - 0.5) * 2.0 * uTan, -1.0) * z, 1.0);
   vPass = z / max(-mv.z, 1e-4); // how much nearer the camera has flown to this point
   gl_Position = projectionMatrix * mv;
+  vUvW = vec3(uv * gl_Position.w, gl_Position.w);
 }`;
 
 // Premultiplied, like the browser draws the <img> cutouts: their soft edges blend the same way.
 // A point the camera flies up to fades out (3.5× → 7× nearer) instead of filling the frame with blur.
 const FRAG = `
 uniform sampler2D uColor;
-varying vec2 vUv;
+varying vec3 vUvW;
 varying float vPass;
 void main() {
-  vec4 c = texture2D(uColor, vUv);
+  vec4 c = texture2D(uColor, vUvW.xy / vUvW.z);
   gl_FragColor = c * (1.0 - smoothstep(3.5, 7.0, vPass));
 }`;
 
