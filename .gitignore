@@ -6,3 +6,5 @@ dist
 __pycache__/
 # erase guides and editor plates for tools/hero-layers.py (large source files)
 tools/plates/
+# wrangler local cache
+.wrangler/
