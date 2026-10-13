@@ -34,5 +34,8 @@
   --gutter: 20px;
   --max: 1080px;
 
+  /* Motion: strong ease-out for UI that enters, exits or responds to a press */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
   color-scheme: dark;
 }
