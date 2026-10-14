@@ -2,8 +2,11 @@ import { clamp, smoothstep } from '../core/math';
 import { cssRgb } from '../core/tokens';
 import { linkProgram } from './gl-program';
 
-/** Past 1.5× device pixels the footage has no more detail to give. */
-const MAX_DPR = 1.5;
+/**
+ * Device pixels per CSS pixel, at most. Drawn at the screen's own density, not the footage's: a 1× canvas blown up
+ * 3× by a phone's compositor filters the picture twice and blurs the fog ring's edge.
+ */
+const MAX_DPR = 2;
 
 const VERT = `
 attribute vec2 aPos;
@@ -37,6 +40,10 @@ float fbm(vec2 p) {
   return v;
 }
 void main() {
+  if (uReveal >= 1.0) { // the hand-off is over: just the film, in its own framing
+    gl_FragColor = vec4(texture2D(uFrame, uOffset + vUv * uScale).rgb, 1.0);
+    return;
+  }
   vec2 d = (vUv - uOrigin) * vec2(uAspect, 1.0);
   float r = length(d);
   // Ring radius: from just inside the runner to past the farthest corner, plus room for the torn edge.
@@ -55,14 +62,19 @@ void main() {
   gl_FragColor = vec4(col * a, a);
 }`;
 
-/** How the film relates to the trail photo it opens from. */
+/** The trail photo the film opens from. */
 export interface RunPlacement {
   /** The photo's size in px (its aspect ratio is what matters). */
   photo: { width: number; height: number };
   /** The photo's object-position, as fractions: the runner. */
   focus: { x: number; y: number };
-  /** Where the film's first frame sits on the photo: left, top and width, as fractions of the photo. */
-  align: { x: number; y: number; w: number };
+}
+
+/** Where a film's first frame sits on the photo: left, top and width, as fractions of the photo. */
+export interface RunAlign {
+  x: number;
+  y: number;
+  w: number;
 }
 
 /**
@@ -75,6 +87,8 @@ export class RunView {
   private u: Record<string, WebGLUniformLocation | null> = {};
   private tex = { w: 0, h: 0 };
   private view = { vw: 0, vh: 0 };
+  private dpr = 0;
+  private align: RunAlign = { x: 0, y: 0, w: 1 };
   private last = '';
 
   constructor(
@@ -98,17 +112,22 @@ export class RunView {
   }
 
   resize(vw: number, vh: number) {
+    // Phones fire resize whenever the toolbar slides (each change of scroll direction), but the lvh stage keeps its
+    // size: skip, since resizing the canvas clears it and the film would blink.
+    if (vw === this.view.vw && vh === this.view.vh && window.devicePixelRatio === this.dpr) return;
     this.view = { vw, vh };
+    this.dpr = window.devicePixelRatio;
     this.fit();
   }
 
-  /** A new frame (or the poster, until frames arrive). */
-  upload(src: TexImageSource & { width: number; height: number }) {
+  /** A new frame (or the poster, until frames arrive), and where its film sits on the photo. */
+  upload(src: TexImageSource & { width: number; height: number }, align: RunAlign) {
     const gl = this.gl;
     if (!gl) return;
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, src);
-    if (src.width !== this.tex.w || src.height !== this.tex.h) {
+    if (src.width !== this.tex.w || src.height !== this.tex.h || align !== this.align) {
       this.tex = { w: src.width, h: src.height };
+      this.align = align;
       this.fit();
     }
     this.last = '';
@@ -161,13 +180,15 @@ export class RunView {
     if (!gl || !vw || !vh || !tw) return;
     this.last = '';
     const cover = Math.max(vw / tw, vh / th); // CSS px per frame px
-    const ratio = Math.min(window.devicePixelRatio || 1, MAX_DPR, Math.max(1, 1 / cover));
-    this.canvas.width = Math.round(vw * ratio);
-    this.canvas.height = Math.round(vh * ratio);
-    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    const ratio = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+    const [cw, ch] = [Math.round(vw * ratio), Math.round(vh * ratio)];
+    // even the same size, set again, would clear the canvas
+    if (this.canvas.width !== cw || this.canvas.height !== ch) Object.assign(this.canvas, { width: cw, height: ch });
+    gl.viewport(0, 0, cw, ch);
 
     // screen → photo, like the trail photo's object-fit: cover around the runner
-    const { photo, focus: F, align: A } = this.place;
+    const { photo, focus: F } = this.place;
+    const A = this.align;
     const pc = Math.max(vw / photo.width, vh / photo.height);
     const ps = [vw / (photo.width * pc), vh / (photo.height * pc)];
     const po = [(1 - ps[0]) * F.x, (1 - ps[1]) * F.y];

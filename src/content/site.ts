@@ -223,6 +223,14 @@ export const site = {
      * photo. tools/run-video.py prints it. The film opens there, then eases to its own framing.
      */
     align: { x: 0, y: 0.1, w: 1 },
+    /**
+     * For screens held upright, which show only a slice of the film: that slice around the runner, upscaled
+     * (tools/run-upscale.py), with its own place on the photo.
+     */
+    phone: {
+      video: asset('video/trail-run-phone.mp4'),
+      align: { x: 0.3219, y: 0.0984, w: 0.3167 },
+    },
     /** First frame, shown until the video has loaded. */
     poster: asset('images/trail-run-poster.webp'),
     /** Shown instead of the video with reduced motion. */

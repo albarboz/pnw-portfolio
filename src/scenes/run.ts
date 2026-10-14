@@ -7,7 +7,7 @@ import { quality } from '../core/quality';
 import { tuning } from '../core/tuning';
 import { site } from '../content/site';
 import { Grain } from '../effects/grain';
-import { RunView } from '../effects/run-view';
+import { RunView, type RunAlign } from '../effects/run-view';
 import type { VideoFrames } from '../effects/video-frames';
 import type { SceneHandle } from './types';
 
@@ -143,11 +143,11 @@ export function createRunScene(): SceneHandle | null {
     };
   };
 
-  const rich = (view: RunView, frames: VideoFrames): Player => ({
+  const rich = (view: RunView, frames: VideoFrames, align: RunAlign): Player => ({
     show(t, reveal) {
       frames.want(t * (frames.count - 1));
       const frame = frames.take();
-      if (frame) view.upload(frame);
+      if (frame) view.upload(frame, align);
       view.draw(reveal);
     },
     resize: (vw, vh) => view.resize(vw, vh),
@@ -161,7 +161,7 @@ export function createRunScene(): SceneHandle | null {
   const start = async () => {
     if ((await quality) > 0) {
       const L = site.descent.landing;
-      const place = { photo: { width: L.width, height: L.height }, focus: { x: F.x / 100, y: F.y / 100 }, align: R.align };
+      const place = { photo: { width: L.width, height: L.height }, focus: { x: F.x / 100, y: F.y / 100 } };
       const view = new RunView(canvas, place, () => {
         player?.destroy(); // context lost: the plain video takes over
         player = plain();
@@ -173,16 +173,17 @@ export function createRunScene(): SceneHandle | null {
         let framesIn = false;
         const poster = new Image();
         poster.src = R.poster;
-        poster.decode().then(() => !framesIn && !dead && view.upload(poster), () => {});
-        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-        const width = Math.ceil(Math.max(stage.clientWidth, stage.clientHeight * 16 / 9) * dpr);
+        poster.decode().then(() => !framesIn && !dead && view.upload(poster, R.align), () => {});
+        // A screen held upright shows only a slice of the film around the runner: it gets that slice, made sharper.
+        const [w, h] = [stage.clientWidth, stage.clientHeight];
+        const film = w / h < 0.8 ? R.phone : R;
         // the decoder (mediabunny) loads only now, so it never weighs on the first paint
         const { VideoFrames } = await import('../effects/video-frames');
-        const frames = await VideoFrames.open(R.video, width);
+        const frames = await VideoFrames.open(film.video, { w, h, dpr: Math.min(window.devicePixelRatio || 1, 2) });
         if (dead) return frames?.destroy(), view.destroy();
         if (frames) {
           framesIn = true;
-          player = rich(view, frames);
+          player = rich(view, frames, film.align);
           return render();
         }
         view.destroy();

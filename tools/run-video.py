@@ -5,11 +5,12 @@ Web copies of the trail run (src/scenes/run.ts) from one master clip:
     public/video/trail-run.mp4         fallback for browsers without WebCodecs: a keyframe on every frame, 768 px
     public/images/trail-run-poster.webp  first frame
     public/images/trail-run-still.webp   a frame partway through, for reduced motion
+    public/video/trail-run-phone.mp4   with --phone: the portrait slice for phones (tools/run-upscale.py)
 
 and prints where the first frame sits on the trail photo (`align` in src/content/site.ts), so the film can open
 exactly on it even when it's framed tighter or in another aspect ratio.
 
-    .venv-tools/bin/python tools/run-video.py ~/Downloads/trail-run.mp4
+    .venv-tools/bin/python tools/run-video.py ~/Downloads/altrail_4x.mp4 --phone ~/Downloads/altrail_phone_2x.mp4
 
 The master can be the Midjourney download as is, or a sharper, smoother copy of it made first (slow, and best on a
 rented GPU; nothing here needs them):
@@ -44,6 +45,7 @@ ap.add_argument("--max-width", type=int, default=2160, help="HQ copy is scaled d
 ap.add_argument("--crf", type=int, default=24, help="HQ quality (lower = sharper and bigger)")
 ap.add_argument("--still-at", type=float, help="seconds into the clip for the reduced-motion still (default: 60%%)")
 ap.add_argument("--photo", default=str(ROOT / "public/images/trail.webp"), help="the photo the film opens from")
+ap.add_argument("--phone", help="the portrait slice for phones (tools/run-upscale.py, then run-interpolate.py)")
 a = ap.parse_args()
 
 
@@ -73,7 +75,7 @@ def locate(frame: Image.Image, photo: Image.Image) -> tuple[float, float, float,
         return np.asarray(img.convert("L").resize((w, round(img.height * w / img.width)), Image.Resampling.BOX), float)
 
     best = (-2.0, 1.0, 0, 0)
-    for width, scales in ((320, np.arange(0.4, 1.0001, 0.01)), (960, None)):
+    for width, scales in ((320, np.arange(0.2, 1.0001, 0.01)), (960, None)):
         img = gray(photo, width)
         if scales is None:
             scales = np.arange(best[1] - 0.012, best[1] + 0.0121, 0.002)
@@ -93,33 +95,49 @@ def locate(frame: Image.Image, photo: Image.Image) -> tuple[float, float, float,
     return best[2] / 960, best[3] / img_h, best[1], best[0]
 
 
-probe = json.loads(
-    subprocess.run(
-        ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height,r_frame_rate:format=duration",
-         "-of", "json", a.master],
-        capture_output=True, check=True, text=True,
-    ).stdout
-)
-duration = float(probe["format"]["duration"])
-probe = probe["streams"][0]
-num, den = map(int, probe["r_frame_rate"].split("/"))
-fps = num / den
-gop = max(1, min(24, round(fps / 2)))
-width = min(probe["width"], a.max_width)
-print(f"master {probe['width']}×{probe['height']} @ {fps:g} fps → HQ {width} px wide, keyframe every {gop} frames")
+def probe(path: str) -> tuple[float, float, int]:
+    """Frame rate, duration and width of a clip."""
+    info = json.loads(subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,r_frame_rate:format=duration",
+         "-of", "json", path], capture_output=True, check=True, text=True).stdout)
+    num, den = map(int, info["streams"][0]["r_frame_rate"].split("/"))
+    return num / den, float(info["format"]["duration"]), info["streams"][0]["width"]
+
 
 video = ROOT / "public/video"
 images = ROOT / "public/images"
 x264 = ["-c:v", "libx264", "-preset", "slow", "-tune", "film", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an"]
 
+
+def encode(src: str, out: Path) -> None:
+    """The WebCodecs copy: a keyframe every half second (at most every 24 frames), no B-frames."""
+    fps, _, w = probe(src)
+    gop = max(1, min(24, round(fps / 2)))
+    width = min(w, a.max_width)
+    run("-i", src, "-vf", f"scale={width}:-2:flags=lanczos,{GRADE}", *x264,
+        "-crf", str(a.crf), "-g", str(gop), "-keyint_min", str(gop), "-sc_threshold", "0", "-bf", "0", str(out))
+    print(f"{out.name}: {width} px wide @ {fps:g} fps, keyframe every {gop} frames, {out.stat().st_size / 1e6:.1f} MB")
+
+
+def align(src: str, key: str) -> None:
+    """Where the clip's first frame sits on the trail photo, from the clip itself (ungraded, like the photo)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        png = Path(tmp) / "f0.png"
+        run("-i", src, "-frames:v", "1", str(png))
+        x, y, w, score = locate(Image.open(png), Image.open(a.photo))
+    print(f"{key}: first frame on the photo (match {score:.2f}; under ~0.8, check by eye):")
+    print(f"    align: {{ x: {x:.4f}, y: {y:.4f}, w: {w:.4f} }},")
+
+
 hq = video / "trail-run-hq.mp4"
-run("-i", a.master, "-vf", f"scale={width}:-2:flags=lanczos,{GRADE}", *x264,
-    "-crf", str(a.crf), "-g", str(gop), "-keyint_min", str(gop), "-sc_threshold", "0", "-bf", "0", str(hq))
+encode(a.master, hq)
 
 fallback = video / "trail-run.mp4"
 run("-i", a.master, "-vf", f"fps=24,scale=768:-2:flags=lanczos,{GRADE}", *x264, "-crf", "27", "-g", "1", str(fallback))
+print(f"{fallback.name}: {fallback.stat().st_size / 1e6:.1f} MB")
 
 # Stills from the graded HQ copy, so they match the frames the page shows.
+duration = probe(a.master)[1]
 with tempfile.TemporaryDirectory() as tmp:
     still_at = a.still_at if a.still_at is not None else duration * 0.6
     for name, at, w in (("trail-run-poster.webp", 0, 1536), ("trail-run-still.webp", still_at, 1152)):
@@ -131,13 +149,9 @@ with tempfile.TemporaryDirectory() as tmp:
         img.save(images / name, "WEBP", quality=78, method=6)
         print(f"{name}: {img.width}×{img.height}, {(images / name).stat().st_size // 1024} KB")
 
-for f in (hq, fallback):
-    print(f"{f.name}: {f.stat().st_size / 1e6:.1f} MB")
+if a.phone:
+    encode(a.phone, video / "trail-run-phone.mp4")
 
-# Where the first frame sits on the trail photo, from the master (ungraded, like the photo).
-with tempfile.TemporaryDirectory() as tmp:
-    png = Path(tmp) / "f0.png"
-    run("-i", a.master, "-frames:v", "1", str(png))
-    x, y, w, score = locate(Image.open(png), Image.open(a.photo))
-print(f"first frame on the photo (match {score:.2f}; under ~0.8, check by eye):")
-print(f"    align: {{ x: {x:.4f}, y: {y:.4f}, w: {w:.4f} }},")
+align(a.master, "run")
+if a.phone:
+    align(a.phone, "run.phone")

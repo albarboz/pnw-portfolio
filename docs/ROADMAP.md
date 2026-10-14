@@ -74,7 +74,8 @@ The page as one take: overlook → fog dive → white-out → the runner on the 
 - [x] Film behind About and Work: sticky stage over the descent's hold, fog-ring hand-off (`run-view.ts`), WebCodecs scrubbing via Mediabunny (`video-frames.ts`), pace slows and dims under text (`pace.ts`); knobs in `tuning.run`
 - [x] HD master: Midjourney HD (1280×720, 5.2 s, `altrail.mp4`), a 16:9 crop of the trail photo; its place on the photo (`run.align`) is measured by `tools/run-video.py` and the film opens there
 - [x] Smoother film: RIFE v4.25 fills it in to 96 fps (`tools/run-interpolate.py`, on the Mac's GPU in ~1 min); the web copy stays ~7.7 MB, as the in-between frames compress well
-- [ ] Optional: upscale with SeedVR2 (rented GPU); extend the clip in Midjourney HD for a longer run
+- [x] Phones: the film drawn at the screen's density (it was 1×), no canvas blink when the toolbar slides, decoder skips frames it only passes through, and a portrait slice upscaled 2× with Real-ESRGAN at 48 fps (`trail-run-phone.mp4`), as crisp as the trail photo
+- [ ] Optional: upscale the desktop film too (SeedVR2 on a rented GPU, or Real-ESRGAN); extend the clip in Midjourney HD for a longer run
 - [ ] Side trail marker: progress + navigation after the hero
 - [ ] Owner's captions as signposts, real About and projects
 

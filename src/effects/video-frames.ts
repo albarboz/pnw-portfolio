@@ -1,7 +1,7 @@
 import { BlobSource, Input, MP4, VideoSampleSink, type VideoSample } from 'mediabunny';
 
-/** Decoded frames kept: enough to scrub back a little, or run ahead, without decoding again (~70 MB at 720p). */
-const POOL = 20;
+/** Memory for decoded frames: as many as fit (10–20), enough to scrub back a little without decoding again. */
+const POOL_BYTES = 64e6;
 /** Frames decoded ahead of the wanted one while scrolling forward. */
 const AHEAD = 8;
 /**
@@ -26,6 +26,7 @@ interface Slot {
  */
 export class VideoFrames {
   private ring: Slot[] = [];
+  private pool: number;
   private next = 0;
   private target = 0;
   private dir = 1;
@@ -42,15 +43,19 @@ export class VideoFrames {
     readonly width: number,
     readonly height: number,
   ) {
-    for (let i = 0; i < POOL; i++) {
+    this.pool = Math.round(Math.min(20, Math.max(10, POOL_BYTES / (width * height * 4))));
+    for (let i = 0; i < this.pool; i++) {
       const canvas = Object.assign(document.createElement('canvas'), { width, height });
       this.ring.push({ index: -1, canvas, ctx: canvas.getContext('2d', { alpha: false })! });
     }
     void this.pump();
   }
 
-  /** Fetches the whole file, then decodes on request. `maxWidth`: frames are drawn no wider than this. */
-  static async open(url: string, maxWidth: number): Promise<VideoFrames | null> {
+  /**
+   * Fetches the whole file, then decodes on request. Frames are kept no bigger than a `view` (CSS px) filled by
+   * cover at `dpr` device pixels per CSS px needs.
+   */
+  static async open(url: string, view: { w: number; h: number; dpr: number }): Promise<VideoFrames | null> {
     if (!('VideoDecoder' in window)) return null;
     let input: Input | null = null;
     try {
@@ -60,7 +65,8 @@ export class VideoFrames {
       const track = await input.getPrimaryVideoTrack();
       if (!track || !(await track.canDecode())) throw new Error('cannot decode');
       const [stats, first] = await Promise.all([track.computePacketStats(), track.getFirstTimestamp()]);
-      const scale = Math.min(1, maxWidth / track.displayWidth);
+      const cover = Math.max(view.w / track.displayWidth, view.h / track.displayHeight);
+      const scale = Math.min(1, cover * view.dpr);
       const w = Math.round(track.displayWidth * scale);
       const h = Math.round(track.displayHeight * scale);
       return new VideoFrames(input, new VideoSampleSink(track), first, stats.averagePacketRate, stats.packetCount, w, h);
@@ -105,16 +111,18 @@ export class VideoFrames {
   /** The first frame still missing around the wanted one, in decode order, or -1 if all are in. */
   private missing() {
     const t = this.target;
-    const [lo, hi] = this.dir < 0 ? [t - (POOL - 4), t] : [t, t + AHEAD];
+    const [lo, hi] = this.dir < 0 ? [t - (this.pool - 4), t] : [t, t + AHEAD];
     for (let i = Math.max(0, lo); i <= Math.min(this.count - 1, hi); i++) if (!this.has(i)) return i;
     return -1;
   }
 
   private store(sample: VideoSample) {
     const index = Math.round((sample.timestamp - this.first) * this.fps);
-    if (this.has(index)) return index;
+    // Frames the decoder only passes through on its way to a frame further on are never shown: don't copy them
+    // (on phones the copy costs more than the decode).
+    if (index < this.target - (this.pool - 4) || this.has(index)) return index;
     const slot = this.ring[this.next];
-    this.next = (this.next + 1) % POOL;
+    this.next = (this.next + 1) % this.pool;
     slot.index = index;
     sample.draw(slot.ctx, 0, 0, this.width, this.height);
     return index;
