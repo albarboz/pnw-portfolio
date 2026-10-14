@@ -86,10 +86,10 @@ export const tuning = {
     reveal: 0.8,
     /** Open trail before About, between the sections and after Work, where the film runs at full pace. */
     gap: 0.7,
-    /** The film's pace while text fills the screen, as a share of its pace in the gaps. */
+    /** The film's pace while About reads over it, as a share of its pace in the gaps. */
     slow: 0.3,
-    /** How much the film darkens under text. */
-    dim: 0.55,
+    /** Strength of the shade on the text's side while a section reads over the film (1 = as drawn in CSS). */
+    dim: 1,
   },
 
   /** Distance of each overlook cutout from the camera's start (far = 1). Smaller = the camera passes it sooner. */

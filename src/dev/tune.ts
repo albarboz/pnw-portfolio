@@ -66,7 +66,7 @@ export function createTunePanel() {
     .on('change', (e) => e.last && ScrollTrigger.refresh());
   rn.addBinding(tuning.run, 'slow', { label: 'pace reading', min: 0.05, max: 1, step: 0.05 })
     .on('change', (e) => e.last && ScrollTrigger.refresh());
-  rn.addBinding(tuning.run, 'dim', { min: 0, max: 0.9, step: 0.01 });
+  rn.addBinding(tuning.run, 'dim', { label: 'shade', min: 0, max: 1, step: 0.01 });
 
   const gr = pane.addFolder({ title: 'Film grain' });
   gr.addBinding(tuning.grain, 'amount', { min: 0, max: 0.5, step: 0.01 });

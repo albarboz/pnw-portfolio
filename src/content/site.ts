@@ -249,12 +249,16 @@ export const site = {
     leadEmphasis: '',
     leadAfter: 'and chat.',
     email: 'alansoftwareengineer@gmail.com',
+    /** Profiles under the email, in this order. Add LinkedIn, a résumé … as { label, href }. */
+    links: [{ label: 'GitHub', href: 'https://github.com/albarboz' }],
   },
 
   /** Small interface labels. */
   ui: {
     /** Hint at the bottom of the opening screen; fades out as the dive starts. */
     scrollCue: 'Scroll',
+    /** Footer link that flies back up the page, through the fog, to the overlook. */
+    toTop: 'Back to the overlook',
     copyEmail: { label: 'Copy email', copied: 'Copied', selected: 'Selected — press Ctrl/⌘ C' },
   },
 

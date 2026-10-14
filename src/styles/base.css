@@ -36,6 +36,15 @@ button {
   outline: 2px solid var(--lichen);
   outline-offset: 3px;
 }
+/* the browser's own surfaces, in the palette */
+::selection {
+  background: color-mix(in srgb, var(--lichen) 42%, transparent);
+  color: var(--text);
+}
+html {
+  scrollbar-color: color-mix(in srgb, var(--text) 22%, transparent) var(--night);
+  caret-color: var(--lichen);
+}
 /* visible to screen readers only */
 .sr-only {
   position: absolute;

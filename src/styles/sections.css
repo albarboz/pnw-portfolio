@@ -144,110 +144,99 @@
     0 0 8px color-mix(in srgb, var(--fog) 70%, transparent),
     0 0 20px color-mix(in srgb, var(--fog) 35%, transparent);
 }
-/* Trail sign (src/ui/trail-sign.ts): one frosted board just under the tagline, listing the sections like a trail
-   junction sign lists destinations, with hairlines between them. The glass blurs the sky and ridge behind it and
-   is dark enough to carry light text on either. Lettered like a trail sign: small tracked capitals (the links
-   carry plain-case aria-labels). */
+/* Trail sign (src/ui/trail-sign.ts): a quiet row of links under the tagline, set in the tagline's fog ink and halo
+   (the bright sky band behind them measured under 2:1 for light text). An underline draws in on hover. */
 .trail-sign {
-  margin-top: -2px; /* with the hero's 14px gap, ~12px under the tagline's last line */
-  pointer-events: auto; /* .hero-copy lets clicks through to the photo; the board takes them */
-  text-shadow: none;
+  margin-top: 6px;
+  pointer-events: auto; /* .hero-copy lets clicks through to the photo; the links take them */
 }
 .trail-sign ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 30px;
   margin: 0;
   padding: 0;
   list-style: none;
-  width: 164px;
-  overflow: hidden; /* the row highlights follow the rounded corners */
-  border: 1px solid color-mix(in srgb, var(--sky-text) 22%, transparent);
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--night) 52%, transparent);
-  -webkit-backdrop-filter: blur(10px) saturate(1.15);
-  backdrop-filter: blur(10px) saturate(1.15);
-  /* a faint lit top edge and a soft drop, so the glass stands off the photo */
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--sky-text) 12%, transparent),
-    0 10px 28px -14px var(--shadow-sky);
-}
-.trail-sign li + li {
-  border-top: 1px solid color-mix(in srgb, var(--sky-text) 14%, transparent);
 }
 .trail-sign a {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 11px 14px 11px 15px;
-  color: var(--sky-text);
-  font-family: var(--display);
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 1;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-decoration: none;
-  transition: background-color 0.2s var(--ease-out);
-}
-.trail-sign a:focus-visible {
-  outline-offset: -3px; /* inside the board, which clips anything outside it */
+  gap: 8px;
+  padding: 8px 2px; /* a comfortable tap target around the words */
+  color: var(--fog-ink);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: underline 1px;
+  text-decoration-color: transparent;
+  text-underline-offset: 6px;
+  text-shadow:
+    0 0 8px color-mix(in srgb, var(--fog) 70%, transparent),
+    0 0 20px color-mix(in srgb, var(--fog) 35%, transparent);
+  transition: text-decoration-color 0.25s ease;
 }
 .trail-sign svg {
   width: 9px;
   height: 9px;
   fill: none;
-  stroke: var(--lichen);
-  stroke-width: 1.75;
+  stroke: var(--fog-ink-soft);
+  stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
-  transition: transform 0.2s var(--ease-out);
+  transition: transform 0.3s var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
   .trail-sign a:hover {
-    background-color: color-mix(in srgb, var(--night) 40%, transparent);
+    text-decoration-color: currentColor;
   }
   .trail-sign a:hover svg {
     transform: translateY(2px);
   }
 }
-/* Scroll hint at the bottom of the opening screen, on the same frosted glass as the trail sign, so it reads over
-   bright valley fog on wide screens and dark firs on phones. Above the phone's toolbar, like .cap-landing. It
-   arrives after the name has had a moment; the arrow nudges downward. descent.ts fades it out with the hero. */
+
+/* Scroll hint at the bottom of the opening screen: a small tracked word over an arrow, in the same fog ink and
+   halo, above the phone's toolbar like .cap-landing. It arrives after the name has had a moment; the arrow nudges
+   downward. descent.ts fades it out with the hero. On screens held upright it sits over dark firs: light ink. */
 .scroll-cue {
   position: absolute;
   left: 50%;
-  bottom: 40px;
-  bottom: calc(100lvh - 100svh + 28px);
+  bottom: 32px;
+  bottom: calc(100lvh - 100svh + 24px);
   transform: translateX(-50%);
   pointer-events: none;
 }
 .scroll-cue-in {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 9px;
-  padding: 9px 14px 9px 15px;
-  border: 1px solid color-mix(in srgb, var(--sky-text) 22%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--night) 52%, transparent);
-  -webkit-backdrop-filter: blur(10px) saturate(1.15);
-  backdrop-filter: blur(10px) saturate(1.15);
-  color: var(--sky-text);
-  font-family: var(--display);
-  font-weight: 600;
-  font-size: 13px;
+  gap: 10px;
+  color: var(--fog-ink);
+  font-size: 12px;
+  font-weight: 500;
   line-height: 1;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  text-shadow:
+    0 0 8px color-mix(in srgb, var(--fog) 80%, transparent),
+    0 0 22px color-mix(in srgb, var(--fog) 45%, transparent);
   animation: cue-in 0.9s var(--ease-out) 1.4s both;
 }
 .scroll-cue svg {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
   fill: none;
-  stroke: var(--lichen);
-  stroke-width: 1.75;
+  stroke: currentColor;
+  stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
   animation: cue-nudge 2.2s var(--ease-out) 2.3s infinite;
+}
+@media (max-aspect-ratio: 3/4) {
+  .scroll-cue-in {
+    color: var(--sky-text);
+    text-shadow: 0 1px 12px var(--shadow-forest);
+  }
 }
 @keyframes cue-in {
   from {
@@ -263,6 +252,77 @@
   }
   20% {
     transform: translateY(3px);
+  }
+}
+
+/* Site header (src/ui/header.ts): no box, just the sections, on the right, over a soft fade of the night, so it
+   reads over the film without covering it. Hidden through the opening; it fades in as the run reaches About. */
+.site-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 20;
+  padding: 16px var(--gutter) 44px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--night) 72%, transparent),
+    color-mix(in srgb, var(--night) 32%, transparent) 55%,
+    transparent
+  );
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition:
+    opacity 0.5s var(--ease-out),
+    transform 0.5s var(--ease-out);
+}
+.site-header.is-shown {
+  opacity: 1;
+  transform: none;
+}
+.header-in {
+  display: flex;
+  justify-content: flex-end;
+}
+.site-header.is-shown .header-in {
+  pointer-events: auto; /* only the links take clicks, not the fade below them */
+}
+.site-header ul {
+  display: flex;
+  gap: clamp(18px, 3vw, 36px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.site-header nav a {
+  position: relative;
+  display: block;
+  padding-block: 8px;
+  color: var(--text-soft);
+  font-size: 15px;
+  line-height: 1;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+/* the section in view: a hairline draws in under its name */
+.site-header nav a::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 2px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s var(--ease-out);
+}
+.site-header nav a[aria-current] {
+  color: var(--text);
+}
+.site-header nav a[aria-current]::after {
+  transform: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .site-header nav a:hover {
+    color: var(--text);
   }
 }
 
@@ -358,40 +418,49 @@ h2[tabindex='-1']:focus {
   max-width: var(--max);
   margin: 0 auto;
 }
+/* An optional small label (site.ts); hidden while empty. */
 .label {
+  display: block;
+  margin-bottom: 18px;
   color: var(--lichen);
-}
-/* Places along the descent (Old growth, Trailhead …) are named like a trail sign: condensed, semibold,
-   sentence case. */
-.place {
-  font-family: var(--display);
-  font-weight: 600;
-  font-size: 22px;
+  font-size: 13px;
+  font-weight: 500;
   line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.label:empty {
+  display: none;
 }
 
-.about-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 32px 64px;
-  align-items: start;
+/* About: a spread over the film. One statement in the condensed face, a narrow column of text under it, on the
+   left; the film steps aside to the right (run.ts) and shades the left (.run-scrim). */
+.about {
+  min-height: 100lvh;
+  display: flex;
+  align-items: center;
+}
+.about-body {
+  width: 100%;
 }
 .about h2 {
   margin: 0;
+  max-width: 11ch;
   font-family: var(--display);
-  font-weight: 700;
-  font-size: var(--size-section);
-  line-height: 1.02;
+  font-size: var(--size-statement);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.012em;
 }
-.about .label {
-  display: block;
-  margin-bottom: 18px;
+.about-text {
+  max-width: 31rem;
+  margin-top: clamp(28px, 5vh, 56px);
 }
 .about p {
-  margin: 0 0 16px;
-  max-width: 58ch;
+  margin: 0 0 1em;
   color: var(--text-soft);
   font-size: 18px;
+  line-height: 1.65;
 }
 
 .sec-head {
@@ -400,59 +469,52 @@ h2[tabindex='-1']:focus {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px 24px;
-  padding-bottom: 22px;
+  padding-bottom: clamp(24px, 4vh, 40px);
   border-bottom: 1px solid var(--rule);
 }
 .sec-head h2 {
   margin: 0;
   font-family: var(--display);
-  font-weight: 700;
   font-size: var(--size-section);
-  line-height: 1.02;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.sec-head .label {
+  margin: 0;
 }
 
+/* Work: one quiet list. Picture and text side by side, hairlines between; the arrow after each title steps
+   forward on hover while the picture leans in (transform only). */
 .work-list {
-  list-style: none;
   margin: 0;
   padding: 0;
+  list-style: none;
 }
 .work-list li {
   border-bottom: 1px solid var(--rule);
 }
 .work-row {
-  position: relative;
-  isolation: isolate;
   width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  align-items: center;
+  gap: 20px clamp(24px, 4.5vw, 64px);
+  padding: clamp(28px, 5vh, 52px) 0;
   border: 0;
   background: none;
   color: inherit;
   text-align: left;
-  display: grid;
-  grid-template-columns: clamp(180px, 26vw, 300px) minmax(0, 1fr) auto;
-  gap: 16px clamp(24px, 3.4vw, 44px);
-  align-items: center;
-  padding: 26px 4px;
 }
 .work-row.no-thumb {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-/* hover: a lichen wash fades in, the picture leans in and the arrow fills (opacity + transform only) */
-.work-row::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(90deg, var(--lichen-wash), transparent 70%);
-  opacity: 0;
-  transition: opacity 0.22s ease;
+  grid-template-columns: minmax(0, 1fr);
 }
 .work-thumb {
   position: relative;
   overflow: hidden;
   aspect-ratio: 3 / 2;
-  border-radius: 4px;
-  background: var(--night);
-  box-shadow: inset 0 0 0 1px var(--rule);
+  border-radius: 2px;
+  background: var(--forest);
 }
 /* cropped by enlarging around the focus point (set from site.ts); the hover lean multiplies on top */
 .work-thumb img {
@@ -464,7 +526,7 @@ h2[tabindex='-1']:focus {
   object-position: var(--focus, 50% 50%);
   transform-origin: var(--focus, 50% 50%);
   transform: scale(var(--zoom, 1));
-  transition: transform 0.7s var(--ease-out);
+  transition: transform 0.9s var(--ease-out);
 }
 /* fog over the picture, lifted by reveal.ts as the row arrives; clear without script or motion */
 .work-fog {
@@ -476,93 +538,234 @@ h2[tabindex='-1']:focus {
 }
 .work-text {
   display: grid;
-  gap: 6px;
+  gap: 12px;
   min-width: 0;
-}
-.work-cue {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border: 1px solid color-mix(in srgb, var(--lichen) 45%, transparent);
-  border-radius: 50%;
-  color: var(--lichen);
-  transition:
-    background-color 0.22s ease,
-    border-color 0.22s ease,
-    color 0.22s ease;
-}
-.work-cue svg {
-  width: 12px;
-  height: 12px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.75;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform 0.22s var(--ease-out);
-}
-.work-row:focus-visible::before {
-  opacity: 1;
-}
-.work-row:focus-visible .work-thumb img {
-  transform: scale(calc(var(--zoom, 1) * 1.04));
-}
-.work-row:focus-visible .work-cue {
-  border-color: var(--lichen);
-  background-color: var(--lichen);
-  color: var(--night);
-}
-/* hover only where a real mouse can hover: a tap on a phone would otherwise leave the row leaning in */
-@media (hover: hover) and (pointer: fine) {
-  .work-row:hover::before {
-    opacity: 1;
-  }
-  .work-row:hover .work-thumb img {
-    transform: scale(calc(var(--zoom, 1) * 1.04));
-  }
-  .work-row:hover .work-cue {
-    border-color: var(--lichen);
-    background-color: var(--lichen);
-    color: var(--night);
-  }
-  .work-row:hover .work-cue svg {
-    transform: translateX(2px);
-  }
 }
 .work-title {
   font-family: var(--display);
-  font-weight: 700;
-  font-size: var(--size-title);
-  line-height: 1.05;
-  min-width: 0;
+  font-size: var(--size-item);
+  font-weight: 500;
+  line-height: 1.08;
+}
+.work-title-end {
+  white-space: nowrap; /* the tag and the arrow travel with the title's last word */
+}
+.work-cue {
+  display: inline-flex;
+  margin-left: 0.3em;
+  color: var(--lichen);
+  vertical-align: 0.06em;
+}
+.work-cue svg {
+  width: 0.46em;
+  height: 0.46em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.35s var(--ease-out);
 }
 .work-desc {
-  max-width: 62ch;
-  color: var(--muted);
-  font-size: 16px;
+  max-width: 46ch;
+  color: var(--text-soft);
+  font-size: 17px;
+}
+.work-meta {
+  font-size: 13px;
+  letter-spacing: 0.03em;
 }
 .example-tag {
-  display: inline-block;
-  margin-left: 10px;
-  padding: 2px 8px;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  font-family: var(--body);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.4;
-  letter-spacing: 0.01em;
+  margin-left: 0.7em;
   color: var(--muted);
-  vertical-align: middle;
+  font-family: var(--body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  vertical-align: 0.35em;
+}
+.work-row:focus-visible {
+  outline-offset: 6px;
+}
+.work-row:focus-visible .work-thumb img {
+  transform: scale(calc(var(--zoom, 1) * 1.035));
+}
+.work-row:focus-visible .work-cue svg {
+  transform: translateX(4px);
+}
+/* hover only where a real mouse can hover: a tap on a phone would otherwise leave the row leaning in */
+@media (hover: hover) and (pointer: fine) {
+  .work-row:hover .work-thumb img {
+    transform: scale(calc(var(--zoom, 1) * 1.035));
+  }
+  .work-row:hover .work-cue svg {
+    transform: translateX(4px);
+  }
 }
 
+/* Contact: the arrival. The heading, a lead line, the email large (the page's last action), the profiles, then the
+   footer at the foot of the screen. */
 .contact {
-  padding-top: 0;
+  min-height: 100lvh;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding-bottom: 0;
+}
+.contact-body {
+  align-self: center;
+  width: 100%;
+}
+.contact h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--size-section);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.contact .lead {
+  max-width: 24ch;
+  margin: 18px 0 0;
+  color: var(--text-soft);
+  font-size: var(--size-lead);
+  line-height: 1.35;
+}
+.contact .lead em {
+  font-style: normal; /* the emphasis is the lichen */
+  color: var(--lichen);
+}
+.email-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* the copy action under the email: beside it, it reached the runner */
+  gap: 6px;
+  margin-top: clamp(40px, 8vh, 80px);
+}
+.email {
+  font-family: var(--display);
+  font-size: var(--size-email);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.005em;
+  overflow-wrap: anywhere;
+  text-decoration: underline 1px;
+  text-decoration-color: color-mix(in srgb, var(--text) 30%, transparent);
+  text-underline-offset: 0.16em;
+  transition: text-decoration-color 0.25s ease;
+}
+.copy {
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--lichen);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: underline 1px;
+  text-decoration-color: color-mix(in srgb, var(--lichen) 40%, transparent);
+  text-underline-offset: 5px;
+  transition:
+    color 0.15s ease,
+    transform 0.16s var(--ease-out);
+}
+.copy:active {
+  transform: scale(0.97);
+}
+.contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 28px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.contact-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding-block: 8px;
+  color: var(--text-soft);
+  font-size: 16px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.contact-links svg {
+  width: 9px;
+  height: 9px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.3s var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .email:hover {
+    text-decoration-color: var(--lichen);
+  }
+  .copy:hover {
+    color: var(--lichen-hover);
+  }
+  .contact-links a:hover {
+    color: var(--text);
+  }
+  .contact-links a:hover svg {
+    transform: translate(2px, -2px);
+  }
+}
+.site-footer {
+  width: 100%; /* a grid item with auto side margins would shrink to its text and sit centered */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 32px;
+  margin-top: clamp(56px, 10vh, 120px);
+  padding-block: 24px 28px;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 14px;
+}
+.site-footer .credits {
+  flex: 1;
+}
+.to-top {
+  color: var(--text-soft);
+  text-decoration: underline 1px;
+  text-decoration-color: transparent;
+  text-underline-offset: 5px;
+  transition: text-decoration-color 0.25s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .to-top:hover {
+    text-decoration-color: currentColor;
+  }
+}
+/* buttons in the project dialog */
+.btn {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--lichen);
+  color: var(--night);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  transition:
+    background-color 0.15s ease,
+    transform 0.16s var(--ease-out);
+}
+.btn:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    background: var(--lichen-hover);
+  }
 }
 
 /* ===================== trail run scene ===================== */
-/* The film behind About and Work (src/scenes/run.ts). The wrapper starts a screen and the reveal above its place
+/* The film behind the sections (src/scenes/run.ts). The wrapper starts a screen and the reveal above its place
    (run.ts sets the margin) and sits above the descent, so its stage, stuck to the screen, covers the descent's stage
    from the start of its hold: clear at first, then the film opens over the trail photo. The sections scroll over it. */
 .run {
@@ -591,48 +794,68 @@ h2[tabindex='-1']:focus {
   inset: 0;
   opacity: 0;
 }
-/* darkens the film under text, and a little more as the run ends */
-.run-night {
+/* Shade on the text's side while a section reads over the film (run.ts sets how much). Wide screens: from the left,
+   where the text is, clearing toward the runner. Screens held upright: the text spans the width, so top to bottom,
+   deepest where the text sits. Eased stops: a straight ramp shows a line. */
+.run-scrim {
   position: absolute;
   inset: 0;
-  background: var(--night);
-  opacity: 0;
-}
-/* the stage's bottom melting into the night as it leaves, so Contact rises out of the dark. Eased stops: a straight
-   ramp shows a line. */
-.run-melt {
-  position: absolute;
-  inset: auto 0 0;
-  height: 42%;
   opacity: 0;
   background: linear-gradient(
-    0deg,
-    var(--night),
-    color-mix(in srgb, var(--night) 70%, transparent) 30%,
-    color-mix(in srgb, var(--night) 25%, transparent) 65%,
-    transparent
+    90deg,
+    color-mix(in srgb, var(--night) 86%, transparent),
+    color-mix(in srgb, var(--night) 76%, transparent) 30%,
+    color-mix(in srgb, var(--night) 46%, transparent) 50%,
+    color-mix(in srgb, var(--night) 14%, transparent) 66%,
+    transparent 80%
   );
 }
-/* the sections ride over the film, after the stage in the flow */
+@media (max-aspect-ratio: 1/1) {
+  .run-scrim {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--night) 40%, transparent),
+      color-mix(in srgb, var(--night) 70%, transparent) 40%,
+      color-mix(in srgb, var(--night) 78%, transparent)
+    );
+  }
+}
+/* the sections ride over the film, after the stage in the flow, each above it */
 .run > .section {
   position: relative;
+  z-index: 1;
 }
-/* Over the film the quiet greys lose to the brightest ferns (project meta measured 2.6:1, descriptions 4:1), so
-   they take the soft text color there; every line gets a tight shadow edge under its soft halo. */
 .run .about,
-.run .work {
+.run .contact {
   text-shadow:
     0 1px 2px var(--shadow-forest),
     0 1px 18px var(--shadow-forest);
 }
-.run .work-desc,
-.run .meta,
-.run .example-tag {
-  color: var(--text-soft);
+/* Work rises over the film as a sheet of night with soft edges; the film stops behind it (run.ts). */
+.run .work {
+  --edge: clamp(160px, 30vh, 320px);
+  padding-block: calc(var(--edge) + 24px) var(--edge);
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--night) var(--edge),
+    var(--night) calc(100% - var(--edge)),
+    transparent
+  );
+}
+/* the footer's own ground: the bottom of the closing screen shades to night across its width */
+.run .contact::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  z-index: -1;
+  height: clamp(220px, 34vh, 360px);
+  background: linear-gradient(0deg, color-mix(in srgb, var(--night) 94%, transparent) 30%, transparent);
+  pointer-events: none;
 }
 
-/* Reduced motion (run.ts sets .still): no film. A still from the film as a band above About and Work, melting
-   into the night at both edges, and the sections on their own backgrounds. */
+/* Reduced motion (run.ts sets .still): no film. A still from it as a band above the sections, melting into the
+   night at both edges, and the sections on the night. */
 .run.still > .stage {
   position: relative;
   background: var(--night);
@@ -644,82 +867,13 @@ h2[tabindex='-1']:focus {
 .run.still .run-fx {
   display: none;
 }
-.run.still .about {
+.run.still .about,
+.run.still .contact {
+  min-height: 0;
   background: var(--night);
 }
-.run.still .work {
-  background: linear-gradient(
-    180deg,
-    var(--night),
-    var(--forest) var(--blend),
-    var(--forest) calc(100% - var(--blend)),
-    var(--night)
-  );
-}
-
-.contact {
-  background: var(--night);
-}
-.contact .lead {
-  margin: 40px 0 0;
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: var(--size-title);
-  line-height: 1.05;
-  text-wrap: balance;
-}
-/* the answer on its own line, so a balanced wrap never splits the question */
-.contact .lead > span:last-of-type {
-  display: block;
-}
-.contact .lead em {
-  font-style: normal; /* the emphasis is the lichen */
-  color: var(--lichen);
-}
-.email-row {
-  margin-top: 36px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px;
-}
-.email {
-  font-size: clamp(18px, 2vw, 22px);
-  font-weight: 500;
-  user-select: all;
-  overflow-wrap: anywhere;
-}
-.btn {
-  padding: 10px 18px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--lichen);
-  color: var(--night);
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.6;
-  letter-spacing: 0.01em;
-  transition: background-color 0.15s ease, transform 0.16s var(--ease-out);
-}
-/* press feedback: a slight give, on touch too (:active doesn't stick like :hover) */
-.btn:active {
-  transform: scale(0.97);
-}
-@media (hover: hover) and (pointer: fine) {
-  .btn:hover {
-    background: var(--lichen-hover);
-  }
-}
-.credits {
-  margin-top: 90px;
-  padding-top: 22px;
-  border-top: 1px solid var(--rule);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 10px 24px;
-  color: var(--muted);
-  font-size: 14px;
+.run.still .contact::before {
+  display: none;
 }
 
 /* ===================== project detail dialog ===================== */
@@ -854,25 +1008,25 @@ html:has(.project-dialog[open]) {
   text-decoration: none;
 }
 /* ===================== responsive & motion ===================== */
-@media (max-width: 720px) {
-  .about-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-@media (max-width: 560px) {
-  /* picture on top, full width; the arrow beside the text */
+@media (max-width: 640px) {
+  /* picture on top, full width, text under it */
   .work-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-    padding-block: 24px 28px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    padding-block: 28px 32px;
   }
   .work-thumb {
-    grid-column: 1 / -1;
     aspect-ratio: 16 / 9;
   }
-  .work-cue {
-    width: 40px;
-    height: 40px;
+  .site-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+@media (max-width: 400px) {
+  .site-header ul {
+    gap: 16px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -880,26 +1034,29 @@ html:has(.project-dialog[open]) {
   .scroll-cue svg {
     animation: none;
   }
-  .trail-sign svg {
+  .site-header {
     transition: none;
-  }
-  .trail-sign a:hover svg {
     transform: none;
   }
-  .work-row::before,
+  .trail-sign svg,
   .work-thumb img,
-  .work-cue,
-  .work-cue svg {
+  .work-cue svg,
+  .contact-links svg,
+  .site-header nav a::after {
     transition: none;
+  }
+  .trail-sign a:hover svg,
+  .work-row:hover .work-cue svg,
+  .work-row:focus-visible .work-cue svg,
+  .contact-links a:hover svg {
+    transform: none;
   }
   .work-row:hover .work-thumb img,
   .work-row:focus-visible .work-thumb img {
     transform: scale(var(--zoom, 1));
   }
-  .work-row:hover .work-cue svg {
-    transform: none;
-  }
   .btn:active,
+  .copy:active,
   .pd-close:active {
     transform: none;
   }

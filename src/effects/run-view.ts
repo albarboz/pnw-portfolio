@@ -26,9 +26,11 @@ const FRAG = `
 precision highp float;
 varying vec2 vUv;
 uniform sampler2D uFrame;
-uniform vec2 uScale, uOffset, uOrigin, uPScale, uPOffset, uAPos, uASize;
+uniform vec2 uScale, uOffset, uScaleAside, uOffsetAside, uOrigin, uPScale, uPOffset, uAPos, uASize;
 uniform vec2 uFocus;
-uniform float uAspect, uReveal, uReach, uAlign, uZoom;
+uniform float uAspect, uReveal, uReach, uAlign, uZoom, uAside;
+// the film's own framing, eased toward its stepped-aside framing (runner moved away from the text)
+vec2 own(vec2 uv) { return mix(uOffset, uOffsetAside, uAside) + uv * mix(uScale, uScaleAside, uAside); }
 uniform vec3 uFog;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
@@ -43,7 +45,7 @@ float fbm(vec2 p) {
 }
 void main() {
   if (uReveal >= 1.0) { // the hand-off is over: just the film, in its own framing
-    gl_FragColor = vec4(texture2D(uFrame, uOffset + vUv * uScale).rgb, 1.0);
+    gl_FragColor = vec4(texture2D(uFrame, own(vUv)).rgb, 1.0);
     return;
   }
   vec2 d = (vUv - uOrigin) * vec2(uAspect, 1.0);
@@ -57,9 +59,9 @@ void main() {
   // the fog's bend, only once the film has its own framing: while it still is the photo, a bent copy over the photo
   // shows the runner twice where the edge crosses him
   vec2 uv = vUv - away * rim * 0.025 * (1.0 - uAlign);
-  vec2 own = uOffset + uv * uScale;
+  vec2 film = own(uv);
   vec2 onPhoto = (uPOffset + (uFocus + (uv - uFocus) / uZoom) * uPScale - uAPos) / uASize;
-  vec3 col = texture2D(uFrame, clamp(mix(own, onPhoto, uAlign), 0.0, 1.0)).rgb;
+  vec3 col = texture2D(uFrame, clamp(mix(film, onPhoto, uAlign), 0.0, 1.0)).rgb;
   float fog = rim * (0.55 + 0.45 * fbm(vUv * 7.0 + 3.0));
   col = mix(col, uFog, fog * 0.8);
   float a = clamp(max(inside, fog * 0.9), 0.0, 1.0);
@@ -71,6 +73,10 @@ void main() {
  * picture identical to the one it replaces (no doubled runner in its soft edge). After it, the runner sets off.
  */
 export const RUN_STILL_UNTIL = 0.45;
+
+/** Stepped aside (a section reading over the film, wide screens): a slight push in, and the runner's place across it. */
+const ASIDE_ZOOM = 1.12;
+const ASIDE_X = 0.66;
 
 /** The trail photo the film opens from. */
 export interface RunPlacement {
@@ -145,13 +151,15 @@ export class RunView {
     this.last = '';
   }
 
-  draw(reveal: number) {
+  /** `aside` (0–1): how far the film has stepped aside for a section reading over it. */
+  draw(reveal: number, aside = 0) {
     const gl = this.gl;
     if (!gl || !this.tex.w) return;
-    const key = String(reveal);
+    const key = `${reveal}|${aside}`;
     if (key === this.last) return;
     this.last = key;
     gl.uniform1f(this.u.uReveal, reveal);
+    gl.uniform1f(this.u.uAside, aside);
     gl.uniform1f(this.u.uAlign, 1 - smoothstep(RUN_STILL_UNTIL, 1, reveal));
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
@@ -170,7 +178,8 @@ export class RunView {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW); // one full-screen triangle
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-    const frame = ['uFrame', 'uScale', 'uOffset', 'uPScale', 'uPOffset', 'uAPos', 'uASize', 'uAlign', 'uFocus', 'uZoom'];
+    const frame = ['uFrame', 'uScale', 'uOffset', 'uScaleAside', 'uOffsetAside', 'uAside', 'uPScale', 'uPOffset'];
+    frame.push('uAPos', 'uASize', 'uAlign', 'uFocus', 'uZoom');
     for (const name of [...frame, 'uOrigin', 'uAspect', 'uReveal', 'uReach', 'uFog']) {
       this.u[name] = gl.getUniformLocation(prog, name);
     }
@@ -215,8 +224,17 @@ export class RunView {
     const fy = clamp((F.y - A.y) / size[1], 0, 1);
     const sx = vw / (tw * cover);
     const sy = vh / (th * cover);
+    const [ox, oy] = [(1 - sx) * fx, (1 - sy) * fy];
     gl.uniform2f(this.u.uScale, sx, sy);
-    gl.uniform2f(this.u.uOffset, (1 - sx) * fx, (1 - sy) * fy);
+    gl.uniform2f(this.u.uOffset, ox, oy);
+    // Stepped aside: on a wide screen the text reads on the left, so the runner moves right, as far as the frame's
+    // edge allows after a slight push in; at the same height. Upright screens keep the plain framing.
+    const push = vw > vh ? ASIDE_ZOOM : 1;
+    const [ax, ay] = [sx / push, sy / push];
+    const runnerY = (fy - oy) / sy;
+    const asideX = vw > vh ? clamp(fx - ASIDE_X * ax, 0, 1 - ax) : ox;
+    gl.uniform2f(this.u.uScaleAside, ax, ay);
+    gl.uniform2f(this.u.uOffsetAside, asideX, clamp(fy - runnerY * ay, 0, 1 - ay));
 
     // the photo's zoom around the runner, as the descent leaves it
     gl.uniform2f(this.u.uFocus, F.x, F.y);

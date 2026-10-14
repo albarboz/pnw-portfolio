@@ -1,9 +1,12 @@
 import type { RunAlign, RunView } from './run-view';
 import type { VideoFrames } from './video-frames';
 
-/** Draws the trail run at film progress `t` (0–1), opened `reveal` (0–1) over the trail photo. */
+/**
+ * Draws the trail run at film progress `t` (0–1), opened `reveal` (0–1) over the trail photo, stepped `aside` (0–1)
+ * for a section reading over it.
+ */
 export interface Player {
-  show(t: number, reveal: number): void;
+  show(t: number, reveal: number, aside: number): void;
   resize(vw: number, vh: number): void;
   destroy(): void;
 }
@@ -36,14 +39,14 @@ export class WebglPlayer implements Player {
     this.align = align;
   }
 
-  show(t: number, reveal: number) {
+  show(t: number, reveal: number, aside: number) {
     const f = this.frames;
     if (f) {
       f.want(t * (f.count - 1));
       const frame = f.take();
       if (frame) this.view.upload(frame, this.align);
     }
-    this.view.draw(reveal);
+    this.view.draw(reveal, aside);
   }
 
   resize(vw: number, vh: number) {

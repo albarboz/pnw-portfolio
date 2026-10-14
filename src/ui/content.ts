@@ -51,16 +51,43 @@ export function renderContent() {
         row.setAttribute('aria-haspopup', 'dialog');
 
         const text = span('work-text');
-        text.append(span('work-meta meta', `${p.year} · ${p.kind}`), projectTitle(p, 'work-title'), span('work-desc', p.description));
+        const title = projectTitle(p, 'work-title');
+        // the title's last word, its tag and the arrow never part at a line break
+        const end = span('work-title-end');
+        const words = p.title.split(' ');
+        title.firstChild!.textContent = words.slice(0, -1).join(' ') + (words.length > 1 ? ' ' : '');
+        end.append(words[words.length - 1], ...[...title.querySelectorAll('.example-tag')], openCue());
+        title.append(end);
+        text.append(title, span('work-desc', p.description), span('work-meta meta', `${p.year} · ${p.kind}`));
 
         if (p.image) row.append(projectThumb(p.image));
         else row.classList.add('no-thumb');
-        row.append(text, openCue());
+        row.append(text);
         li.append(row);
         return li;
       }),
     );
   }
+
+  const email = document.querySelector<HTMLAnchorElement>('[data-email]');
+  if (email) email.href = `mailto:${site.contact.email}`;
+
+  const links = document.querySelector('[data-contact-links]');
+  if (links) {
+    links.replaceChildren(
+      ...site.contact.links.map(({ label, href }) => {
+        const li = document.createElement('li');
+        const a = Object.assign(document.createElement('a'), { href, textContent: label, rel: 'me noopener' });
+        a.insertAdjacentHTML('beforeend', ARROW_OUT);
+        li.append(a);
+        return li;
+      }),
+    );
+    links.toggleAttribute('hidden', !site.contact.links.length);
+  }
+
+  const footerName = document.querySelector('[data-footer-name]');
+  if (footerName) footerName.textContent = `© ${new Date().getFullYear()} ${site.name.first} ${site.name.last}`;
 
   const credits = document.querySelector('[data-credits]');
   if (credits) {
@@ -107,14 +134,16 @@ function projectThumb(image: ProjectImage): HTMLElement {
   return thumb;
 }
 
-/** Round arrow on each row, so it reads as something that opens. */
+/** A small arrow after each project's title, so the row reads as something that opens; it steps forward on hover. */
 function openCue(): HTMLElement {
   const cue = span('work-cue');
   cue.setAttribute('aria-hidden', 'true');
-  // the trail sign's arrow, turned to point ahead
   cue.innerHTML = '<svg viewBox="0 0 12 12"><path d="M1.5 6h9M7 2.5 10.5 6 7 9.5"/></svg>';
   return cue;
 }
+
+/** Arrow for links that leave the site. */
+const ARROW_OUT = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5"/></svg>';
 
 function span(className: string, text = ''): HTMLSpanElement {
   return Object.assign(document.createElement('span'), { className, textContent: text });

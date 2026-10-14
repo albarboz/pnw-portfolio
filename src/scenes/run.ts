@@ -13,16 +13,18 @@ import { type Player, videoPlayer, WebglPlayer } from '../effects/run-players';
 import type { SceneHandle } from './types';
 
 /**
- * Trail run: the filmed run behind About and Work. Its stage sticks to the screen for the whole wrapper. It rises
- * (clear) over the end of the descent and, while the descent holds on the trail photo, opens the film over it in a
- * ring of fog from the runner (the film's first frame is that photo). Then the scroll runs the film: slowly while
- * text fills the screen, dimmed under it, and at full pace through the open trail between the sections (src/core/
- * pace.ts). At the end the last frame dims, melts into the night and scrolls away above Contact.
+ * Trail run: the filmed run behind the sections, to the end of the page. Its stage sticks to the screen for the
+ * whole wrapper. It rises (clear) over the end of the descent and, while the descent holds on the trail photo, opens
+ * the film over it in a ring of fog from the runner (the film's first frame is that photo). Then the scroll runs the
+ * film at full pace through the open trail between the sections, and each section sets its own pace ([data-run],
+ * src/core/pace.ts): About reads over it (the film slows, steps aside: the runner moves away from the text and the
+ * text's side is shaded), Work rises over it as a sheet (the film stops behind it), and Contact is the arrival (the
+ * film runs out and holds its last frame, stepped aside, under the closing screen).
  *
- *   scroll  sticks ── reveal ── gap ── About (slow, dim) ── gap ── Work (slow, dim) ── gap, melt ── leaves
+ *   scroll  sticks ── reveal ── gap ── About (slow, aside) ── gap ── Work (sheet: stops) ── gap ── Contact (holds)
  *           (over the descent's hold)
  *
- * The film loads once the dive starts. Reduced motion: no film; a still from it above About and Work.
+ * The film loads once the dive starts. Reduced motion: no film; a still from it above the sections.
  */
 export function createRunScene(): SceneHandle | null {
   const root = document.querySelector<HTMLElement>('[data-scene="run"]');
@@ -34,15 +36,12 @@ export function createRunScene(): SceneHandle | null {
   const video = $<HTMLVideoElement>('[data-layer="run-video"]');
   const still = $<HTMLImageElement>('[data-layer="run-still"]');
   const fx = $('[data-layer="fx"]');
-  const night = $('[data-layer="night"]');
-  const melt = $('[data-layer="melt"]');
+  const scrim = $('[data-layer="scrim"]');
   const gaps = [...root.querySelectorAll<HTMLElement>('[data-run-gap]')];
-  const blocks = [...root.querySelectorAll<HTMLElement>('[data-run-read]')];
+  const blocks = [...root.querySelectorAll<HTMLElement>('[data-run]')];
   const R = site.run;
   /** The film's crop: the trail photo's, so the first frame lands on it. */
   const F = site.descent.landingFocus;
-  /** How dark the last frame gets as the run ends. */
-  const END_DIM = 0.35;
 
   if (prefersReducedMotion()) {
     root.classList.add('still');
@@ -77,11 +76,10 @@ export function createRunScene(): SceneHandle | null {
     if (!st || !pace) return;
     const y = st.start + state.p * (st.end - st.start);
     const reveal = clamp((y - st.start) / Math.max(1, reach), 0, 1);
-    const leave = smoothstep(st.end - 0.6 * window.innerHeight, st.end, y);
+    const aside = pace.aside(y);
     fx.style.opacity = String(smoothstep(0.1, 0.7, reveal));
-    night.style.opacity = String(Math.max(pace.read(y) * tuning.run.dim, leave * END_DIM));
-    melt.style.opacity = String(leave);
-    player?.show(pace.time(y), reveal);
+    scrim.style.opacity = String(aside * tuning.run.dim);
+    player?.show(pace.time(y), reveal, aside);
     grain.update(y !== lastY, performance.now() / 1000);
     lastY = y;
   };
@@ -93,12 +91,15 @@ export function createRunScene(): SceneHandle | null {
     onUpdate: render,
   });
   tl.to(state, { p: 1, duration: 1 });
-  // where each text block is, in scroll positions: from its top at the top of the screen to its bottom there
+  // where each section is, in scroll positions: from its top at the top of the screen to its bottom there
   const marks = blocks.map((el) => ScrollTrigger.create({ trigger: el, start: 'top top', end: 'bottom top' }));
   const measure = () => {
     const st = tl.scrollTrigger!;
-    const spans = marks.map((m) => ({ top: m.start, bottom: m.end }));
-    pace = buildPace(st.start, st.end, window.innerHeight, spans, tuning.run.slow, reach * RUN_STILL_UNTIL);
+    const spans = marks.map((m, i) => {
+      const role = blocks[i].dataset.run;
+      return { top: m.start, bottom: m.end, speed: role === 'read' ? tuning.run.slow : 0, aside: role !== 'sheet' };
+    });
+    pace = buildPace(st.start, st.end, window.innerHeight, spans, reach * RUN_STILL_UNTIL);
     render();
   };
   ScrollTrigger.addEventListener('refreshInit', layout);

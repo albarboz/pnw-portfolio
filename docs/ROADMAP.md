@@ -79,6 +79,16 @@ The page as one take: overlook → fog dive → white-out → the runner on the 
 - [ ] Side trail marker: progress + navigation after the hero
 - [ ] Owner's captions as signposts, real About and projects
 
+## Phase 6 – Editorial polish (2026-10-13)
+
+From a design critique (19/32): the opening was authored, the sections were a template laid over a video. Direction chosen by the owner: quiet editorial (the interface recedes; the film and photos carry the character).
+
+- [x] Sections as spreads: each section sets the film's behavior ([data-run] read / sheet / end, src/core/pace.ts). About reads over it with the runner stepped aside to the right (a slight push in, `ASIDE_*` in run-view.ts) and the text's side shaded (.run-scrim); Work rises over it as a sheet of night and the film stops behind it; Contact is the arrival over the held last frame
+- [x] A fixed, boxless site header that fades in at About and marks the section in view (src/ui/header.ts); fly-to logic shared with the trail sign and the footer's "back to the overlook" (src/ui/fly.ts)
+- [x] Quiet type: Barlow Condensed 400/500 added; headings in 500, a fuller scale (tokens.css); hero sign and scroll cue as plain ink with the tagline's halo instead of glass and pills; project rows with the meta under the text (no eyebrow), arrow after the title, no circle buttons
+- [x] Contact as a full screen with the email large, profile links, a real footer; selection, scrollbar and caret themed
+- [ ] Later: desktop film upscale, a softer fog-ring edge, texture in the white-out, project dialog polish
+
 ## Useful references
 
 - GSAP docs: https://gsap.com/docs/v3/

@@ -7,6 +7,7 @@ import { initScroll, ScrollTrigger } from './core/scroll';
 import { renderContent } from './ui/content';
 import { createReveal } from './ui/reveal';
 import { createTrailSign } from './ui/trail-sign';
+import { createHeader } from './ui/header';
 import { initCopyEmail } from './ui/copy-email';
 import { createProjectDialog } from './ui/project-dialog';
 import { createScenes } from './scenes';
@@ -21,6 +22,7 @@ const lenis = initScroll();
 const scenes = createScenes();
 const reveal = createReveal(); // after scenes, so pinned scroll space is measured
 const trailSign = createTrailSign(lenis);
+const header = createHeader(lenis); // after the scenes too: it measures where the sections are
 initCopyEmail();
 const projectDialog = createProjectDialog(lenis);
 
@@ -37,6 +39,7 @@ if (import.meta.hot) {
     scenes.forEach((s) => s.destroy());
     reveal.destroy();
     trailSign.destroy();
+    header.destroy();
     projectDialog.destroy();
     lenis?.destroy();
   });

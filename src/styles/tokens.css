@@ -30,9 +30,14 @@
   --display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
   --body: 'Barlow', 'Helvetica Neue', Arial, sans-serif;
 
-  /* Display sizes: three steps under the hero name, so the hierarchy reads at a glance */
+  /* Display sizes under the hero name, in clear steps. Quiet editorial: headings in the condensed face's medium
+     weight, not its bold; body text carries the rest. */
+  --size-statement: clamp(44px, 6.4vw, 92px); /* About's statement */
   --size-section: clamp(40px, 6vw, 72px); /* section headings, the project dialog's title */
-  --size-title: clamp(30px, 4.2vw, 50px); /* project titles, the contact lead, photo captions */
+  --size-email: clamp(28px, 3.4vw, 50px); /* the email, Contact's main element */
+  --size-title: clamp(30px, 4.2vw, 50px); /* photo captions */
+  --size-item: clamp(26px, 2.6vw, 36px); /* project titles in the list */
+  --size-lead: clamp(20px, 1.9vw, 26px); /* a lead line under a heading */
 
   --gutter: 20px;
   --max: 1080px;
