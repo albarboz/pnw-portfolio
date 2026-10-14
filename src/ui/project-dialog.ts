@@ -2,7 +2,7 @@ import type Lenis from 'lenis';
 import { gsap } from '../core/scroll';
 import { prefersReducedMotion } from '../core/motion';
 import { site, type Project } from '../content/site';
-import { projectTitle } from './content';
+import { ARROW_OUT, projectTitle } from './content';
 
 /**
  * Project detail view in a native <dialog> (focus trap, Esc and inert page come free).
@@ -111,9 +111,11 @@ export function createProjectDialog(lenis: Lenis | null): { destroy: () => void 
 
     const links = part('links');
     links.replaceChildren(
-      ...(p.links ?? []).map(({ label, href }) =>
-        Object.assign(el('a', label, 'btn'), { href, target: '_blank', rel: 'noopener' }),
-      ),
+      ...(p.links ?? []).map(({ label, href }) => {
+        const a = Object.assign(el('a', label, 'pd-link'), { href, target: '_blank', rel: 'noopener' });
+        a.insertAdjacentHTML('beforeend', ARROW_OUT);
+        return a;
+      }),
     );
     links.hidden = !links.children.length;
   };

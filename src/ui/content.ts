@@ -143,7 +143,7 @@ function openCue(): HTMLElement {
 }
 
 /** Arrow for links that leave the site. */
-const ARROW_OUT = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5"/></svg>';
+export const ARROW_OUT = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5"/></svg>';
 
 function span(className: string, text = ''): HTMLSpanElement {
   return Object.assign(document.createElement('span'), { className, textContent: text });

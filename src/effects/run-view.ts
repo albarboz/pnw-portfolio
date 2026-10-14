@@ -28,7 +28,7 @@ varying vec2 vUv;
 uniform sampler2D uFrame;
 uniform vec2 uScale, uOffset, uScaleAside, uOffsetAside, uOrigin, uPScale, uPOffset, uAPos, uASize;
 uniform vec2 uFocus;
-uniform float uAspect, uReveal, uReach, uAlign, uZoom, uAside;
+uniform float uAspect, uReveal, uReach, uAlign, uZoom, uAside, uTime;
 // the film's own framing, eased toward its stepped-aside framing (runner moved away from the text)
 vec2 own(vec2 uv) { return mix(uOffset, uOffsetAside, uAside) + uv * mix(uScale, uScaleAside, uAside); }
 uniform vec3 uFog;
@@ -51,20 +51,27 @@ void main() {
   vec2 d = (vUv - uOrigin) * vec2(uAspect, 1.0);
   float r = length(d);
   // Ring radius: from just inside the runner to past the farthest corner, plus room for the torn edge.
-  float R = mix(-0.25, uReach + 0.45, uReveal);
-  float edge = r + (fbm(vUv * vec2(uAspect, 1.0) * 3.2) - 0.5) * 0.55 - R; // < 0: inside
-  float inside = 1.0 - smoothstep(-0.16, 0.0, edge);
-  float rim = exp(-edge * edge / 0.012) * (1.0 - smoothstep(0.75, 1.0, uReveal));
+  float R = mix(-0.25, uReach + 0.5, uReveal);
+  // The edge, torn by noise that is itself warped (as the dive's fog is) and drifting slowly, so it billows.
+  vec2 p = vUv * vec2(uAspect, 1.0);
+  vec2 warp = vec2(fbm(p * 1.6 + vec2(uTime * 0.03, 0.0)), fbm(p * 1.6 + vec2(5.2, uTime * 0.02))) - 0.5;
+  float edge = r + (fbm(p * 2.4 + warp * 1.2) - 0.5) * 0.6 - R; // < 0: inside
+  float inside = 1.0 - smoothstep(-0.2, 0.0, edge);
+  // A bank of fog riding the edge: a dense core in a wide haze, thick and thin in billows rather than strands.
+  float body = smoothstep(0.3, 0.8, fbm(p * 3.0 + warp * 2.0 + vec2(0.0, uTime * 0.05)));
+  float core = exp(-edge * edge / 0.02);
+  float haze = exp(-edge * edge / 0.09) * 0.45;
+  float fog = (core * (0.45 + 0.55 * body) + haze * (0.6 + 0.4 * body)) * (1.0 - smoothstep(0.75, 1.0, uReveal));
   vec2 away = d / max(r, 1e-4) / vec2(uAspect, 1.0);
   // the fog's bend, only once the film has its own framing: while it still is the photo, a bent copy over the photo
   // shows the runner twice where the edge crosses him
-  vec2 uv = vUv - away * rim * 0.025 * (1.0 - uAlign);
+  vec2 uv = vUv - away * core * 0.02 * (1.0 - uAlign);
   vec2 film = own(uv);
   vec2 onPhoto = (uPOffset + (uFocus + (uv - uFocus) / uZoom) * uPScale - uAPos) / uASize;
   vec3 col = texture2D(uFrame, clamp(mix(film, onPhoto, uAlign), 0.0, 1.0)).rgb;
-  float fog = rim * (0.55 + 0.45 * fbm(vUv * 7.0 + 3.0));
-  col = mix(col, uFog, fog * 0.8);
-  float a = clamp(max(inside, fog * 0.9), 0.0, 1.0);
+  fog = clamp(fog, 0.0, 1.0);
+  col = mix(col, uFog * (0.94 + 0.06 * body), fog * 0.85); // a touch brighter where it's thick
+  float a = clamp(max(inside, fog * 0.92), 0.0, 1.0);
   gl_FragColor = vec4(col * a, a);
 }`;
 
@@ -155,9 +162,13 @@ export class RunView {
   draw(reveal: number, aside = 0) {
     const gl = this.gl;
     if (!gl || !this.tex.w) return;
-    const key = `${reveal}|${aside}`;
+    // while the ring is open its fog drifts, so it redraws every frame; otherwise only when something changed
+    const opening = reveal > 0 && reveal < 1;
+    const time = opening ? performance.now() / 1000 : 0;
+    const key = `${reveal}|${aside}|${time}`;
     if (key === this.last) return;
     this.last = key;
+    gl.uniform1f(this.u.uTime, time % 1000);
     gl.uniform1f(this.u.uReveal, reveal);
     gl.uniform1f(this.u.uAside, aside);
     gl.uniform1f(this.u.uAlign, 1 - smoothstep(RUN_STILL_UNTIL, 1, reveal));
@@ -179,7 +190,7 @@ export class RunView {
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     const frame = ['uFrame', 'uScale', 'uOffset', 'uScaleAside', 'uOffsetAside', 'uAside', 'uPScale', 'uPOffset'];
-    frame.push('uAPos', 'uASize', 'uAlign', 'uFocus', 'uZoom');
+    frame.push('uAPos', 'uASize', 'uAlign', 'uFocus', 'uZoom', 'uTime');
     for (const name of [...frame, 'uOrigin', 'uAspect', 'uReveal', 'uReach', 'uFog']) {
       this.u[name] = gl.getUniformLocation(prog, name);
     }

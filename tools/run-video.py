@@ -10,7 +10,7 @@ Web copies of the trail run (src/scenes/run.ts) from one master clip:
 and prints where the first frame sits on the trail photo (`align` in src/content/site.ts), so the film can open
 exactly on it even when it's framed tighter or in another aspect ratio.
 
-    .venv-tools/bin/python tools/run-video.py ~/Downloads/altrail_4x.mp4 --phone ~/Downloads/altrail_phone_2x.mp4
+    .venv-tools/bin/python tools/run-video.py ~/Downloads/altrail_hd_4x.mp4 --phone ~/Downloads/altrail_phone_2x.mp4
 
 The master can be the Midjourney download as is, or a sharper, smoother copy of it made first (slow, and best on a
 rented GPU; nothing here needs them):
@@ -42,7 +42,9 @@ GRADE = "eq=saturation=0.86:contrast=1.03:gamma=0.97"
 ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 ap.add_argument("master", help="the clip: Midjourney download, or its upscaled / interpolated copy")
 ap.add_argument("--max-width", type=int, default=2160, help="HQ copy is scaled down to this width if wider")
-ap.add_argument("--crf", type=int, default=24, help="HQ quality (lower = sharper and bigger)")
+ap.add_argument("--crf", type=int, default=28,
+                help="HQ quality (lower = sharper and bigger); the upscaled 1080p film looked the same at 28 as at 24, at 55%% the size")
+ap.add_argument("--phone-crf", type=int, default=24, help="the phone slice's quality")
 ap.add_argument("--still-at", type=float, help="seconds into the clip for the reduced-motion still (default: 60%%)")
 ap.add_argument("--photo", default=str(ROOT / "public/images/trail.webp"), help="the photo the film opens from")
 ap.add_argument("--phone", help="the portrait slice for phones (tools/run-upscale.py, then run-interpolate.py)")
@@ -109,13 +111,13 @@ images = ROOT / "public/images"
 x264 = ["-c:v", "libx264", "-preset", "slow", "-tune", "film", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an"]
 
 
-def encode(src: str, out: Path) -> None:
+def encode(src: str, out: Path, crf: int) -> None:
     """The WebCodecs copy: a keyframe every half second (at most every 24 frames), no B-frames."""
     fps, _, w = probe(src)
     gop = max(1, min(24, round(fps / 2)))
     width = min(w, a.max_width)
     run("-i", src, "-vf", f"scale={width}:-2:flags=lanczos,{GRADE}", *x264,
-        "-crf", str(a.crf), "-g", str(gop), "-keyint_min", str(gop), "-sc_threshold", "0", "-bf", "0", str(out))
+        "-crf", str(crf), "-g", str(gop), "-keyint_min", str(gop), "-sc_threshold", "0", "-bf", "0", str(out))
     print(f"{out.name}: {width} px wide @ {fps:g} fps, keyframe every {gop} frames, {out.stat().st_size / 1e6:.1f} MB")
 
 
@@ -130,7 +132,7 @@ def align(src: str, key: str) -> None:
 
 
 hq = video / "trail-run-hq.mp4"
-encode(a.master, hq)
+encode(a.master, hq, a.crf)
 
 fallback = video / "trail-run.mp4"
 run("-i", a.master, "-vf", f"fps=24,scale=768:-2:flags=lanczos,{GRADE}", *x264, "-crf", "27", "-g", "1", str(fallback))
@@ -150,7 +152,7 @@ with tempfile.TemporaryDirectory() as tmp:
         print(f"{name}: {img.width}×{img.height}, {(images / name).stat().st_size // 1024} KB")
 
 if a.phone:
-    encode(a.phone, video / "trail-run-phone.mp4")
+    encode(a.phone, video / "trail-run-phone.mp4", a.phone_crf)
 
 align(a.master, "run")
 if a.phone:

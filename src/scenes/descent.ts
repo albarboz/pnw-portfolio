@@ -35,6 +35,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   const landingWrap = $('[data-layer="landing-wrap"]');
   const landing = $<HTMLImageElement>('[data-layer="landing"]');
   const whiteout = $('[data-layer="whiteout"]');
+  const drift = $('[data-layer="drift"]');
   const heroCopy = $('[data-layer="hero"]');
   const cue = $('[data-layer="cue"]');
   const capFog = $('[data-layer="cap-fog"]');
@@ -83,6 +84,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     rush: 0, // fog spreading outward as we fly through it
     capFog: 0,
     whiteout: 0,
+    drift: 0, // the cloud banks inside the white-out swelling past, 0–1
     landing: 0, // landing photo opacity
     land: 0, // landing photo settles from 1.35× to 1×
     fogLow: 0, // fog density over the landing
@@ -119,6 +121,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     cue.style.opacity = String(1 - state.heroOut);
     capFog.style.opacity = String(state.capFog);
     whiteout.style.opacity = String(state.whiteout);
+    drift.style.transform = `scale(${1 + state.drift * 0.8 * m}) rotate(${state.drift * 6 * m}deg)`;
 
     landingWrap.style.opacity = String(state.landing);
     const s = m ? lerp(1.35, LANDED_ZOOM, state.land) : 1;
@@ -173,6 +176,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     .to(state, { capFog: 1, duration: 0.1 }, 0.3)
     .to(state, { capFog: 0, duration: 0.08 }, 0.5)
     .to(state, { whiteout: 1, duration: 0.14, ease: 'power1.inOut' }, 0.5)
+    .to(state, { drift: 1, duration: 0.3 }, 0.48)
     .to(state, { fogLow: 1.82, duration: 0.06, ease: 'power1.in' }, 0.56)
     .to(state, { landing: 1, duration: 0.16, ease: 'power1.inOut' }, 0.62)
     .to(state, { land: 1, duration: 0.38, ease: 'power2.out' }, 0.62)

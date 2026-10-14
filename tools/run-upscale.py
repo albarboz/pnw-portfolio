@@ -4,7 +4,9 @@ held upright (which shows only that slice) gets the film as crisp as the trail p
 tools/run-interpolate.py, then to tools/run-video.py --phone.
 
     .venv-tools/bin/python tools/run-upscale.py ~/Downloads/altrail.mp4
-    → ~/Downloads/altrail_phone.mp4 (a 9:16 slice, 2× its size: 810×1440 from 1280×720)
+    → ~/Downloads/altrail_phone.mp4 (a 9:16 slice, 2× its size: 808×1440 from 1280×720)
+    .venv-tools/bin/python tools/run-upscale.py ~/Downloads/altrail.mp4 --aspect 0 --scale 1.5
+    → ~/Downloads/altrail_hd.mp4 (the whole frame for wide screens: 1920×1080, ~30 s a frame)
 
 Run it on the master as it came (24 fps), before filling in frames: four times fewer frames to upscale, and RIFE's
 in-between frames come out sharp from the sharp ones. ~10 s a frame on an M-series GPU.
@@ -25,20 +27,21 @@ from esrgan import device, model, upscale4  # tools/esrgan.py
 ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 ap.add_argument("master", help="the clip, at its original frame rate")
 ap.add_argument("--focus", type=float, default=0.48, help="the runner's place across the frame (0–1): the slice's center")
-ap.add_argument("--aspect", type=float, default=9 / 16, help="slice width ÷ height (9:16 covers phones held upright)")
-ap.add_argument("--scale", type=int, default=2, help="size of the result relative to the slice")
+ap.add_argument("--aspect", type=float, default=9 / 16,
+                help="slice width ÷ height (9:16 covers phones held upright); 0 = the whole frame (the desktop film)")
+ap.add_argument("--scale", type=float, default=2, help="size of the result relative to the slice")
 ap.add_argument("--out", help="output path (default: <master>_phone.mp4 next to it)")
 a = ap.parse_args()
 
 master = Path(a.master).expanduser()
-out = Path(a.out).expanduser() if a.out else master.with_name(f"{master.stem}_phone.mp4")
+out = Path(a.out).expanduser() if a.out else master.with_name(f"{master.stem}_{'phone' if a.aspect > 0 else 'hd'}.mp4")
 probe = json.loads(subprocess.run(
     ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height,r_frame_rate,nb_frames",
      "-of", "json", str(master)], capture_output=True, check=True, text=True).stdout)["streams"][0]
 w, h = probe["width"], probe["height"]
-cw = min(w, round(h * a.aspect / 2) * 2)
+cw = w if a.aspect <= 0 else min(w, round(h * a.aspect / 2) * 2)
 cx = min(w - cw, max(0, round(a.focus * w - cw / 2)))
-ow, oh = cw * a.scale, h * a.scale
+ow, oh = round(cw * a.scale / 2) * 2, round(h * a.scale / 2) * 2
 total = int(probe.get("nb_frames", 0))
 print(f"{master.name}: {w}×{h}, slice {cw}×{h} at x {cx} → {ow}×{oh}, {total} frames")
 

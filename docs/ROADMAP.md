@@ -87,7 +87,10 @@ From a design critique (19/32): the opening was authored, the sections were a te
 - [x] A fixed, boxless site header that fades in at About and marks the section in view (src/ui/header.ts); fly-to logic shared with the trail sign and the footer's "back to the overlook" (src/ui/fly.ts)
 - [x] Quiet type: Barlow Condensed 400/500 added; headings in 500, a fuller scale (tokens.css); hero sign and scroll cue as plain ink with the tagline's halo instead of glass and pills; project rows with the meta under the text (no eyebrow), arrow after the title, no circle buttons
 - [x] Contact as a full screen with the email large, profile links, a real footer; selection, scrollbar and caret themed
-- [ ] Later: desktop film upscale, a softer fog-ring edge, texture in the white-out, project dialog polish
+- [x] Desktop film upscaled to 1920×1080 (Real-ESRGAN, then RIFE to 96 fps): 8.1 MB at CRF 28, the same size as the old 1280 copy and clearly crisper on Retina
+- [x] The fog ring's edge rebuilt like the dive's fog: warped noise, a dense core in a wide haze, billows that drift while it's open
+- [x] Soft cloud banks inside the white-out that swell past as the camera flies through (`drift` in descent.ts)
+- [x] Project dialog in the quiet language: night sheet with a hairline, "Close ×", medium title, tracked fact labels, plain links with an outward arrow
 
 ## Useful references
 
