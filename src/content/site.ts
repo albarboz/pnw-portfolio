@@ -74,12 +74,12 @@ export const site = {
 
   name: { first: 'Alan', last: 'Barboza' },
   tagline: 'Design and development from the west side of the pnw.',
-  /** Trail sign under the tagline: one plank per section. `target` is the section's id in index.html. */
+  /** Trail sign under the tagline: one plank per section, in page order. `target` is the section's id in index.html. */
   sign: {
     label: 'Sections',
     links: [
-      { label: 'Work', target: 'work' },
       { label: 'About', target: 'about' },
+      { label: 'Work', target: 'work' },
       { label: 'Contact', target: 'contact' },
     ],
   },
@@ -204,25 +204,33 @@ export const site = {
   },
 
   /**
-   * The trail run (src/scenes/run.ts): a filmed run down the trail, scrubbed by scroll between Work and Contact.
-   * The video has a keyframe on every frame (see docs/ASSET-CREDITS.md for the ffmpeg line), so any scroll
-   * position shows its frame at once.
+   * The trail run (src/scenes/run.ts): a filmed run down the trail, the backdrop behind About and Work, scrubbed by
+   * scroll. It opens from the trail photo (its first frame is that photo), so keep `landing` and this film the same
+   * shot. Both videos are made from one master by tools/run-video.py.
    */
   run: {
     label: 'Trail run',
     /** For screen readers, in place of the video. */
     description:
-      'A runner, seen from behind, runs down a winding dirt trail through a misty old-growth forest, crosses a ' +
-      'wooden footbridge over a creek and disappears into the trees.',
-    video: asset('video/trail-run.mp4'),
+      'A runner, seen from behind, runs down a winding dirt trail through a misty old-growth forest of ' +
+      'moss-covered trees and sword ferns.',
+    /** Decoded frame by frame in the browser (WebCodecs): a keyframe every half second. */
+    video: asset('video/trail-run-hq.mp4'),
+    /** For browsers without WebCodecs: a keyframe on every frame, so a plain <video> can show any frame at once. */
+    fallback: asset('video/trail-run.mp4'),
+    /**
+     * Where the film's first frame sits on the trail photo (`landing`): left, top and width as fractions of the
+     * photo. tools/run-video.py prints it. The film opens there, then eases to its own framing.
+     */
+    align: { x: 0, y: 0.1, w: 1 },
     /** First frame, shown until the video has loaded. */
     poster: asset('images/trail-run-poster.webp'),
     /** Shown instead of the video with reduced motion. */
     still: {
       src: asset('images/trail-run-still.webp'),
-      alt: 'A runner, seen from behind, crosses a wooden footbridge over a creek in a misty old-growth forest.',
-      width: 768,
-      height: 512,
+      alt: 'A runner, seen from behind, runs down a dirt trail between sword ferns in a misty old-growth forest.',
+      width: 1152,
+      height: 648,
     },
   },
 
@@ -237,6 +245,8 @@ export const site = {
 
   /** Small interface labels. */
   ui: {
+    /** Hint at the bottom of the opening screen; fades out as the dive starts. */
+    scrollCue: 'Scroll',
     copyEmail: { label: 'Copy email', copied: 'Copied', selected: 'Selected — press Ctrl/⌘ C' },
   },
 

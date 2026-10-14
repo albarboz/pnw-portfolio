@@ -45,6 +45,14 @@
             </nav>
           </div>
 
+          <!-- Scroll hint: visual only (the page scrolls like any other); fades out with the hero -->
+          <div class="scroll-cue" data-layer="cue" aria-hidden="true">
+            <span class="scroll-cue-in">
+              <span data-text="ui.scrollCue"></span>
+              <svg viewBox="0 0 12 12"><path d="M6 1.5v9M2.5 7 6 10.5 9.5 7" /></svg>
+            </span>
+          </div>
+
           <div class="caption cap-fog" data-layer="cap-fog">
             <p data-text="descent.fogCaption.text"></p>
           </div>
@@ -54,41 +62,49 @@
         </div>
       </section>
 
-      <section class="section about" id="about" aria-labelledby="about-h">
-        <div class="wrap about-grid">
-          <!-- data-reveal sits on a wrapper so the heading itself is free for the drift (src/ui/reveal.ts) -->
-          <div data-reveal><h2 id="about-h" data-text="about.heading" data-drift></h2></div>
-          <div data-reveal>
-            <span class="label place" data-text="about.label"></span>
-            <div data-about-body></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section work" id="work" aria-labelledby="work-h">
-        <div class="wrap">
-          <div class="sec-head" data-reveal>
-            <h2 id="work-h" data-text="work.heading" data-drift></h2>
-            <span class="label place" data-text="work.label"></span>
-          </div>
-          <ul class="work-list" data-projects></ul>
-        </div>
-      </section>
-
-      <!-- Scene: the trail run (src/scenes/run.ts), filled from site.run -->
-      <section class="scene run" id="run" data-scene="run" aria-labelledby="run-h">
-        <h2 class="sr-only" id="run-h" data-text="run.label"></h2>
+      <!-- Scene: the trail run (src/scenes/run.ts), filled from site.run. Its stage sticks to the screen behind About
+           and Work: it rises over the end of the descent, opens on the trail photo in a ring of fog, and the scroll
+           runs the film, slowing under the text ([data-run-read]) and running on through the gaps ([data-run-gap]). -->
+      <div class="run" id="run" data-scene="run">
+        <h2 class="sr-only" data-text="run.label"></h2>
         <p class="sr-only" data-text="run.description"></p>
         <div class="stage" data-stage>
-          <video data-layer="run-video" muted playsinline preload="none" aria-hidden="true"></video>
+          <canvas data-layer="run-gl" hidden aria-hidden="true"></canvas>
+          <video data-layer="run-video" muted playsinline preload="none" hidden aria-hidden="true"></video>
           <img class="run-still" data-layer="run-still" alt="" hidden />
-          <!-- Film grain like the descent's (src/effects/grain.ts) -->
-          <div class="grain" data-layer="grain" aria-hidden="true"><div class="grain-tile"></div></div>
-          <div class="run-melt run-melt-top" data-layer="melt-top" aria-hidden="true"></div>
-          <div class="run-melt run-melt-bottom" data-layer="melt-bottom" aria-hidden="true"></div>
-          <div class="run-night" data-layer="night" aria-hidden="true"></div>
+          <!-- Everything over the film fades in with it, so nothing shows on the trail photo before the hand-off -->
+          <div class="run-fx" data-layer="fx" aria-hidden="true">
+            <!-- Film grain like the descent's (src/effects/grain.ts) -->
+            <div class="grain" data-layer="grain"><div class="grain-tile"></div></div>
+            <div class="run-night" data-layer="night"></div>
+            <div class="run-melt" data-layer="melt"></div>
+          </div>
         </div>
-      </section>
+        <div class="run-gap" data-run-gap></div>
+        <section class="section about" id="about" aria-labelledby="about-h">
+          <div class="wrap about-grid" data-run-read>
+            <!-- data-reveal sits on a wrapper so the heading itself is free for the drift (src/ui/reveal.ts) -->
+            <div data-reveal><h2 id="about-h" data-text="about.heading" data-drift></h2></div>
+            <div data-reveal>
+              <span class="label place" data-text="about.label"></span>
+              <div data-about-body></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="run-gap" data-run-gap></div>
+        <section class="section work" id="work" aria-labelledby="work-h">
+          <div class="wrap" data-run-read>
+            <div class="sec-head" data-reveal>
+              <h2 id="work-h" data-text="work.heading" data-drift></h2>
+              <span class="label place" data-text="work.label"></span>
+            </div>
+            <ul class="work-list" data-projects></ul>
+          </div>
+        </section>
+
+        <div class="run-gap" data-run-gap></div>
+      </div>
 
       <section class="section contact" id="contact" aria-labelledby="contact-h">
         <div class="wrap">

@@ -80,10 +80,16 @@ export const tuning = {
     max: 3.4,
   },
 
-  /** The trail run (src/scenes/run.ts). */
+  /** The trail run (src/scenes/run.ts): the film behind About and Work. Lengths in screen heights. */
   run: {
-    /** Scroll length of the run, in screen heights. More = a slower run for the same scroll. */
-    scroll: 2.6,
+    /** The hand-off from the trail photo: how long the fog ring takes to open the film. */
+    reveal: 0.8,
+    /** Open trail before About, between the sections and after Work, where the film runs at full pace. */
+    gap: 0.7,
+    /** The film's pace while text fills the screen, as a share of its pace in the gaps. */
+    slow: 0.3,
+    /** How much the film darkens under text. */
+    dim: 0.55,
   },
 
   /** Distance of each overlook cutout from the camera's start (far = 1). Smaller = the camera passes it sooner. */

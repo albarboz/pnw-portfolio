@@ -209,6 +209,63 @@
     transform: translateY(2px);
   }
 }
+/* Scroll hint at the bottom of the opening screen, on the same frosted glass as the trail sign, so it reads over
+   bright valley fog on wide screens and dark firs on phones. Above the phone's toolbar, like .cap-landing. It
+   arrives after the name has had a moment; the arrow nudges downward. descent.ts fades it out with the hero. */
+.scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 40px;
+  bottom: calc(100lvh - 100svh + 28px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.scroll-cue-in {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px 9px 15px;
+  border: 1px solid color-mix(in srgb, var(--sky-text) 22%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--night) 52%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  backdrop-filter: blur(10px) saturate(1.15);
+  color: var(--sky-text);
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  animation: cue-in 0.9s var(--ease-out) 1.4s both;
+}
+.scroll-cue svg {
+  width: 9px;
+  height: 9px;
+  fill: none;
+  stroke: var(--lichen);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: cue-nudge 2.2s var(--ease-out) 2.3s infinite;
+}
+@keyframes cue-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes cue-nudge {
+  0%,
+  45%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translateY(3px);
+  }
+}
+
 /* headings the trail sign lands on take focus from script; the scroll already shows where you are */
 h2[tabindex='-1']:focus {
   outline: none;
@@ -260,7 +317,8 @@ h2[tabindex='-1']:focus {
 .still canvas[data-layer='overlook-3d'],
 .still .overlook-veil,
 .still canvas[data-fog='high'],
-.still .hero-copy {
+.still .hero-copy,
+.still .scroll-cue {
   grid-row: 1 / 2;
 }
 /* Reaches up over the bottom of the overlook and fades in, so the valley sinks into the fog. It runs on behind the
@@ -312,13 +370,6 @@ h2[tabindex='-1']:focus {
   line-height: 1;
 }
 
-.about {
-  /* overlap the stage by 2px: at fractional scroll positions its light --fog backdrop
-     can bleed through the antialiased bottom edge as a hairline */
-  position: relative;
-  margin-top: -2px;
-  background: var(--night);
-}
 .about-grid {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -360,17 +411,6 @@ h2[tabindex='-1']:focus {
   line-height: 1.02;
 }
 
-/* Soft hand-offs: each section starts in the previous one's color and fades into its own over --blend,
-   so there is no hard line where one ends and the next begins. */
-.work {
-  background: linear-gradient(
-    180deg,
-    var(--night),
-    var(--forest) var(--blend),
-    var(--forest) calc(100% - var(--blend)),
-    var(--night)
-  );
-}
 .work-list {
   list-style: none;
   margin: 0;
@@ -522,8 +562,18 @@ h2[tabindex='-1']:focus {
 }
 
 /* ===================== trail run scene ===================== */
-.run .stage {
-  background: var(--night);
+/* The film behind About and Work (src/scenes/run.ts). The wrapper starts a screen and the reveal above its place
+   (run.ts sets the margin) and sits above the descent, so its stage, stuck to the screen, covers the descent's stage
+   from the start of its hold: clear at first, then the film opens over the trail photo. The sections scroll over it. */
+.run {
+  position: relative;
+  z-index: 1;
+}
+.run > .stage {
+  position: sticky;
+  top: 0;
+  background: none;
+  pointer-events: none;
 }
 .run video,
 .run-still {
@@ -533,49 +583,28 @@ h2[tabindex='-1']:focus {
   height: 100%;
   object-fit: cover;
 }
-/* Portrait screens: filling the height would blow the 768 px footage up ~2.4× (soft, and the AI glitches show).
-   Instead a wide band across the middle, 1.6× the screen's width (the runner stays in the middle third), its top
-   and bottom melting into the night. */
-@media (max-aspect-ratio: 1/1) {
-  .run video,
-  .run-still {
-    inset: auto;
-    top: 50%;
-    left: -30%;
-    width: 160%;
-    height: auto;
-    aspect-ratio: 3 / 2;
-    transform: translateY(-50%);
-    -webkit-mask-image: linear-gradient(180deg, transparent, var(--night) 22%, var(--night) 78%, transparent);
-    mask-image: linear-gradient(180deg, transparent, var(--night) 22%, var(--night) 78%, transparent);
-  }
+.run video {
+  opacity: 0;
 }
-/* the grain fades out at both edges, where the run melts into the night */
-.run .grain {
-  -webkit-mask-image: linear-gradient(180deg, transparent 4%, var(--night) 20%, var(--night) 80%, transparent 96%);
-  mask-image: linear-gradient(180deg, transparent 4%, var(--night) 20%, var(--night) 80%, transparent 96%);
+.run-fx {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
 }
-/* Soft hand-offs: the stage's top melts out of the night as it scrolls in, its bottom back into it as it leaves.
-   Eased stops: a straight ramp shows a line. run.ts fades each one away while the run plays. */
+/* darkens the film under text, and a little more as the run ends */
+.run-night {
+  position: absolute;
+  inset: 0;
+  background: var(--night);
+  opacity: 0;
+}
+/* the stage's bottom melting into the night as it leaves, so Contact rises out of the dark. Eased stops: a straight
+   ramp shows a line. */
 .run-melt {
   position: absolute;
-  left: 0;
-  right: 0;
+  inset: auto 0 0;
   height: 42%;
-  pointer-events: none;
-}
-.run-melt-top {
-  top: 0;
-  background: linear-gradient(
-    180deg,
-    var(--night),
-    color-mix(in srgb, var(--night) 70%, transparent) 30%,
-    color-mix(in srgb, var(--night) 25%, transparent) 65%,
-    transparent
-  );
-}
-.run-melt-bottom {
-  bottom: 0;
+  opacity: 0;
   background: linear-gradient(
     0deg,
     var(--night),
@@ -584,13 +613,39 @@ h2[tabindex='-1']:focus {
     transparent
   );
 }
-/* the last frame dimming a little as the run ends */
-.run-night {
-  position: absolute;
-  inset: 0;
+/* the sections ride over the film, after the stage in the flow */
+.run > .section {
+  position: relative;
+}
+.run .about,
+.run .work {
+  text-shadow: 0 1px 18px var(--shadow-forest);
+}
+
+/* Reduced motion (run.ts sets .still): no film. A still from the film as a band above About and Work, melting
+   into the night at both edges, and the sections on their own backgrounds. */
+.run.still > .stage {
+  position: relative;
   background: var(--night);
-  opacity: 0;
-  pointer-events: none;
+}
+.run.still .run-still {
+  -webkit-mask-image: linear-gradient(180deg, transparent, var(--night) 22%, var(--night) 78%, transparent);
+  mask-image: linear-gradient(180deg, transparent, var(--night) 22%, var(--night) 78%, transparent);
+}
+.run.still .run-fx {
+  display: none;
+}
+.run.still .about {
+  background: var(--night);
+}
+.run.still .work {
+  background: linear-gradient(
+    180deg,
+    var(--night),
+    var(--forest) var(--blend),
+    var(--forest) calc(100% - var(--blend)),
+    var(--night)
+  );
 }
 
 .contact {
@@ -812,6 +867,10 @@ html:has(.project-dialog[open]) {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .scroll-cue-in,
+  .scroll-cue svg {
+    animation: none;
+  }
   .trail-sign svg {
     transition: none;
   }

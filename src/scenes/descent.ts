@@ -1,4 +1,4 @@
-import { gsap } from '../core/scroll';
+import { gsap, ScrollTrigger } from '../core/scroll';
 import { lerp } from '../core/math';
 import { motionScale, prefersReducedMotion } from '../core/motion';
 import { pointer } from '../core/pointer';
@@ -14,8 +14,11 @@ import type { SceneHandle } from './types';
 /**
  * Descent: overlook → dive into the valley fog → whiteout → land on the trail.
  *
- *   progress  0 ──── 0.16 ──── 0.4 ──── 0.62 ──── 0.78 ──── 0.95 ── 1
- *             hero out   dive & fog thicken  whiteout   trail resolves  caption
+ *   time  0 ──── 0.16 ──── 0.4 ──── 0.62 ──── 0.78 ──── 0.95 ── 1 ─────────── + hold
+ *         hero out   dive & fog thicken  whiteout   trail resolves  caption   the run opens over the trail
+ *
+ * The hold keeps the trail pinned while the trail run's fog ring opens the film over it (src/scenes/run.ts); the
+ * pin ends as the ring finishes, and the film's stage, stuck on top, carries on.
  *
  * Reduced motion: no pin and no timeline. The stage becomes three still bands in the page flow (overlook with the
  * hero, a band of fog with its caption, the trail with its caption; `.scene.still` in sections.css), drawn once.
@@ -30,6 +33,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   const landing = $<HTMLImageElement>('[data-layer="landing"]');
   const whiteout = $('[data-layer="whiteout"]');
   const heroCopy = $('[data-layer="hero"]');
+  const cue = $('[data-layer="cue"]');
   const capFog = $('[data-layer="cap-fog"]');
   const capLanding = $('[data-layer="cap-landing"]');
 
@@ -109,6 +113,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     heroCopy.style.opacity = String(1 - state.heroOut);
     heroCopy.style.visibility = state.heroOut >= 1 ? 'hidden' : ''; // faded out: the trail sign can't be clicked or tabbed to
     heroCopy.style.transform = `translate3d(0, ${state.heroY * m}px, 0)`;
+    cue.style.opacity = String(1 - state.heroOut);
     capFog.style.opacity = String(state.capFog);
     whiteout.style.opacity = String(state.whiteout);
 
@@ -149,7 +154,8 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
           trigger: root,
           pin: stage,
           start: 'top top',
-          end: () => `+=${tuning.scroll * 100}%`, // a function, so ScrollTrigger.refresh() picks up a new length
+          // a function, so ScrollTrigger.refresh() picks up a new length
+          end: () => `+=${(tuning.scroll + tuning.run.reveal) * 100}%`,
           scrub: 0.6,
           onUpdate: (self) => opts.onProgress?.(self.progress),
         },
@@ -169,6 +175,11 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     .to(state, { land: 1, duration: 0.38, ease: 'power2.out' }, 0.62)
     .to(state, { fogLow: 0.12, duration: 0.3, ease: 'power1.inOut' }, 0.66)
     .to(state, { capLanding: 1, duration: 0.09 }, 0.86);
+  // the hand-off hold, as long (in the timeline's units, 1 = the descent) as the run's reveal is in scroll
+  const holdLength = () => tuning.run.reveal / tuning.scroll;
+  const hold = tl?.to({}, { duration: holdLength() }, 1);
+  const onRefreshInit = () => hold?.duration(holdLength());
+  ScrollTrigger.addEventListener('refreshInit', onRefreshInit);
 
   // ---------- loop: render every frame (pointer parallax) and draw fog while visible ----------
   // Visibility comes from an observer so the ticker never forces a layout read.
@@ -180,11 +191,11 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   const tick = (time: number) => {
     if (!visible) return;
     render();
-    const p = tl?.progress() ?? 0;
+    const p = tl?.time() ?? 0; // 0–1 through the descent, then on through the hold
     grain.update(p !== lastProgress && !still, time); // fresh grain only while scrolling
     lastProgress = p;
     const t = still ? 0 : time;
-    // Timeline progress, not scroll progress: with scrub lag, the scroll runs ahead of the whiteout.
+    // Timeline time, not scroll progress: with scrub lag, the scroll runs ahead of the whiteout.
     if (p < 0.72) fogHigh.draw(t);
     else fogHigh.clear();
     fogLow.draw(t * 0.8);
@@ -210,6 +221,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
       overlook.destroy();
       grain.destroy();
       window.removeEventListener('resize', onResize);
+      ScrollTrigger.removeEventListener('refreshInit', onRefreshInit);
       tl?.scrollTrigger?.kill();
       tl?.kill();
       root.classList.remove('still');

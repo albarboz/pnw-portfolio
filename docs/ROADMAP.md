@@ -66,6 +66,18 @@ Researched 2026-10-13. Ordered by how much a visitor would notice. Each new depe
 - [LYGIA](https://github.com/patriciogonzalezvivo/lygia) shader library: non-commercial license (Prosperity) unless you sponsor or contribute
 - Theatre.js: the GSAP timeline + Tweakpane panel already cover keyframing and tuning
 
+## Phase 5 – One continuous run (2026-10-13)
+
+The page as one take: overlook → fog dive → white-out → the runner on the trail → the film opens from that photo in a ring of fog and runs behind About and Work → its last frame melts into the night and Contact rises out of the dark.
+
+- [x] Trail sign in page order; scroll cue on the opening screen
+- [x] Film behind About and Work: sticky stage over the descent's hold, fog-ring hand-off (`run-view.ts`), WebCodecs scrubbing via Mediabunny (`video-frames.ts`), pace slows and dims under text (`pace.ts`); knobs in `tuning.run`
+- [x] HD master: Midjourney HD (1280×720, 5.2 s, `altrail.mp4`), a 16:9 crop of the trail photo; its place on the photo (`run.align`) is measured by `tools/run-video.py` and the film opens there
+- [x] Smoother film: RIFE v4.25 fills it in to 96 fps (`tools/run-interpolate.py`, on the Mac's GPU in ~1 min); the web copy stays ~7.7 MB, as the in-between frames compress well
+- [ ] Optional: upscale with SeedVR2 (rented GPU); extend the clip in Midjourney HD for a longer run
+- [ ] Side trail marker: progress + navigation after the hero
+- [ ] Owner's captions as signposts, real About and projects
+
 ## Useful references
 
 - GSAP docs: https://gsap.com/docs/v3/
