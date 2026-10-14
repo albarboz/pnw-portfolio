@@ -19,14 +19,16 @@ void main() {
 // The hand-off from the trail photo: the film is revealed in a ring growing out from the runner, its edge torn by
 // noise, with a band of fog riding the edge that bends the picture slightly as it passes. Outside the ring the canvas
 // is clear, so the photo underneath (the descent's last frame) still shows. Premultiplied alpha.
-// The film opens framed exactly as the photo (its first frame laid where it sits on the photo), then eases to its own
-// cover framing as the ring finishes: a small push-in as the runner sets off.
+// The film opens framed exactly as the photo (its first frame laid where it sits on the photo, at the photo's zoom),
+// so until the ring has cleared the runner it is the photo; then it eases to its own cover framing as it finishes:
+// a small push-in as the runner sets off.
 const FRAG = `
 precision highp float;
 varying vec2 vUv;
 uniform sampler2D uFrame;
 uniform vec2 uScale, uOffset, uOrigin, uPScale, uPOffset, uAPos, uASize;
-uniform float uAspect, uReveal, uReach, uAlign;
+uniform vec2 uFocus;
+uniform float uAspect, uReveal, uReach, uAlign, uZoom;
 uniform vec3 uFog;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
@@ -52,9 +54,11 @@ void main() {
   float inside = 1.0 - smoothstep(-0.16, 0.0, edge);
   float rim = exp(-edge * edge / 0.012) * (1.0 - smoothstep(0.75, 1.0, uReveal));
   vec2 away = d / max(r, 1e-4) / vec2(uAspect, 1.0);
-  vec2 uv = vUv - away * rim * 0.025;
+  // the fog's bend, only once the film has its own framing: while it still is the photo, a bent copy over the photo
+  // shows the runner twice where the edge crosses him
+  vec2 uv = vUv - away * rim * 0.025 * (1.0 - uAlign);
   vec2 own = uOffset + uv * uScale;
-  vec2 onPhoto = (uPOffset + uv * uPScale - uAPos) / uASize;
+  vec2 onPhoto = (uPOffset + (uFocus + (uv - uFocus) / uZoom) * uPScale - uAPos) / uASize;
   vec3 col = texture2D(uFrame, clamp(mix(own, onPhoto, uAlign), 0.0, 1.0)).rgb;
   float fog = rim * (0.55 + 0.45 * fbm(vUv * 7.0 + 3.0));
   col = mix(col, uFog, fog * 0.8);
@@ -62,12 +66,20 @@ void main() {
   gl_FragColor = vec4(col * a, a);
 }`;
 
+/**
+ * Share of the hand-off during which the film holds its first frame in the photo's framing, so the ring opens on a
+ * picture identical to the one it replaces (no doubled runner in its soft edge). After it, the runner sets off.
+ */
+export const RUN_STILL_UNTIL = 0.45;
+
 /** The trail photo the film opens from. */
 export interface RunPlacement {
   /** The photo's size in px (its aspect ratio is what matters). */
   photo: { width: number; height: number };
-  /** The photo's object-position, as fractions: the runner. */
+  /** The photo's object-position, as fractions: the runner. Also the origin of its zoom. */
   focus: { x: number; y: number };
+  /** The photo's zoom at rest (the descent's landed zoom). */
+  zoom: number;
 }
 
 /** Where a film's first frame sits on the photo: left, top and width, as fractions of the photo. */
@@ -140,7 +152,7 @@ export class RunView {
     if (key === this.last) return;
     this.last = key;
     gl.uniform1f(this.u.uReveal, reveal);
-    gl.uniform1f(this.u.uAlign, 1 - smoothstep(0.15, 1, reveal));
+    gl.uniform1f(this.u.uAlign, 1 - smoothstep(RUN_STILL_UNTIL, 1, reveal));
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
@@ -158,7 +170,7 @@ export class RunView {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW); // one full-screen triangle
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-    const frame = ['uFrame', 'uScale', 'uOffset', 'uPScale', 'uPOffset', 'uAPos', 'uASize', 'uAlign'];
+    const frame = ['uFrame', 'uScale', 'uOffset', 'uPScale', 'uPOffset', 'uAPos', 'uASize', 'uAlign', 'uFocus', 'uZoom'];
     for (const name of [...frame, 'uOrigin', 'uAspect', 'uReveal', 'uReach', 'uFog']) {
       this.u[name] = gl.getUniformLocation(prog, name);
     }
@@ -206,8 +218,12 @@ export class RunView {
     gl.uniform2f(this.u.uScale, sx, sy);
     gl.uniform2f(this.u.uOffset, (1 - sx) * fx, (1 - sy) * fy);
 
+    // the photo's zoom around the runner, as the descent leaves it
+    gl.uniform2f(this.u.uFocus, F.x, F.y);
+    gl.uniform1f(this.u.uZoom, this.place.zoom);
     // The ring starts at the runner, where the photo shows him.
-    const origin = [(F.x - po[0]) / ps[0], (F.y - po[1]) / ps[1]];
+    const z = this.place.zoom;
+    const origin = [F.x + ((F.x - po[0]) / ps[0] - F.x) * z, F.y + ((F.y - po[1]) / ps[1] - F.y) * z];
     gl.uniform2f(this.u.uOrigin, origin[0], origin[1]);
     const aspect = vw / vh;
     gl.uniform1f(this.u.uAspect, aspect);

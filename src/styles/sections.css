@@ -617,9 +617,18 @@ h2[tabindex='-1']:focus {
 .run > .section {
   position: relative;
 }
+/* Over the film the quiet greys lose to the brightest ferns (project meta measured 2.6:1, descriptions 4:1), so
+   they take the soft text color there; every line gets a tight shadow edge under its soft halo. */
 .run .about,
 .run .work {
-  text-shadow: 0 1px 18px var(--shadow-forest);
+  text-shadow:
+    0 1px 2px var(--shadow-forest),
+    0 1px 18px var(--shadow-forest);
+}
+.run .work-desc,
+.run .meta,
+.run .example-tag {
+  color: var(--text-soft);
 }
 
 /* Reduced motion (run.ts sets .still): no film. A still from the film as a band above About and Work, melting

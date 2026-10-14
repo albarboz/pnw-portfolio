@@ -7,16 +7,10 @@ import { quality } from '../core/quality';
 import { tuning } from '../core/tuning';
 import { site } from '../content/site';
 import { Grain } from '../effects/grain';
-import { RunView, type RunAlign } from '../effects/run-view';
-import type { VideoFrames } from '../effects/video-frames';
+import { RUN_STILL_UNTIL, RunView } from '../effects/run-view';
+import { LANDED_ZOOM } from './descent';
+import { type Player, videoPlayer, WebglPlayer } from '../effects/run-players';
 import type { SceneHandle } from './types';
-
-/** Draws the film: frame by frame through WebCodecs + WebGL, or a plain <video> where those aren't available. */
-interface Player {
-  show(t: number, reveal: number): void;
-  resize(vw: number, vh: number): void;
-  destroy(): void;
-}
 
 /**
  * Trail run: the filmed run behind About and Work. Its stage sticks to the screen for the whole wrapper. It rises
@@ -104,7 +98,7 @@ export function createRunScene(): SceneHandle | null {
   const measure = () => {
     const st = tl.scrollTrigger!;
     const spans = marks.map((m) => ({ top: m.start, bottom: m.end }));
-    pace = buildPace(st.start, st.end, window.innerHeight, spans, tuning.run.slow);
+    pace = buildPace(st.start, st.end, window.innerHeight, spans, tuning.run.slow, reach * RUN_STILL_UNTIL);
     render();
   };
   ScrollTrigger.addEventListener('refreshInit', layout);
@@ -114,80 +108,56 @@ export function createRunScene(): SceneHandle | null {
   // ---------- players ----------
   const plain = (): Player => {
     canvas.hidden = true;
-    video.hidden = false;
-    video.poster = R.poster;
-    video.preload = 'auto';
-    video.src = R.fallback;
-    let shown = -1;
-    // iOS only paints a muted video's frames once it has played: play a moment, then hold.
-    video.addEventListener(
-      'loadeddata',
-      () => void video.play().then(() => video.pause()).catch(() => {}).finally(() => ((shown = -1), render())),
-      { once: true },
-    );
-    return {
-      show(t, reveal) {
-        video.style.opacity = String(reveal);
-        const d = video.duration;
-        if (!d || video.readyState < 1) return;
-        const time = Math.min(t * d, d - 0.05); // the very end can show a blank frame in some browsers
-        if (Math.abs(time - shown) < 1 / 48) return; // half a frame: nothing new to show
-        shown = time;
-        video.currentTime = time;
-      },
-      resize() {},
-      destroy() {
-        video.removeAttribute('src');
-        video.load();
-      },
-    };
+    return videoPlayer(video, R, render);
   };
 
-  const rich = (view: RunView, frames: VideoFrames, align: RunAlign): Player => ({
-    show(t, reveal) {
-      frames.want(t * (frames.count - 1));
-      const frame = frames.take();
-      if (frame) view.upload(frame, align);
-      view.draw(reveal);
-    },
-    resize: (vw, vh) => view.resize(vw, vh),
-    destroy() {
-      frames.destroy();
-      view.destroy();
-    },
-  });
-
+  // A screen held upright shows only a slice of the film around the runner: it gets that slice, made sharper.
+  const upright = () => stage.clientWidth / stage.clientHeight < 0.8;
   let dead = false;
+  let webgl: WebglPlayer | null = null;
+  let filmUpright: boolean | null = null;
+  let loading = 0;
+  /** Fetch and open the film for the screen's shape; the one showing stays until it's ready. */
+  const loadFilm = async () => {
+    const ticket = ++loading;
+    const up = upright();
+    filmUpright = up;
+    const film = up ? R.phone : R;
+    // the decoder (mediabunny) loads only now, so it never weighs on the first paint
+    const { VideoFrames } = await import('../effects/video-frames');
+    const view = { w: stage.clientWidth, h: stage.clientHeight, dpr: Math.min(window.devicePixelRatio || 1, 2) };
+    const frames = await VideoFrames.open(film.video, view);
+    if (dead || ticket !== loading || !webgl) return frames?.destroy();
+    if (frames) {
+      webgl.film(frames, film.align);
+      render();
+    } else if (!webgl.hasFilm) {
+      webgl.destroy(); // can't decode it here: the plain video takes over
+      webgl = null;
+      player = plain();
+    }
+  };
+
   const start = async () => {
     if ((await quality) > 0) {
       const L = site.descent.landing;
-      const place = { photo: { width: L.width, height: L.height }, focus: { x: F.x / 100, y: F.y / 100 } };
+      const place = {
+        photo: { width: L.width, height: L.height },
+        focus: { x: F.x / 100, y: F.y / 100 },
+        zoom: LANDED_ZOOM,
+      };
       const view = new RunView(canvas, place, () => {
-        player?.destroy(); // context lost: the plain video takes over
+        webgl?.destroy(); // context lost: the plain video takes over
+        webgl = null;
         player = plain();
       });
-      if (view.ok) {
+      if (view.ok && !dead) {
         canvas.hidden = false;
         view.resize(stage.clientWidth, stage.clientHeight);
-        // the poster (the first frame) holds the place until frames are decoded
-        let framesIn = false;
-        const poster = new Image();
-        poster.src = R.poster;
-        poster.decode().then(() => !framesIn && !dead && view.upload(poster, R.align), () => {});
-        // A screen held upright shows only a slice of the film around the runner: it gets that slice, made sharper.
-        const [w, h] = [stage.clientWidth, stage.clientHeight];
-        const film = w / h < 0.8 ? R.phone : R;
-        // the decoder (mediabunny) loads only now, so it never weighs on the first paint
-        const { VideoFrames } = await import('../effects/video-frames');
-        const frames = await VideoFrames.open(film.video, { w, h, dpr: Math.min(window.devicePixelRatio || 1, 2) });
-        if (dead) return frames?.destroy(), view.destroy();
-        if (frames) {
-          framesIn = true;
-          player = rich(view, frames, film.align);
-          return render();
-        }
-        view.destroy();
+        player = webgl = new WebglPlayer(view, site.descent.landing.src);
+        return loadFilm();
       }
+      view.destroy();
     }
     if (!dead) player = plain();
   };
@@ -210,7 +180,11 @@ export function createRunScene(): SceneHandle | null {
   };
   gsap.ticker.add(tick);
 
-  const onResize = () => player?.resize(stage.clientWidth, stage.clientHeight);
+  const onResize = () => {
+    player?.resize(stage.clientWidth, stage.clientHeight);
+    // turned between upright and wide: the other film (rare, so it's fetched only then)
+    if (webgl && filmUpright !== null && upright() !== filmUpright) void loadFilm();
+  };
   window.addEventListener('resize', onResize);
 
   return {
@@ -223,6 +197,7 @@ export function createRunScene(): SceneHandle | null {
       near.disconnect();
       seen.disconnect();
       player?.destroy();
+      if (webgl && webgl !== player) webgl.destroy();
       grain.destroy();
       marks.forEach((m) => m.kill());
       tl.scrollTrigger?.kill();

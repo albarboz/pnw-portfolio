@@ -11,6 +11,9 @@ import { Overlook } from '../effects/overlook';
 import { site } from '../content/site';
 import type { SceneHandle } from './types';
 
+/** The trail photo's zoom once landed (around the runner): the trail run opens on exactly this framing. */
+export const LANDED_ZOOM = 1.02;
+
 /**
  * Descent: overlook → dive into the valley fog → whiteout → land on the trail.
  *
@@ -118,7 +121,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     whiteout.style.opacity = String(state.whiteout);
 
     landingWrap.style.opacity = String(state.landing);
-    const s = m ? lerp(1.35, 1.02, state.land) : 1;
+    const s = m ? lerp(1.35, LANDED_ZOOM, state.land) : 1;
     if (depth.active) {
       // Settling onto the trail: the camera sinks and eases back, so the near ferns move more than the far trees.
       const rise = (1 - state.land) * m;
@@ -178,6 +181,8 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   // the hand-off hold, as long (in the timeline's units, 1 = the descent) as the run's reveal is in scroll
   const holdLength = () => tuning.run.reveal / tuning.scroll;
   const hold = tl?.to({}, { duration: holdLength() }, 1);
+  // the caption steps aside as the ring starts, before its fog reaches the words
+  tl?.to(state, { capLanding: 0, duration: 0.05, ease: 'power1.in' }, 1);
   const onRefreshInit = () => hold?.duration(holdLength());
   ScrollTrigger.addEventListener('refreshInit', onRefreshInit);
 

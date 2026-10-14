@@ -12,6 +12,7 @@ export interface Pace {
 /**
  * Pace of a scroll-scrubbed film with text passing over it: the film slows to `slow` (0–1) of its open-trail speed
  * while a text block fills the screen, and makes up the time in the gaps between, so it still ends at `end`.
+ * It holds its first frame for the first `hold` px of scroll, then sets off, easing up to speed over half as far again.
  * Positions are scroll offsets: a block spans [top, bottom] in the scroll positions where its top / bottom edge
  * is at the top of the screen. `vh` is the screen height.
  */
@@ -21,6 +22,7 @@ export function buildPace(
   vh: number,
   blocks: { top: number; bottom: number }[],
   slow: number,
+  hold = 0,
 ): Pace {
   const span = Math.max(1, end - start);
   const reading = new Float32Array(SAMPLES + 1);
@@ -34,7 +36,8 @@ export function buildPace(
       r = Math.max(r, smoothstep(0.3, 0.8, overlap / Math.min(vh, b.bottom - b.top)));
     }
     reading[i] = r;
-    if (i > 0) time[i] = time[i - 1] + 1 - (1 - slow) * (r + reading[i - 1]) * 0.5;
+    const moving = hold > 0 ? smoothstep(start + hold, start + hold * 1.5, y) : 1;
+    if (i > 0) time[i] = time[i - 1] + (1 - (1 - slow) * (r + reading[i - 1]) * 0.5) * moving;
   }
   const total = time[SAMPLES] || 1;
   for (let i = 0; i <= SAMPLES; i++) time[i] /= total;
