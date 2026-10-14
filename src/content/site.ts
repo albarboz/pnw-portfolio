@@ -73,7 +73,7 @@ export const site = {
   },
 
   name: { first: 'Alan', last: 'Barboza' },
-  tagline: 'Design and development from the west side of the pnw.',
+  tagline: 'Design and development from the west side of the mountains.',
   /** Trail sign under the tagline: one plank per section, in page order. `target` is the section's id in index.html. */
   sign: {
     label: 'Sections',
@@ -130,7 +130,7 @@ export const site = {
   },
 
   about: {
-    label: 'About',
+    label: '',
     heading: 'I like making things.',
     paragraphs: [
       'Interfaces with atmosphere: quiet, layered, and paced like a run through old growth on a grey morning.',
@@ -140,7 +140,7 @@ export const site = {
 
   work: {
     heading: 'Selected work',
-    label: 'Old growth',
+    label: '',
     /** Interface labels in the project detail view. */
     detail: { close: 'Close', role: 'Role', tools: 'Tools', example: 'Example' },
     projects: [
@@ -236,11 +236,11 @@ export const site = {
 
   contact: {
     heading: 'Contact',
-    label: 'Trailhead · 600 ft',
-    leadBefore: 'Have a project in the',
-    leadEmphasis: 'clouds?',
-    leadAfter: 'Let’s talk.',
-    email: 'hello@yourdomain.com',
+    label: '',
+    leadBefore: "Let's connect.",
+    leadEmphasis: '',
+    leadAfter: 'and chat.',
+    email: 'alansoftwareengineer@gmail.com',
   },
 
   /** Small interface labels. */
