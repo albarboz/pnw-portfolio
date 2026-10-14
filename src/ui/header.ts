@@ -54,6 +54,21 @@ export function createHeader(lenis: Lenis | null): { destroy: () => void } {
     );
   }
 
+  // Over the solid middle of Work's night sheet (between its soft edges, --edge = its bottom padding), the header
+  // takes the night as its ground, so titles pass under the links instead of through them.
+  const work = document.getElementById('work');
+  if (work) {
+    const edge = () => parseFloat(getComputedStyle(work).paddingBottom) || 0;
+    triggers.push(
+      ScrollTrigger.create({
+        trigger: work,
+        start: () => `top+=${edge()} top`,
+        end: () => `bottom-=${edge()} top+=${header.offsetHeight}`,
+        onToggle: ({ isActive }) => header.classList.toggle('on-sheet', isActive),
+      }),
+    );
+  }
+
   const toTop = (e: Event) => {
     if (!(e.target as Element).closest('[data-fly-top]')) return;
     e.preventDefault();
@@ -66,7 +81,7 @@ export function createHeader(lenis: Lenis | null): { destroy: () => void } {
       triggers.forEach((t) => t.kill());
       document.removeEventListener('click', toTop);
       list.replaceChildren();
-      header.classList.remove('is-shown');
+      header.classList.remove('is-shown', 'on-sheet');
     },
   };
 }

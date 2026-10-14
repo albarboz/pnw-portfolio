@@ -272,19 +272,14 @@
   }
 }
 
-/* Site header (src/ui/header.ts): no box, just the sections, on the right, over a soft fade of the night, so it
-   reads over the film without covering it. Hidden through the opening; it fades in as the run reaches About. */
+/* Site header (src/ui/header.ts): no box and no shade, just the sections, on the right. Over Work's night sheet
+   it takes the sheet's own night as its ground (.on-sheet), so titles scrolling up slip under it unseen instead
+   of colliding with the links. Hidden through the opening; it fades in as the run reaches About. */
 .site-header {
   position: fixed;
   inset: 0 0 auto;
   z-index: 20;
-  padding: 16px var(--gutter) 44px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--night) 72%, transparent),
-    color-mix(in srgb, var(--night) 32%, transparent) 55%,
-    transparent
-  );
+  padding: 16px var(--gutter) 12px;
   opacity: 0;
   transform: translateY(-8px);
   pointer-events: none;
@@ -295,6 +290,9 @@
 .site-header.is-shown {
   opacity: 1;
   transform: none;
+}
+.site-header.on-sheet {
+  background: var(--night);
 }
 .header-in {
   display: flex;
