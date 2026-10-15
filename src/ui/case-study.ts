@@ -5,7 +5,6 @@ import { haptic } from '../core/haptics';
 import { prefersReducedMotion } from '../core/motion';
 import { FogWipe } from '../effects/fog-wipe';
 import { ARROW_OUT, projectTitle } from './content';
-import { rememberCaseStudy } from './resume';
 
 const projects = site.work.projects;
 
@@ -20,8 +19,6 @@ const projects = site.work.projects;
  * Reduced motion: it changes at once.
  */
 export interface CaseStudy {
-  /** Open a project's case study, as its row would. */
-  open: (i: number) => void;
   /** To the next (1) or previous (-1) case study, while one is open. */
   step: (by: number) => void;
   isOpen: () => boolean;
@@ -31,7 +28,7 @@ export interface CaseStudy {
 export function createCaseStudy(lenis: Lenis | null): CaseStudy {
   const dialog = document.querySelector<HTMLDialogElement>('[data-case-study]');
   const list = document.querySelector<HTMLElement>('[data-projects]');
-  if (!dialog || !list) return { open() {}, step() {}, isOpen: () => false, destroy() {} };
+  if (!dialog || !list) return { step() {}, isOpen: () => false, destroy() {} };
 
   const part = <T extends HTMLElement = HTMLElement>(name: string) =>
     dialog.querySelector<T>(`[data-cs="${name}"]`)!;
@@ -88,7 +85,6 @@ export function createCaseStudy(lenis: Lenis | null): CaseStudy {
       dialog.showModal();
     }
     current = i;
-    rememberCaseStudy(projects[i]); // as soon as it's chosen: a visitor may leave before the cloud has cleared
     if (instant || prefersReducedMotion()) return fill(projects[i]);
     if (opening) page.style.opacity = '0'; // the trail shows through until the cloud has closed
     wipe.run(() => {
@@ -251,9 +247,6 @@ export function createCaseStudy(lenis: Lenis | null): CaseStudy {
   }
 
   return {
-    open(i) {
-      if (projects[i]) go(i);
-    },
     step(by) {
       if (current === null || projects.length < 2) return;
       go((current + by + projects.length) % projects.length);

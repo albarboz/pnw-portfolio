@@ -15,7 +15,6 @@ import { createHeader } from './ui/header';
 import { initCopyEmail } from './ui/copy-email';
 import { createCaseStudy } from './ui/case-study';
 import { createKeys } from './ui/keys';
-import { createResume } from './ui/resume';
 import { createBarColor } from './ui/bar-color';
 import { logColophon } from './ui/colophon';
 import { createScenes } from './scenes';
@@ -42,7 +41,6 @@ const header = createHeader(lenis); // after the scenes too: it measures where t
 initCopyEmail();
 const caseStudy = createCaseStudy(lenis);
 const keys = createKeys(lenis, caseStudy);
-const resume = createResume(caseStudy);
 const barColor = createBarColor(); // after the scenes: it follows the descent's pin
 
 // Watch the frame rate: if frames keep running late, the WebGL layers draw fewer pixels (src/core/governor.ts).
@@ -67,7 +65,6 @@ if (import.meta.hot) {
     header.destroy();
     caseStudy.destroy();
     keys.destroy();
-    resume.destroy();
     barColor.destroy();
     lenis?.destroy();
   });

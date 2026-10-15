@@ -270,8 +270,6 @@ export const site = {
     /** Footer link that flies back up the page, through the fog, to the overlook. */
     toTop: 'Back to the overlook',
     copyEmail: { label: 'Copy email', copied: 'Copied', selected: 'Selected — press Ctrl/⌘ C' },
-    /** On a later visit, under the trail sign: "Back on the trail at <the last case study opened>" (src/ui/resume.ts). */
-    resume: 'Back on the trail at',
     /** Keyboard shortcuts (src/ui/keys.ts): `?` lists them; so does the footer's button, on screens with a mouse. */
     keys: {
       open: 'Keyboard shortcuts',

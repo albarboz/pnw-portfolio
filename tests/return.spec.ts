@@ -3,7 +3,7 @@ import { openPage, scrollToY, topOf, trackErrors } from './helpers';
 
 /**
  * Coming back: Back from another page restores this one from the browser's back/forward cache (mid-scroll, film and
- * fog as they were), a later visit offers the last case study again, and the keyboard shortcuts.
+ * fog as they were), and the keyboard shortcuts.
  * Chrome only: the cache and the shortcuts don't depend on the engine.
  */
 test.beforeEach(({}, info) => test.skip(info.project.name !== 'desktop', 'engine-neutral'));
@@ -33,22 +33,6 @@ test.describe('back/forward cache', () => {
     // the text page asks for /favicon.ico (a text file can't name its icon); the site's own is an SVG
     expect(errors.filter((e) => !e.endsWith('/favicon.ico'))).toEqual([]);
   });
-});
-
-test('a later visit offers the last case study again', async ({ page }) => {
-  await openPage(page, '?quality=0');
-  await expect(page.locator('[data-resume]')).toBeHidden(); // nothing opened yet
-  await page.locator('[data-projects] a').nth(1).click();
-  await expect(page.locator('#cs-title')).toContainText('Ridgeline weather dashboard', { timeout: 5000 });
-  await expect(page.locator('[data-resume]')).toBeHidden(); // not on the visit that opened it
-
-  await page.goto('/?quality=0'); // a new visit
-  const resume = page.locator('[data-resume] a');
-  await expect(resume).toBeVisible();
-  await expect(resume).toContainText('Ridgeline weather dashboard');
-  await resume.click();
-  await expect(page.locator('[data-case-study]')).toHaveJSProperty('open', true);
-  await expect(page.locator('#cs-title')).toContainText('Ridgeline weather dashboard', { timeout: 5000 });
 });
 
 test.describe('keyboard shortcuts', () => {
