@@ -24,11 +24,13 @@
 /* lvh: as tall as the screen with the phone's toolbar tucked away, which is how the dive is seen (the toolbar
    hides while scrolling down). svh left a strip of the page below the stage showing whenever it hid. Both stay
    fixed as the toolbar slides, so the canvases never resize mid-scroll. With the toolbar out, the bottom of the
-   stage sits behind it, so nothing important is anchored there. */
+   stage sits behind it, so nothing important is anchored there. In-app browsers (Snapchat …) hide a toolbar of
+   their own that lvh doesn't count: --screen-tallest is the tallest screen seen there (src/core/screen-height.ts). */
 .stage {
   position: relative;
   height: 100vh;
   height: 100lvh;
+  height: max(100lvh, var(--screen-tallest, 0px));
   overflow: hidden;
   background: var(--fog);
 }

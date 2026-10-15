@@ -8,6 +8,7 @@ import { initScroll, ScrollTrigger } from './core/scroll';
 import { prefersReducedMotion } from './core/motion';
 import { yieldToPaint } from './core/after-hero';
 import { startGovernor } from './core/governor';
+import { trackTallestScreen } from './core/screen-height';
 import { renderContent } from './ui/content';
 import { createReveal } from './ui/reveal';
 import { createTrailSign } from './ui/trail-sign';
@@ -42,6 +43,7 @@ initCopyEmail();
 const caseStudy = createCaseStudy(lenis);
 const keys = createKeys(lenis, caseStudy);
 const barColor = createBarColor(); // after the scenes: it follows the descent's pin
+const screenHeight = trackTallestScreen(); // in-app browsers' own toolbars (Snapchat …)
 
 // Watch the frame rate: if frames keep running late, the WebGL layers draw fewer pixels (src/core/governor.ts).
 startGovernor();
@@ -66,6 +68,7 @@ if (import.meta.hot) {
     caseStudy.destroy();
     keys.destroy();
     barColor.destroy();
+    screenHeight.destroy();
     lenis?.destroy();
   });
 }
