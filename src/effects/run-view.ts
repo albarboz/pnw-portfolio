@@ -28,10 +28,15 @@ void main() {
 // a small push-in as the runner sets off.
 // With the film's depth (src/effects/film-depth.ts) the edge runs ahead over what is nearer than the runner and
 // behind over what is farther, so it follows the trunks and leaves the ferns first.
+// MOTION BLUR (uBlur, uGhost; once the hand-off is over): flicked through fast, the film skips frames. Each point
+// streaks toward the runner, where the trail runs off ahead (a camera rushing forward), and a trace of the frame
+// before stays (uPrev), so the skipped frames read as speed. At an ordinary pace both are 0: the film untouched.
 const FRAG = `
 precision highp float;
 varying vec2 vUv;
-uniform sampler2D uFrame, uPhoto;
+uniform sampler2D uFrame, uPhoto, uPrev;
+uniform float uBlur, uGhost;
+uniform vec2 uFoe;
 uniform float uHasPhoto;
 uniform vec2 uScale, uOffset, uScaleAside, uOffsetAside, uOrigin, uPScale, uPOffset, uAPos, uASize;
 uniform vec2 uFocus;
@@ -62,9 +67,15 @@ float fbm(vec2 p) {
   for (int i = 0; i < 4; i++) { v += a * noise(p); p = p * 2.03 + 17.0; a *= 0.5; }
   return v;
 }
+vec3 moving(vec2 f) {
+  vec3 c = texture2D(uFrame, f).rgb;
+  if (uBlur <= 0.0) return c;
+  for (int i = 1; i <= 6; i++) c += texture2D(uFrame, mix(f, uFoe, float(i) / 6.0 * uBlur * 0.07)).rgb;
+  return mix(c / 7.0, texture2D(uPrev, f).rgb, uGhost);
+}
 void main() {
   if (uReveal >= 1.0) { // the hand-off is over: just the film, in its own framing
-    gl_FragColor = vec4(texture2D(uFrame, own(vUv)).rgb, 1.0);
+    gl_FragColor = vec4(moving(own(vUv)), 1.0);
     return;
   }
   vec2 d = (vUv - uOrigin) * vec2(uAspect, 1.0);
@@ -152,6 +163,8 @@ export class RunView {
   private dpr = 0;
   private align: RunAlign = { x: 0, y: 0, w: 1 };
   private depthMap: FilmDepth | null = null;
+  private frames: WebGLTexture[] = []; // two: the frame showing (unit 0) and the one before (unit 3, for the blur)
+  private cur = 0;
   private last = '';
   private unshed = onShed(() => this.fit());
 
@@ -188,6 +201,12 @@ export class RunView {
   upload(src: TexImageSource & { width: number; height: number }, align: RunAlign) {
     const gl = this.gl;
     if (!gl) return;
+    // the frame showing becomes the one before, and the new one goes into the other texture
+    this.cur = 1 - this.cur;
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, this.frames[1 - this.cur]);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.frames[this.cur]);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, src);
     if (src.width !== this.tex.w || src.height !== this.tex.h || align !== this.align) {
       this.tex = { w: src.width, h: src.height };
@@ -221,9 +240,9 @@ export class RunView {
 
   /**
    * `aside` (0–1): how far the film has stepped aside for a section reading over it; `t` (0–1): the film's
-   * progress, for its depth.
+   * progress, for its depth; `blur` (0–1): how fast it's being flicked through (see MOTION BLUR above).
    */
-  draw(reveal: number, aside = 0, t = 0) {
+  draw(reveal: number, aside = 0, t = 0, blur = 0) {
     const gl = this.gl;
     if (!gl || !this.tex.w) return;
     // while the ring is open its fog drifts, so it redraws every frame; otherwise only when something changed
@@ -231,9 +250,12 @@ export class RunView {
     const time = opening ? performance.now() / 1000 : 0;
     const D = this.depthMap;
     const amount = D ? tuning.run.depth : 0;
-    const key = `${reveal}|${aside}|${time}|${t}|${amount}`;
+    const b = blur * tuning.run.blur;
+    const key = `${reveal}|${aside}|${time}|${t}|${amount}|${b}`;
     if (key === this.last) return;
     this.last = key;
+    gl.uniform1f(this.u.uBlur, b);
+    gl.uniform1f(this.u.uGhost, Math.min(0.45, b * 0.4));
     gl.uniform1f(this.u.uDepthAmt, amount);
     if (D) gl.uniform1f(this.u.uDFrame, clamp(t / D.until, 0, 1) * (D.count - 1));
     gl.uniform1f(this.u.uTime, time % 1000);
@@ -275,14 +297,22 @@ export class RunView {
     frame.push('uAPos', 'uASize', 'uAlign', 'uFocus', 'uZoom', 'uTime');
     const depth = ['uPhoto', 'uHasPhoto', 'uDepth', 'uDepthAmt', 'uDGrid', 'uDTexel', 'uDFrame', 'uDCount'];
     const film = ['uMPos', 'uMSize'];
-    for (const name of [...frame, ...depth, ...film, 'uOrigin', 'uAspect', 'uReveal', 'uReach', 'uFog']) {
+    const blur = ['uPrev', 'uBlur', 'uGhost', 'uFoe'];
+    for (const name of [...frame, ...depth, ...film, ...blur, 'uOrigin', 'uAspect', 'uReveal', 'uReach', 'uFog']) {
       this.u[name] = gl.getUniformLocation(prog, name);
     }
-    gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    for (const unit of [3, 0]) {
+      const tex = gl.createTexture()!;
+      this.frames.push(tex);
+      gl.activeTexture(gl.TEXTURE0 + unit);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    }
+    this.cur = 1; // frames[1] on unit 0, frames[0] on unit 3
+    gl.uniform1i(this.u.uPrev, 3);
     gl.uniform1i(this.u.uFrame, 0);
     gl.uniform1i(this.u.uDepth, 1);
     gl.uniform1i(this.u.uPhoto, 2);
@@ -323,6 +353,7 @@ export class RunView {
     // screen → frame, the film's own cover framing, around the runner where he is in the frame
     const fx = clamp((F.x - A.x) / size[0], 0, 1);
     const fy = clamp((F.y - A.y) / size[1], 0, 1);
+    gl.uniform2f(this.u.uFoe, fx, fy); // the motion blur streaks toward him: the trail runs off ahead there
     const sx = vw / (tw * cover);
     const sy = vh / (th * cover);
     const [ox, oy] = [(1 - sx) * fx, (1 - sy) * fy];

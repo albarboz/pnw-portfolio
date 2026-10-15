@@ -241,6 +241,11 @@ export const site = {
       video: asset('video/trail-run-phone.mp4'),
       align: { x: 0.3219, y: 0.0984, w: 0.3167 },
     },
+    /**
+     * When the runner's feet land, as fractions of the film: phones tap as the scroll carries each one past
+     * (src/scenes/run.ts). tools/film-footfalls.py prints it; re-run after any change to the film.
+     */
+    footfalls: [0.0565, 0.1411, 0.2399, 0.3246, 0.4133, 0.496, 0.5806, 0.6593, 0.7379, 0.8125, 0.8871, 0.9758],
     /** First frame, shown until the video has loaded. */
     poster: asset('images/trail-run-poster.webp'),
     /** Shown instead of the video with reduced motion. */

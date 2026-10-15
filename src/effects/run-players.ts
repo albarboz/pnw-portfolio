@@ -1,3 +1,5 @@
+import { smoothstep } from '../core/math';
+import { tuning } from '../core/tuning';
 import type { RunAlign, RunView } from './run-view';
 import type { VideoFrames } from './video-frames';
 
@@ -19,6 +21,10 @@ export interface Player {
 export class WebglPlayer implements Player {
   private frames: VideoFrames | null = null;
   private align: RunAlign = { x: 0, y: 0, w: 1 }; // the photo, laid on itself
+  // how fast the film is being flicked through, in film frames per screen refresh (at 60 Hz), smoothed
+  private speed = 0;
+  private lastT = 0;
+  private lastAt = 0;
 
   constructor(
     private view: RunView,
@@ -47,12 +53,22 @@ export class WebglPlayer implements Player {
 
   show(t: number, reveal: number, aside: number) {
     const f = this.frames;
+    let blur = 0;
     if (f) {
       f.want(t * (f.count - 1));
       const frame = f.take();
       if (frame) this.view.upload(frame, this.align);
+      // eases toward the latest pace over ~0.1 s, so one long frame doesn't flash a blur
+      const now = performance.now();
+      const dt = Math.min(0.1, (now - this.lastAt) / 1000);
+      if (this.lastAt && dt > 0) {
+        const rate = (Math.abs(t - this.lastT) * (f.count - 1)) / (dt * 60);
+        this.speed += (rate - this.speed) * (1 - Math.exp(-dt / 0.1));
+      }
+      [this.lastT, this.lastAt] = [t, now];
+      blur = smoothstep(tuning.run.blurFrom, tuning.run.blurFull, this.speed);
     }
-    this.view.draw(reveal, aside, t);
+    this.view.draw(reveal, aside, t, blur);
   }
 
   resize(vw: number, vh: number) {

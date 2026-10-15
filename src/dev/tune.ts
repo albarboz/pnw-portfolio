@@ -81,6 +81,10 @@ export function createTunePanel() {
     .on('change', (e) => e.last && ScrollTrigger.refresh());
   rn.addBinding(tuning.run, 'dim', { label: 'shade', min: 0, max: 1, step: 0.01 });
   rn.addBinding(tuning.run, 'depth', { label: 'ring by depth', min: 0, max: 1.5, step: 0.05 });
+  rn.addBinding(tuning.run, 'blur', { label: 'motion blur', min: 0, max: 1.5, step: 0.05 });
+  rn.addBinding(tuning.run, 'steps', { label: 'footfall taps' });
+  rn.addBinding(tuning.run, 'blurFrom', { label: 'blur from (frames)', min: 1, max: 10, step: 0.5 });
+  rn.addBinding(tuning.run, 'blurFull', { label: 'blur full (frames)', min: 3, max: 30, step: 0.5 });
 
   const air = pane.addFolder({ title: 'Landing lens' });
   air.addBinding(tuning.air, 'focus', { label: 'landing focus pull', min: 0, max: 1.5, step: 0.05 });

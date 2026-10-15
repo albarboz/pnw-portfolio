@@ -1,5 +1,6 @@
 import { gsap, ScrollTrigger } from '../core/scroll';
 import { afterHero } from '../core/after-hero';
+import { haptic } from '../core/haptics';
 import { clamp, smoothstep } from '../core/math';
 import { prefersReducedMotion } from '../core/motion';
 import { buildPace, type Pace } from '../core/pace';
@@ -68,6 +69,19 @@ export function createRunScene(): SceneHandle | null {
   // ---------- state: the timeline tweens this, render() reads it ----------
   const state = { p: 0 };
 
+  // Phones tap as the scroll carries one of the runner's footfalls past, either way; at most one tap at a time, so a
+  // fast flick through a dozen of them is a few taps, not a buzz.
+  let lastT = -1;
+  let lastTap = 0;
+  const footfalls = (t: number) => {
+    const [a, b] = [Math.min(lastT, t), Math.max(lastT, t)];
+    const crossed = lastT >= 0 && R.footfalls.some((f) => f > a && f <= b);
+    lastT = t;
+    if (!crossed || !tuning.run.steps || performance.now() - lastTap < 150) return;
+    lastTap = performance.now();
+    haptic('step');
+  };
+
   // ---------- render: the only place that writes to the DOM ----------
   let player: Player | null = null;
   let pace: Pace | null = null;
@@ -80,7 +94,9 @@ export function createRunScene(): SceneHandle | null {
     const aside = pace.aside(y);
     fx.style.opacity = String(smoothstep(0.1, 0.7, reveal));
     scrim.style.opacity = String(aside * tuning.run.dim);
-    player?.show(pace.time(y), reveal, aside);
+    const t = pace.time(y);
+    if (reveal >= 1) footfalls(t);
+    player?.show(t, reveal, aside);
     grain.update(y !== lastY, performance.now() / 1000);
     lastY = y;
   };

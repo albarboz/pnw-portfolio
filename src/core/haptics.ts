@@ -13,6 +13,8 @@ const PATTERNS = {
     { duration: 16, intensity: 1 },
     { delay: 110, duration: 28, intensity: 1 },
   ],
+  /** one of the runner's feet lands, as the film passes it */
+  step: [{ duration: 10, intensity: 1 }],
   /** a flight from the trail sign or the header reaches its section */
   arrive: [{ duration: 18, intensity: 1 }],
   /** a case study's fog at its thickest, as the page changes under it */

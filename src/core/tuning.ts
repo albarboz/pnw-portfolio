@@ -137,6 +137,16 @@ export const tuning = {
      * farther clears later, so the fog leaves the ferns first and lingers down the trail.
      */
     depth: 0.6,
+    /**
+     * Motion blur when the film is flicked through fast (src/effects/run-view.ts): it streaks toward the runner and
+     * keeps a trace of the frame before, so frames skipped read as speed, not stutter. 0 = off.
+     */
+    blur: 0.7,
+    /** Film frames per screen refresh before it starts, and where it's full: below that, the film is untouched. */
+    blurFrom: 2.5,
+    blurFull: 10,
+    /** Phones tap as each of the runner's footfalls passes (site.run.footfalls). */
+    steps: true,
   },
 
   /** Distance of each overlook cutout from the camera's start (far = 1). Smaller = the camera passes it sooner. */
