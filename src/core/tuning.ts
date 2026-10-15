@@ -100,6 +100,17 @@ export const tuning = {
     max: 3.4,
   },
 
+  /**
+   * The pass through a cloud between the trail and a case study (src/effects/fog-wipe.ts), in seconds: the fog
+   * thickens until nothing shows through, the page changes under it, and the camera flies on out.
+   */
+  wipe: {
+    /** Into the cloud. */
+    in: 0.5,
+    /** Out the other side. */
+    out: 0.95,
+  },
+
   /** The trail run (src/scenes/run.ts): the film behind About and Work. Lengths in screen heights. */
   run: {
     /** The hand-off from the trail photo: how long the fog ring takes to open the film. */

@@ -38,6 +38,10 @@ export function createTunePanel() {
   sign.addBinding(tuning.sign, 'perScreen', { label: 'per screen', min: 0, max: 1.2, step: 0.05 });
   sign.addBinding(tuning.sign, 'max', { min: 1, max: 6, step: 0.1 });
 
+  const wipe = pane.addFolder({ title: 'Case study fog (seconds)' });
+  wipe.addBinding(tuning.wipe, 'in', { label: 'into the cloud', min: 0.2, max: 2, step: 0.05 });
+  wipe.addBinding(tuning.wipe, 'out', { label: 'out of it', min: 0.2, max: 2.5, step: 0.05 });
+
   const depth = pane.addFolder({ title: 'Dolly depth (far = 1)' });
   depth.addBinding(tuning.dolly, 'mid', { label: 'fir & slope', min: 0.3, max: 1, step: 0.01 });
   depth.addBinding(tuning.dolly, 'near', { label: 'edge branches', min: 0.2, max: 1, step: 0.01 });
@@ -86,7 +90,7 @@ export function createTunePanel() {
 
   pane.addButton({ title: 'Copy values' }).on('click', () => {
     const r = (n: number) => Math.round(n * 1000) / 1000;
-    const { fog: f, dolly: d, photo3d: s, shafts: l, grain: g, sign: t, run: n, drops: w } = tuning;
+    const { fog: f, dolly: d, photo3d: s, shafts: l, grain: g, sign: t, run: n, drops: w, wipe: c } = tuning;
     const text = [
       '// src/core/tuning.ts',
       `scroll: ${r(tuning.scroll)},`,
@@ -97,6 +101,7 @@ export function createTunePanel() {
       `grain: { amount: ${r(g.amount)}, size: ${r(g.size)} },`,
       `drops: { seed: ${r(w.seed)}, rate: ${r(w.rate)}, size: ${r(w.size)}, beads: ${r(w.beads)}, refract: ${r(w.refract)}, glint: ${r(w.glint)} },`,
       `sign: { base: ${r(t.base)}, perScreen: ${r(t.perScreen)}, max: ${r(t.max)} },`,
+      `wipe: { in: ${r(c.in)}, out: ${r(c.out)} },`,
       `run: { reveal: ${r(n.reveal)}, gap: ${r(n.gap)}, slow: ${r(n.slow)}, dim: ${r(n.dim)}, depth: ${r(n.depth)} },`,
       '// src/content/site.ts',
       `diveZoom: ${r(site.descent.diveZoom)},`,

@@ -1,10 +1,11 @@
+import { haptic } from '../core/haptics';
 import { gsap, ScrollTrigger } from '../core/scroll';
 
 /**
  * Fades and lifts every [data-reveal] element into place as it scrolls into view.
  * Elements that arrive together (a heading and its text, the project rows) stagger in order.
  * A [data-lift] inside one is a veil of fog over a picture, which clears a moment after it arrives.
- * A blaze inside one (.blazed, base.css) waits unpainted (.is-waiting) and paints in as it arrives.
+ * A blaze inside one (.blazed, base.css) waits unpainted (.is-waiting) and paints in as it arrives, with a tap on phones.
  * Section headings ([data-drift]) also drift a little slower than the page while they pass through view.
  * A [data-drift] element must not also be [data-reveal]: the reveal's overwrite would cancel the drift.
  *
@@ -24,6 +25,7 @@ export function createReveal(): { destroy: () => void } {
     gsap.set(lifts(items), { opacity: 0.8 });
     const show = (els: Element[]) => {
       els.forEach((el) => el.classList.remove('is-waiting'));
+      if (els.some((el) => el.querySelector('.blazed'))) haptic('blaze');
       gsap.to(els, { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', stagger: 0.09, overwrite: true });
       const fog = lifts(els);
       if (!fog.length) return;

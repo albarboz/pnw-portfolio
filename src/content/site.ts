@@ -2,6 +2,11 @@
 
 export interface Project {
   title: string;
+  /**
+   * The case study's address, work/<slug>/ (src/content/paths.ts). Made from the title when left out; set it to
+   * keep a project's link working after its title changes.
+   */
+  slug?: string;
   year: string;
   kind: string;
   /** One or two lines for the list. */
@@ -142,7 +147,7 @@ export const site = {
     heading: 'Selected work',
     label: '',
     /** Interface labels in the project detail view. */
-    detail: { close: 'Close', role: 'Role', tools: 'Tools', example: 'Example' },
+    detail: { close: 'Close', role: 'Role', tools: 'Tools', example: 'Example', next: 'Next project' },
     projects: [
       {
         title: 'Hoh Rain Forest field guide',

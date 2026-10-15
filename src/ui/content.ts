@@ -1,11 +1,12 @@
 import { site, type Project, type ProjectImage } from '../content/site';
+import { projectPath } from '../content/paths';
 import { afterHero } from '../core/after-hero';
 
 /**
  * Fills the page from src/content/site.ts.
  *   data-text="about.heading"   → textContent
  *   data-img="descent.overlook" → src, alt, width, height, placeholder (src after the hero has loaded if data-defer)
- *   [data-projects]             → project rows (buttons that open the detail view), with thumbnails
+ *   [data-projects]             → project rows (links to each case study, src/ui/case-study.ts), with thumbnails
  */
 export function renderContent() {
   const get = (path: string): unknown =>
@@ -44,11 +45,10 @@ export function renderContent() {
       ...site.work.projects.map((p, i) => {
         const li = document.createElement('li');
         li.dataset.reveal = '';
-        const row = document.createElement('button');
-        row.type = 'button';
+        const row = document.createElement('a');
+        row.href = projectPath(p);
         row.className = 'work-row';
         row.dataset.project = String(i);
-        row.setAttribute('aria-haspopup', 'dialog');
 
         const text = span('work-text');
         const title = projectTitle(p, 'work-title');

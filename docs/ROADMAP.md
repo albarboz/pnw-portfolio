@@ -56,7 +56,7 @@ Researched 2026-10-13. Ordered by how much a visitor would notice. Each new depe
 
 **Smaller polish**
 
-- [ ] Project dialog: per-project URL hash, so a project can be linked and Back closes it
+- [x] Project links: each project is a case study at its own address (Phase 8)
 - [ ] Type pass on what's left in mono caps: project meta, the EXAMPLE tag, the copy-email button, the dialog meta and close
 - [ ] Optional, code health: [vite-plugin-glsl](https://github.com/UstymUkhman/vite-plugin-glsl) (MIT, dev only) to move the three shaders into `.glsl` files with one shared noise chunk
 
@@ -98,6 +98,12 @@ From a design critique (19/32): the opening was authored, the sections were a te
 - [x] The Done checklist as tests: [Playwright](https://github.com/microsoft/playwright) (Apache-2.0) + [axe-core](https://github.com/dequelabs/axe-core-npm) (MPL-2.0), dev only, in the installed Chrome (`npm test`, `tests/`). The whole page at 1440 and 375 px, quality 0 and 2, reduced motion, console errors, sideways overflow, WCAG 2.2 AA, project dialog by keyboard, trail sign. First run caught a real bug: a trail sign clicked in the first moments after load flew to Lenis's stale (pre-pin) limit and stopped halfway; Lenis now re-measures on every ScrollTrigger refresh (`scroll.ts`)
 - [x] Fog ring by depth: [Video Depth Anything](https://github.com/DepthAnything/Video-Depth-Anything) Small (Apache-2.0; Base/Large are CC BY-NC) on the film's first 1.3 s (`tools/film-depth.py` → `trail-run-depth.webp`, 47 KB atlas). The ring's edge runs ahead over what is nearer than the runner and behind over what is farther, so it leaves the ferns first and follows the trunks; not right around the runner. `tuning.run.depth` (0 = the plain ring)
 - [x] Edge streaks in the hand-off: the photo's framing shows more than the film's first frame (about 5% top and bottom), and the clamped frame smeared its last row across. Past the frame the ring now draws the trail photo itself (a second texture), blended from a little inside the edge while the film is still framed as the photo; the depth eases out there too instead of smearing its edge row (that smear had made a hard-edged hole in the fog)
+
+## Phase 8 – Case studies and touch (2026-10-14)
+
+- [x] Case studies with their own addresses: `work/<slug>/` (slug from the title, or `slug` in `site.ts`). A row is a real link (a new tab gets the page itself); a plain click opens the case study over the trail in a `<dialog>` through a cloud: the shader fog thickens, a veil of mist closes, the page changes under it, and the camera flies out (`src/effects/fog-wipe.ts`, `tuning.wipe`, tint `--fog-dusk`). Back, Close and Esc return through the cloud to the same spot; "Next project" walks on. The build writes a page per project with its own title, description and canonical link (`siteMeta()`), listed in the sitemap. Reduced motion: no cloud
+- [x] Haptics on phones: [web-haptics](https://github.com/lochie/web-haptics) (MIT, pinned 0.0.6), `src/core/haptics.ts`. Felt only after the first tap (browser rule); iOS 18+ via its hidden-switch trick, which may not fire outside a tap. Unverified on a real phone
+- [ ] Optional: a share image per project (the link previews still use the overlook's `share.jpg`)
 
 ## Useful references
 

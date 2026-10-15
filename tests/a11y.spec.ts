@@ -29,20 +29,22 @@ for (const motion of ['no-preference', 'reduce'] as const) {
   });
 }
 
-test.describe('project dialog', () => {
-  test('opens and closes from the keyboard, focus goes back to the row', async ({ page }) => {
+test.describe('case study', () => {
+  test('opens and closes from the keyboard, with its own address, focus goes back to the row', async ({ page }) => {
     await openPage(page);
     await scrollToY(page, await topOf(page, '#work'), 1500);
-    const row = page.locator('[data-projects] button').first();
+    const row = page.locator('[data-projects] a').first();
     await row.focus();
     await page.keyboard.press('Enter');
-    const dialog = page.locator('[data-project-dialog]');
-    await expect(dialog).toBeVisible();
+    const dialog = page.locator('[data-case-study]');
     await expect(dialog).toHaveJSProperty('open', true);
-    await page.waitForTimeout(800); // the title's flight in
-    expect(summary((await axe(page).include('[data-project-dialog]').analyze()).violations)).toEqual([]);
+    await expect(page).toHaveURL(/\/work\/[a-z0-9-]+\/$/);
+    await page.waitForTimeout(2200); // through the cloud
+    await expect(page.locator('#cs-title')).toBeFocused();
+    expect(summary((await axe(page).include('[data-case-study]').analyze()).violations)).toEqual([]);
     await page.keyboard.press('Escape');
-    await expect(dialog).toHaveJSProperty('open', false);
+    await expect(page).toHaveURL(/\/$/);
+    await expect(dialog).toHaveJSProperty('open', false, { timeout: 5000 });
     await expect(row).toBeFocused();
   });
 });

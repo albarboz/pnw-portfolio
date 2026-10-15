@@ -9,7 +9,7 @@ import { createReveal } from './ui/reveal';
 import { createTrailSign } from './ui/trail-sign';
 import { createHeader } from './ui/header';
 import { initCopyEmail } from './ui/copy-email';
-import { createProjectDialog } from './ui/project-dialog';
+import { createCaseStudy } from './ui/case-study';
 import { createScenes } from './scenes';
 
 // 1. content first, so scenes measure real layout
@@ -24,7 +24,7 @@ const reveal = createReveal(); // after scenes, so pinned scroll space is measur
 const trailSign = createTrailSign(lenis);
 const header = createHeader(lenis); // after the scenes too: it measures where the sections are
 initCopyEmail();
-const projectDialog = createProjectDialog(lenis);
+const caseStudy = createCaseStudy(lenis);
 
 // Recalculate trigger positions once fonts have settled. (ScrollTrigger refreshes on window load by itself.)
 document.fonts?.ready.then(() => ScrollTrigger.refresh());
@@ -40,7 +40,7 @@ if (import.meta.hot) {
     reveal.destroy();
     trailSign.destroy();
     header.destroy();
-    projectDialog.destroy();
+    caseStudy.destroy();
     lenis?.destroy();
   });
 }

@@ -1,4 +1,5 @@
 import type Lenis from 'lenis';
+import { haptic } from '../core/haptics';
 import { clamp } from '../core/math';
 import { tuning } from '../core/tuning';
 
@@ -8,7 +9,7 @@ const easeInOut = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
 /**
  * Fly to a section (or, with `null`, back up to the top: the descent plays backward, up through the fog), then hand
  * focus to its heading so keyboard and screen-reader users land there too. Longer trips take longer, so the scenes
- * on the way play at a pace you can watch. Reduced motion (no Lenis): a plain jump.
+ * on the way play at a pace you can watch, and a phone taps as it lands. Reduced motion (no Lenis): a plain jump.
  */
 export function flyTo(section: HTMLElement | null, lenis: Lenis | null) {
   const heading = section ? (section.querySelector<HTMLElement>('h2') ?? section) : document.querySelector('h1');
@@ -28,6 +29,9 @@ export function flyTo(section: HTMLElement | null, lenis: Lenis | null) {
   lenis.scrollTo(section ?? 0, {
     duration: clamp(base + screens * perScreen, base, max),
     easing: easeInOut,
-    onComplete: land,
+    onComplete: () => {
+      haptic('arrive');
+      land();
+    },
   });
 }

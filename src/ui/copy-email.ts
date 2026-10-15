@@ -1,4 +1,5 @@
 import { site } from '../content/site';
+import { haptic } from '../core/haptics';
 
 /**
  * Copy-to-clipboard button for the contact email, with a select-text fallback.
@@ -20,6 +21,7 @@ export function initCopyEmail() {
     try {
       await navigator.clipboard.writeText(email.textContent?.trim() ?? '');
       say(t.copied);
+      haptic('copied');
       button.classList.add('is-done'); // a blaze paints in beside the button (sections.css)
     } catch {
       const range = document.createRange();

@@ -3,7 +3,6 @@
   /* Trailhead: fir night and sign cream, like the wooden signs at a trailhead, with one painted color, the
      amber of a trail blaze. Moss is the quiet second voice; the fog and sky tones belong to the photos. */
   --night: #0e1310;
-  --surface: #151c18; /* a panel lifted off the night: the project dialog */
   --forest: #1b241f;
   --fog: #e2e6e6;
   --fog-ink: #1f2a2a;
@@ -27,6 +26,8 @@
   /* Canvas fog tints (hex only: read by cssRgb() in src/core/tokens.ts) */
   --fog-high: #e2e7e9;
   --fog-low: #cdd7d0;
+  /* The cloud between the trail and a case study (src/effects/fog-wipe.ts): the same mist, dimmed by the night */
+  --fog-dusk: #9fa9a4;
   /* Sun shafts in the trail photo (src/effects/light-shafts.ts): pale, faintly warm light through the mist */
   --light-shaft: #e8e8d9;
 

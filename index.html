@@ -147,22 +147,37 @@
       </div>
     </main>
 
-    <!-- Project detail view (src/ui/project-dialog.ts), filled from site.work.projects -->
-    <dialog class="project-dialog" aria-labelledby="pd-title" data-project-dialog data-lenis-prevent>
-      <div class="pd-scrim" data-pd="scrim" aria-hidden="true"></div>
-      <div class="pd-scroll" data-pd="scroll">
-        <article class="pd-panel" data-pd="panel">
-          <div class="pd-sheet" data-pd="sheet" aria-hidden="true"></div>
-          <header class="pd-head" data-pd-fade>
-            <button class="pd-close" type="button" data-pd="close" data-text="work.detail.close"></button>
+    <!-- Case study (src/ui/case-study.ts): a project's own page at work/<slug>/, opened over the trail through a cloud.
+         Filled from site.work.projects. -->
+    <dialog class="case-study" aria-labelledby="cs-title" data-case-study data-lenis-prevent>
+      <div class="cs-page" data-cs="page">
+        <div class="cs-bar">
+          <button class="cs-close" type="button" data-cs="close" data-text="work.detail.close"></button>
+        </div>
+        <article class="wrap cs-body">
+          <header class="cs-head">
+            <p class="meta" data-cs="meta"></p>
+            <h2 class="cs-title blazed" id="cs-title" data-cs="title" tabindex="-1"></h2>
+            <p class="cs-lead" data-cs="lead"></p>
           </header>
-          <h2 class="pd-title" id="pd-title" data-pd="title"></h2>
-          <p class="pd-meta meta" data-pd="meta" data-pd-fade></p>
-          <img class="pd-image" data-pd="image" data-pd-fade alt="" hidden />
-          <div class="pd-body" data-pd="body" data-pd-fade></div>
-          <dl class="pd-facts" data-pd="facts" data-pd-fade></dl>
-          <div class="pd-links" data-pd="links" data-pd-fade></div>
+          <img class="cs-image" data-cs="image" alt="" hidden />
+          <div class="cs-columns">
+            <div class="cs-text" data-cs="text"></div>
+            <div class="cs-side">
+              <dl class="cs-facts" data-cs="facts"></dl>
+              <div class="cs-links" data-cs="links"></div>
+            </div>
+          </div>
+          <a class="cs-next" data-cs="next" href="">
+            <span class="label" data-text="work.detail.next"></span>
+            <span class="cs-next-title" data-cs="next-title"></span>
+          </a>
         </article>
+      </div>
+      <!-- the cloud between the trail and the case study (src/effects/fog-wipe.ts) -->
+      <div class="cs-fog" aria-hidden="true">
+        <canvas data-cs="fog"></canvas>
+        <div class="cs-veil" data-cs="veil"></div>
       </div>
     </dialog>
 

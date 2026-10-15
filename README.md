@@ -46,7 +46,7 @@ src/
   core/            shared plumbing (scroll, quality, motion prefs, tuning)
   effects/         visual effects (fog, depth photo, layered overlook, film player)
   scenes/          one file per pinned scroll scene
-  ui/              small widgets (header, reveals, project dialog, copy button)
+  ui/              small widgets (header, reveals, case studies, copy button)
   dev/             dev-only tuning panel, not in the build
 tools/             optional Python asset scripts, not part of the build
 docs/              roadmap, asset credits, scene recipe

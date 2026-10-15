@@ -1,4 +1,5 @@
 import { gsap, ScrollTrigger } from '../core/scroll';
+import { haptic } from '../core/haptics';
 import { lerp } from '../core/math';
 import { motionScale, prefersReducedMotion } from '../core/motion';
 import { pointer } from '../core/pointer';
@@ -131,6 +132,8 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     lens?.resize(vw, vh);
   };
 
+  let outOfCloud = false; // past the middle of the trail fading in, for the phone's tap
+
   // ---------- render: the only place that writes to the DOM ----------
   const render = () => {
     const m = motionScale();
@@ -146,6 +149,11 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     drift.style.transform = `scale(${1 + state.drift * 0.8 * m}) rotate(${state.drift * 6 * m}deg)`;
 
     landingWrap.style.opacity = String(state.landing);
+    // breaking out of the cloud onto the trail, on the way down: a soft double beat on phones
+    if (!still && state.landing > 0.5 !== outOfCloud) {
+      outOfCloud = !outOfCloud;
+      if (outOfCloud) haptic('land');
+    }
     const s = m ? lerp(1.35, LANDED_ZOOM, state.land) : 1;
     if (depth.active) {
       // Settling onto the trail: the camera sinks and eases back, so the near ferns move more than the far trees.

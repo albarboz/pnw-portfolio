@@ -4,11 +4,11 @@
 .site-header nav a,
 .label,
 .copy,
-.pd-link,
+.cs-link,
 .contact-links a,
 .to-top,
-.pd-close,
-.pd-facts dt {
+.cs-close,
+.cs-facts dt {
   font-family: var(--body);
   font-size: var(--size-sign);
   font-weight: 500;
@@ -565,6 +565,7 @@ h2[tabindex='-1']:focus {
   background: none;
   color: inherit;
   text-align: left;
+  text-decoration: none;
 }
 /* the trail line: lies over the row's hairline, walked in on hover */
 .work-row::after {
@@ -744,7 +745,7 @@ h2[tabindex='-1']:focus {
 /* Sign plates: the few real buttons (copy the email, a project's links). Sign capitals in a thin frame with a
    rounded corner; the frame takes the blaze on hover, and a press sinks it a little. */
 .copy,
-.pd-link {
+.cs-link {
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -762,7 +763,7 @@ h2[tabindex='-1']:focus {
     transform 0.16s var(--ease-out);
 }
 .copy:active,
-.pd-link:active {
+.cs-link:active {
   transform: scale(0.97);
 }
 /* Copy: once the email is copied (copy-email.ts sets .is-done), a blaze paints in beside the plate and its frame
@@ -816,7 +817,7 @@ h2[tabindex='-1']:focus {
     text-decoration-color: var(--blaze);
   }
   .copy:hover,
-  .pd-link:hover {
+  .cs-link:hover {
     border-color: var(--blaze);
     background-color: color-mix(in srgb, var(--blaze) 8%, transparent);
   }
@@ -977,12 +978,14 @@ h2[tabindex='-1']:focus {
   display: none;
 }
 
-/* ===================== project detail dialog ===================== */
-/* The dialog is a transparent full-screen layer; scrim and sheet are children so GSAP can fade them. */
-html:has(.project-dialog[open]) {
+/* ===================== case study ===================== */
+/* A project's own page (src/ui/case-study.ts) in a full-screen dialog: a sheet of night that scrolls by itself, and
+   above it the cloud it arrives and leaves through. The dialog itself is clear, so the trail shows while the cloud
+   closes. */
+html:has(.case-study[open]) {
   overflow: hidden;
 }
-.project-dialog {
+.case-study {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -992,56 +995,52 @@ html:has(.project-dialog[open]) {
   margin: 0;
   padding: 0;
   border: 0;
+  overflow: hidden;
   background: transparent;
   color: var(--text);
 }
-.project-dialog::backdrop {
+.case-study::backdrop {
   background: transparent;
 }
-.pd-scrim {
-  position: absolute;
-  inset: 0;
-  background: var(--shade);
-}
-.pd-scroll {
+.cs-page {
   position: absolute;
   inset: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  display: flex;
-  padding: clamp(16px, 6vh, 72px) var(--gutter);
+  background: var(--night);
 }
-.pd-panel {
-  position: relative;
-  /* auto margins center it, but unlike place-items the top stays reachable when it overflows */
-  margin: auto;
-  width: min(760px, 100%);
-  padding: clamp(24px, 4vw, 48px);
-}
-.pd-panel > * {
-  position: relative;
-}
-.pd-panel > .pd-sheet {
+.cs-fog,
+.cs-fog canvas,
+.cs-veil {
   position: absolute;
   inset: 0;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow:
-    0 1px 0 color-mix(in srgb, var(--text) 6%, transparent) inset,
-    0 40px 100px var(--shadow-forest);
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
-.pd-head {
+.cs-fog {
+  z-index: 2; /* over the page's sticky bar too */
+}
+.cs-veil {
+  background: var(--fog-dusk);
+  opacity: 0;
+}
+/* Close stays in reach while the page scrolls: a bar of the page's own night, so it never reads as a band */
+.cs-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   justify-content: flex-end;
+  padding: max(var(--space-1), env(safe-area-inset-top)) var(--gutter) 0;
+  background: var(--night);
 }
 /* a quiet "Close ×": the word and a drawn cross, no pill */
-.pd-close {
+.cs-close {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin: -12px -4px 0 0;
-  padding: 12px 4px;
+  padding: 14px 4px;
   border: 0;
   background: none;
   color: var(--text-soft);
@@ -1049,7 +1048,7 @@ html:has(.project-dialog[open]) {
     color 0.15s ease,
     transform 0.16s var(--ease-out);
 }
-.pd-close::after {
+.cs-close::after {
   content: '';
   width: 11px;
   height: 11px;
@@ -1057,69 +1056,101 @@ html:has(.project-dialog[open]) {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M1.5 1.5l9 9M10.5 1.5l-9 9' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M1.5 1.5l9 9M10.5 1.5l-9 9' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
 }
-.pd-close:active {
+.cs-close:active {
   transform: scale(0.97);
 }
 @media (hover: hover) and (pointer: fine) {
-  .pd-close:hover {
+  .cs-close:hover {
     color: var(--text);
   }
 }
-.pd-title {
-  margin: var(--space-2) 0 0;
+.cs-body {
+  box-sizing: content-box; /* the same measure as a section's .wrap, gutters outside it */
+  padding: var(--space-4) var(--gutter) calc(var(--space-5) + env(safe-area-inset-bottom));
+}
+/* the head as a section opener: meta, the blaze, then the title large */
+.cs-head {
+  display: grid;
+  gap: var(--space-2);
+}
+.cs-head .meta {
+  margin: 0;
+}
+.cs-title {
+  margin: 0;
+  max-width: 18ch;
   font-family: var(--display);
   font-weight: 500;
-  font-size: var(--size-section);
-  line-height: 1.02;
+  font-size: var(--size-statement);
+  line-height: 1;
   letter-spacing: -0.01em;
   overflow-wrap: break-word;
 }
-.pd-meta {
-  margin: var(--space-2) 0 0;
+.cs-title.blazed::before {
+  margin-bottom: var(--space-2);
 }
-.pd-image {
-  margin-top: var(--space-4);
+.cs-title:focus {
+  outline: none; /* focused for screen readers as the page arrives, not as a control */
+}
+.cs-lead {
+  margin: var(--space-1) 0 0;
+  max-width: 40ch;
+  color: var(--text-soft);
+  font-size: var(--size-lead);
+  line-height: 1.45;
+}
+.cs-image {
+  margin-top: var(--space-5);
   width: 100%;
   height: auto;
-  max-height: min(62vh, 560px); /* a tall cover is cut to fit, around its focus (project-dialog.ts) */
-  object-fit: cover;
-  border-radius: calc(var(--radius) - 2px);
+  aspect-ratio: 16 / 9;
+  object-fit: cover; /* cut around its focus (case-study.ts) */
+  border-radius: var(--radius);
+  background: var(--forest);
 }
-.pd-body {
-  margin-top: var(--space-4);
+/* the write-up beside its facts and links; one column on narrow screens */
+.cs-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  gap: var(--space-4) clamp(32px, 6vw, 96px);
+  margin-top: var(--space-5);
 }
-.pd-body p {
+.cs-text p {
   margin: 0 0 1.1em;
   max-width: 62ch;
   color: var(--text-soft);
   font-size: 17px;
   line-height: 1.7;
 }
+.cs-side {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+}
 /* facts as a quiet table: tracked small labels, hairline above */
-.pd-facts {
+.cs-facts {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: baseline;
   gap: 12px 32px;
-  margin: var(--space-4) 0 0;
+  margin: 0;
   padding-top: var(--space-3);
   border-top: 1px solid var(--rule);
 }
-.pd-facts dt {
+.cs-facts dt {
   color: var(--muted);
   font-size: 11px;
 }
-.pd-facts dd {
+.cs-facts dd {
   margin: 0;
   color: var(--text-soft);
 }
-.pd-links {
+.cs-links {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: var(--space-4);
 }
-.pd-link svg {
+.cs-link svg {
   width: 9px;
   height: 9px;
   fill: none;
@@ -1129,9 +1160,73 @@ html:has(.project-dialog[open]) {
   stroke-linejoin: round;
   transition: transform 0.3s var(--ease-out);
 }
+/* the trail goes on: the next project, large, under a hairline that takes the blaze on hover */
+.cs-next {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  margin-top: var(--space-6);
+  padding-block: var(--space-4) var(--space-2);
+  border-top: 1px solid var(--rule);
+  text-decoration: none;
+}
+.cs-next::before {
+  content: '';
+  position: absolute;
+  inset: -1px 0 auto;
+  height: 1px;
+  background: var(--blaze);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.7s var(--ease-out);
+}
+.cs-next .label {
+  margin: 0;
+  color: var(--muted);
+}
+.cs-next-title {
+  font-family: var(--display);
+  font-size: var(--size-section);
+  font-weight: 500;
+  line-height: 1.02;
+  transition: color 0.3s ease;
+}
+.cs-next-title::after {
+  content: '';
+  display: inline-block;
+  width: 0.4em;
+  height: 0.4em;
+  margin-left: 0.3em;
+  background: var(--blaze);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M1.5 6h9M7 2.5 10.5 6 7 9.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M1.5 6h9M7 2.5 10.5 6 7 9.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  transition: transform 0.35s var(--ease-out);
+}
+.cs-next:focus-visible::before {
+  transform: none;
+}
 @media (hover: hover) and (pointer: fine) {
-  .pd-link:hover svg {
+  .cs-link:hover svg {
     transform: translate(2px, -2px);
+  }
+  .cs-next:hover::before {
+    transform: none;
+  }
+  .cs-next:hover .cs-next-title {
+    color: var(--sky-text);
+  }
+  .cs-next:hover .cs-next-title::after {
+    transform: translateX(4px);
+  }
+}
+@media (max-width: 800px) {
+  .cs-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .cs-image {
+    aspect-ratio: 4 / 3;
   }
 }
 /* ===================== responsive & motion ===================== */
@@ -1182,14 +1277,17 @@ html:has(.project-dialog[open]) {
   .work-row::after,
   .work-cue svg,
   .contact-links svg,
-  .pd-link svg {
+  .cs-link svg,
+  .cs-next::before,
+  .cs-next-title::after {
     transition: none;
   }
   .trail-sign a:hover svg,
   .work-row:hover .work-cue svg,
   .work-row:focus-visible .work-cue svg,
   .contact-links a:hover svg,
-  .pd-link:hover svg,
+  .cs-link:hover svg,
+  .cs-next:hover .cs-next-title::after,
   .to-top:hover::before {
     transform: none;
   }
@@ -1199,8 +1297,8 @@ html:has(.project-dialog[open]) {
     transform: scale(var(--zoom, 1));
   }
   .copy:active,
-  .pd-link:active,
-  .pd-close:active {
+  .cs-link:active,
+  .cs-close:active {
     transform: none;
   }
 }
