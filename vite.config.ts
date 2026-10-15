@@ -28,6 +28,7 @@ const commit = (() => {
  * .well-known/security.txt.
  */
 function siteMeta(): Plugin {
+  checkContent();
   const { url, title, description, image } = site.meta;
   const card = (p: (typeof site.work.projects)[number]) => {
     const src = `images/share/${projectSlug(p)}.jpg`;
@@ -130,6 +131,35 @@ function siteMeta(): Plugin {
       appendFileSync(`${outDir}/_headers`, `\n# The overlook, as early as possible (siteMeta() in vite.config.ts)\n/\n${link}/work/*\n${link}`);
     },
   };
+}
+
+/**
+ * Mistakes in src/content/site.ts that would only show on the live site stop the dev server and the build, with
+ * what to change:
+ *   - two projects at one address (the same title and no `slug`): the second could never be opened by its link
+ *   - a project whose title has no letters an address can use (雨の森): set its `slug`
+ *   - an image or video path with no file in public/: it would show as a broken image
+ */
+function checkContent() {
+  const problems: string[] = [];
+  const seen = new Map<string, string>();
+  for (const p of site.work.projects) {
+    const slug = projectSlug(p);
+    if (!slug) problems.push(`"${p.title}" makes no address: give it a slug, e.g. slug: 'rain-forest'.`);
+    else if (seen.has(slug)) problems.push(`"${p.title}" has the same address as "${seen.get(slug)}" (work/${slug}/): give one of them its own slug.`);
+    else seen.set(slug, p.title);
+  }
+  const files = (value: unknown, where: string): void => {
+    if (typeof value === 'string') {
+      if (!/^\/?(images|video|fonts)\//.test(value)) return;
+      const file = fileURLToPath(new URL(`./public/${value.replace(/^\//, '')}`, import.meta.url));
+      if (!existsSync(file)) problems.push(`${where}: no file at public/${value.replace(/^\//, '')}.`);
+    } else if (value && typeof value === 'object') {
+      for (const [key, v] of Object.entries(value)) files(v, `${where}.${key}`);
+    }
+  };
+  files(site, 'site');
+  if (problems.length) throw new Error(`src/content/site.ts:\n  ${problems.join('\n  ')}`);
 }
 
 /**

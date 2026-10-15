@@ -11,7 +11,7 @@ export interface Project {
   kind: string;
   /** One or two lines for the list. */
   description: string;
-  /** Longer write-up for the detail view, one string per paragraph. Falls back to `description`. */
+  /** Longer write-up for the detail view, one string per paragraph (line breaks inside one are kept). Left out, the detail view shows only `description`. */
   details?: string[];
   role?: string;
   tools?: string[];

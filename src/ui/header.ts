@@ -17,8 +17,10 @@ export function createHeader(lenis: Lenis | null): { destroy: () => void } {
   nav.setAttribute('aria-label', site.sign.label);
 
   const triggers: ScrollTrigger[] = [];
+  // only the sections on the page (no Work without projects, content.ts)
+  const links = site.sign.links.filter(({ target }) => document.getElementById(target));
   list.replaceChildren(
-    ...site.sign.links.map(({ label, target }) => {
+    ...links.map(({ label, target }) => {
       const section = document.getElementById(target)!;
       const link = Object.assign(document.createElement('a'), {
         href: `#${target}`,

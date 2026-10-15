@@ -8,6 +8,7 @@ export function projectSlug(p: Project): string {
       .normalize('NFKD')
       .replace(/[̀-ͯ]/g, '') // accents off: "Café" → cafe
       .toLowerCase()
+      .replace(/['’]/g, '') // "Café Vita’s" → cafe-vitas, not cafe-vita-s
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
   );

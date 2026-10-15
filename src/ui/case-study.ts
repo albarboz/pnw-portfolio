@@ -143,6 +143,7 @@ export function createCaseStudy(lenis: Lenis | null): { destroy: () => void } {
 
     const img = part<HTMLImageElement>('image');
     img.hidden = !p.image;
+    img.onerror = () => (img.hidden = true); // a cover that can't load leaves no broken frame behind
     if (p.image) {
       const { src, alt, width, height, focus } = p.image;
       Object.assign(img, { src, alt, width, height });

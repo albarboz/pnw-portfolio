@@ -39,6 +39,13 @@ export function renderContent() {
     );
   }
 
+  // No projects yet: no Work section (nor the stretch of film before it), and no links to it (header.ts, trail-sign.ts)
+  if (!site.work.projects.length) {
+    const work = document.getElementById('work');
+    if (work?.previousElementSibling?.matches('[data-run-gap]')) work.previousElementSibling.remove();
+    work?.remove();
+  }
+
   const list = document.querySelector('[data-projects]');
   if (list) {
     list.replaceChildren(
@@ -60,8 +67,12 @@ export function renderContent() {
         title.append(end);
         text.append(title, span('work-desc', p.description), span('work-meta meta', `${p.year} · ${p.kind}`));
 
-        if (p.image) row.append(projectThumb(p.image));
-        else row.classList.add('no-thumb');
+        if (p.image) {
+          const thumb = projectThumb(p.image);
+          // a cover that can't load: the row goes on without a picture, as if it had none
+          thumb.querySelector('img')!.addEventListener('error', () => (thumb.remove(), row.classList.add('no-thumb')));
+          row.append(thumb);
+        } else row.classList.add('no-thumb');
         row.append(text);
         li.append(row);
         return li;

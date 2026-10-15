@@ -18,6 +18,9 @@ import { createBarColor } from './ui/bar-color';
 import { logColophon } from './ui/colophon';
 import { createScenes } from './scenes';
 
+// Dev only: ?data=worst|empty|one swaps the projects for stress-test data (src/dev/worst-case.ts).
+if (import.meta.env.DEV) (await import('./dev/worst-case')).useDataset();
+
 // 1. content first, so scenes measure real layout
 renderContent();
 

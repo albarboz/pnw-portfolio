@@ -19,7 +19,7 @@ Ask before adding any other dependency.
 
 ## Commands
 
-- `npm run dev` – dev server at http://localhost:5173, with a **Tune** slider panel (top right) for the feel numbers
+- `npm run dev` – dev server at http://localhost:5173, with a **Tune** slider panel (top right) for the feel numbers; `?data=worst|empty|one` swaps the projects for stress-test data (`src/dev/worst-case.ts`, the `break-ui` skill)
 - `npm run build` – type-check, then production build to `dist/`
 - `npm run typecheck` – types only
 - `npm test` – build, then the Done checklist as Playwright tests in the installed Chrome (`tests/`): the whole page scrolled at 1440 px and 375 px, quality 0 and 2, reduced motion, console errors, sideways overflow, keyboard and axe (WCAG 2.2 AA), plus the scroll and film tests in WebKit as an iPhone (the `iphone` project; every iPhone browser is WebKit; `npx playwright install webkit` once), plus screenshot baselines of the views that never vary (no-JS page, print view, a case study: `tests/visual.spec.ts`; after an intended change, `npx playwright test visual --update-snapshots`). `npx playwright test` skips the build; `npx playwright show-report` shows the screenshots
@@ -61,7 +61,7 @@ This keeps the timing (timeline) separate from the drawing (render), so timing c
 
 ## Rules
 
-- **Content lives in `src/content/site.ts`.** Never hard-code names, project copy or image paths in scenes or HTML.
+- **Content lives in `src/content/site.ts`.** Never hard-code names, project copy or image paths in scenes or HTML. The dev server and the build stop on a missing image or video file there, or two projects at one address (`checkContent()` in `vite.config.ts`).
 - **Reduced motion:** check `prefersReducedMotion()` from `src/core/motion.ts`. Scenes must still show every piece of content as a still, readable layout.
 - **Performance:** animate only `transform` and `opacity`. Fog canvases render at ≤ 0.35× resolution. Hero images ≤ 400 KB as JPEG/WebP, ≥ 2000 px on the long side. The overlook is 1792 px wide; the deep zoom (`diveZoom` 4.5) stays sharp only inside the 2× `detail` patch of the valley (`tools/detail-patch.py`), so re-run that tool if the dive target moves or the far layer changes.
 - **No horizontal scroll at 375 px wide.** Test phone width for every scene.
