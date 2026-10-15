@@ -16,6 +16,10 @@ body {
   font-size: var(--size-body);
   line-height: 1.65;
   overflow-x: hidden;
+  /* clip where supported: hidden makes the body a scroll container whenever the page is locked (a case study, the
+     shortcuts list), and Safari then leaves the run's sticky stage stuck to it: back on the trail the film hangs
+     off the screen with the landing photo showing above it */
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   -webkit-tap-highlight-color: transparent;

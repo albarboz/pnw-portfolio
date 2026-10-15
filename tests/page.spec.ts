@@ -39,6 +39,27 @@ test.describe('the film', () => {
     await expect(page.locator('[data-layer="run-video"]')).toBeAttached();
     await expect(page.locator('[data-layer="run-video"]')).not.toHaveAttribute('hidden');
   });
+
+  // Locking the page for a case study once left Safari's sticky stage stuck to the body: back on the trail, the
+  // film hung a screen off with the landing photo showing above it (fixed with overflow-x: clip in base.css).
+  test('stays on screen after a case study closes', async ({ page }) => {
+    await openPage(page, '?quality=0');
+    const stageTop = () =>
+      page.locator('[data-scene="run"] [data-stage]').evaluate((el) => Math.round(el.getBoundingClientRect().top));
+    const spot = (await topOf(page, '#about')) - (await page.evaluate(() => innerHeight)) * 0.6;
+    await scrollToY(page, spot, 1500);
+    expect(await stageTop()).toBe(0);
+
+    const row = page.locator('[data-projects] a').first();
+    await row.scrollIntoViewIfNeeded();
+    await row.click();
+    await expect(page.locator('#cs-title')).not.toBeEmpty();
+    await page.locator('[data-cs="close"]').click();
+    await expect(page.locator('[data-case-study]')).toHaveJSProperty('open', false, { timeout: 5000 });
+
+    await scrollToY(page, spot, 1500);
+    expect(await stageTop()).toBe(0);
+  });
 });
 
 test.describe('reduced motion', () => {
