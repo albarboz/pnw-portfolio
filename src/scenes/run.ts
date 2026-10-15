@@ -102,10 +102,11 @@ export function createRunScene(): SceneHandle | null {
   };
 
   // ---------- timeline: scroll through the whole wrapper; the pace map turns it into film time ----------
+  // No onUpdate: the timeline moves on every scroll event, and iOS fires several a frame. Drawing in each one sent the
+  // film's frame to the GPU two to four times a frame (35–107 ms per event on an iPhone); the ticker draws once.
   const tl = gsap.timeline({
     defaults: { ease: 'none' },
     scrollTrigger: { trigger: root, start: 'top top', end: 'bottom bottom', scrub: true },
-    onUpdate: render,
   });
   tl.to(state, { p: 1, duration: 1 });
   // where each section is, in scroll positions: from its top at the top of the screen to its bottom there
@@ -194,7 +195,7 @@ export function createRunScene(): SceneHandle | null {
   );
   afterHero.then(() => !dead && near.observe(root));
 
-  // ---------- loop: pick up frames the decoder finishes while the page is still ----------
+  // ---------- loop: the one place it draws, once a frame (also picks up frames decoded while the page is still) ----------
   let visible = false;
   const seen = new IntersectionObserver(([entry]) => (visible = entry.isIntersecting));
   seen.observe(stage);
