@@ -35,7 +35,7 @@ export class WebglPlayer implements Player {
     photo.decode().then(
       () => {
         view.photo(photo);
-        if (!this.frames) view.upload(photo, this.align);
+        if (!this.frames) view.upload(photo, photo.naturalWidth, photo.naturalHeight, this.align);
       },
       () => {},
     );
@@ -56,8 +56,12 @@ export class WebglPlayer implements Player {
     let blur = 0;
     if (f) {
       f.want(t * (f.count - 1));
-      const frame = f.take();
-      if (frame) this.view.upload(frame, this.align);
+      let frame = f.take();
+      if (frame && !this.view.upload(frame.source, frame.width, frame.height, this.align)) {
+        f.useCopies(); // this browser can't upload the decoder's frames: copies in canvases from now on
+        frame = f.take();
+        if (frame) this.view.upload(frame.source, frame.width, frame.height, this.align);
+      }
       // eases toward the latest pace over ~0.1 s, so one long frame doesn't flash a blur
       const now = performance.now();
       const dt = Math.min(0.1, (now - this.lastAt) / 1000);

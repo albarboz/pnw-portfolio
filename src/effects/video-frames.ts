@@ -10,19 +10,33 @@ const AHEAD = 8;
  * keyframe before it: at most 24 frames (tools/run-video.py), so past that a seek is no dearer.
  */
 const JUMP = 24;
+/**
+ * No frame from the decoder for this long while it holds frames for us: it has run out of memory for new ones
+ * (some decoders only have a few), so the frames get copied out (`useCopies()`) and it carries on.
+ */
+const STALL_MS = 1000;
 
 interface Slot {
   index: number;
-  canvas: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
+  /** The decoder's own frame, uploaded as is: on an iPhone 1 ms, against 28 ms for the same frame from a canvas. */
+  frame: VideoFrame | null;
+  /** The frame drawn into a canvas, which hands the decoder its memory back (see `useCopies()`). */
+  canvas: HTMLCanvasElement | null;
+}
+
+/** A decoded frame to upload, and its size in pixels. */
+export interface Frame {
+  source: TexImageSource;
+  width: number;
+  height: number;
 }
 
 /**
  * A video's frames, any one on request, for scrubbing by scroll. WebCodecs (through mediabunny) decodes into a
- * small ring of canvases around the wanted frame: forward it keeps decoding a few frames ahead; backward it
- * decodes from a little before the frame (from the keyframe before that: at most 24 frames, see
- * tools/run-video.py), so the next steps back are already there. A normally compressed file then scrubs like one
- * with a keyframe on every frame, at a fraction of the size.
+ * small ring of frames around the wanted one (the decoder's own, or copies in canvases: `useCopies()`): forward
+ * it keeps decoding a few frames ahead; backward it decodes from a little before the frame (from the keyframe
+ * before that: at most 24 frames, see tools/run-video.py), so the next steps back are already there. A normally
+ * compressed file then scrubs like one with a keyframe on every frame, at a fraction of the size.
  * `open()` gives null when the browser can't decode the file; the caller falls back to a <video>.
  */
 export class VideoFrames {
@@ -34,6 +48,7 @@ export class VideoFrames {
   private shown = -1;
   private wake: (() => void) | null = null;
   private dead = false;
+  private direct = 'VideoFrame' in window;
 
   private constructor(
     private file: StreamedFile,
@@ -46,18 +61,16 @@ export class VideoFrames {
     readonly height: number,
   ) {
     this.pool = Math.round(Math.min(20, Math.max(10, POOL_BYTES / (width * height * 4))));
-    for (let i = 0; i < this.pool; i++) {
-      const canvas = Object.assign(document.createElement('canvas'), { width, height });
-      this.ring.push({ index: -1, canvas, ctx: canvas.getContext('2d', { alpha: false })! });
-    }
+    for (let i = 0; i < this.pool; i++) this.ring.push({ index: -1, frame: null, canvas: null });
     void this.pump();
   }
 
   /**
    * Downloads the whole file (src/effects/stream-source.ts), then decodes on request. Not before: frames could
    * decode as their bytes arrive, but a scroll that ran ahead of the download would freeze the film on a frame
-   * until it caught up, and until then the trail photo, which is the film's first frame, shows anyway. Frames are kept no bigger than a `view` (CSS px) filled by
-   * cover at `dpr` device pixels per CSS px needs.
+   * until it caught up, and until then the trail photo, which is the film's first frame, shows anyway. Copies in
+   * canvases (`useCopies()`) are kept no bigger than a `view` (CSS px) filled by cover at `dpr` device pixels per
+   * CSS px needs.
    */
   static async open(url: string, view: { w: number; h: number; dpr: number }): Promise<VideoFrames | null> {
     if (!('VideoDecoder' in window)) return null;
@@ -93,7 +106,7 @@ export class VideoFrames {
   }
 
   /** The decoded frame nearest the wanted one, if it isn't the one this returned last time; otherwise null. */
-  take(): HTMLCanvasElement | null {
+  take(): Frame | null {
     let best: Slot | null = null;
     for (const s of this.ring) {
       if (s.index < 0) continue;
@@ -101,7 +114,25 @@ export class VideoFrames {
     }
     if (!best || best.index === this.shown) return null;
     this.shown = best.index;
-    return best.canvas;
+    if (best.frame) return { source: best.frame, width: best.frame.displayWidth, height: best.frame.displayHeight };
+    return { source: best.canvas!, width: this.width, height: this.height };
+  }
+
+  /**
+   * Keep copies in canvases from now on, not the decoder's frames: for a browser that can't upload a VideoFrame,
+   * or a decoder that stalls while frames are held. The frames held now are copied too, and `take()` hands the one
+   * showing over again.
+   */
+  useCopies() {
+    if (!this.direct) return;
+    this.direct = false;
+    for (const s of this.ring) {
+      if (!s.frame) continue;
+      this.ctx(s).drawImage(s.frame, 0, 0, this.width, this.height);
+      s.frame.close();
+      s.frame = null;
+    }
+    this.shown = -1;
   }
 
   destroy() {
@@ -109,7 +140,16 @@ export class VideoFrames {
     this.wake?.();
     this.input.dispose();
     this.file.dispose();
-    for (const s of this.ring) s.canvas.width = s.canvas.height = 0; // let the browser drop the pixels now
+    for (const s of this.ring) {
+      s.frame?.close();
+      if (s.canvas) s.canvas.width = s.canvas.height = 0; // let the browser drop the pixels now
+    }
+  }
+
+  /** The slot's canvas, made on first use. */
+  private ctx(slot: Slot) {
+    slot.canvas ??= Object.assign(document.createElement('canvas'), { width: this.width, height: this.height });
+    return slot.canvas.getContext('2d', { alpha: false })!;
   }
 
   private has(i: number) {
@@ -132,7 +172,10 @@ export class VideoFrames {
     const slot = this.ring[this.next];
     this.next = (this.next + 1) % this.pool;
     slot.index = index;
-    sample.draw(slot.ctx, 0, 0, this.width, this.height);
+    slot.frame?.close();
+    slot.frame = null;
+    if (this.direct) slot.frame = sample.toVideoFrame();
+    else sample.draw(this.ctx(slot), 0, 0, this.width, this.height);
     return index;
   }
 
@@ -154,7 +197,7 @@ export class VideoFrames {
         at = need - 1;
       }
       try {
-        const r = await it.next();
+        const r = await this.decoded(it);
         if (r.done) {
           it = null; // past the last frame: wait for the next request rather than retry
           await new Promise<void>((res) => (this.wake = res));
@@ -171,5 +214,18 @@ export class VideoFrames {
       }
     }
     await it?.return();
+  }
+
+  /** The decoder's next frame; if it stalls while we hold its frames, they're copied out to let it go on. */
+  private async decoded(it: AsyncGenerator<VideoSample, void, unknown>) {
+    const next = it.next();
+    if (!this.direct) return next;
+    let timer = 0;
+    const stalled = new Promise<null>((r) => (timer = window.setTimeout(() => r(null), STALL_MS)));
+    const r = await Promise.race([next, stalled]);
+    clearTimeout(timer);
+    if (r) return r;
+    if (!document.hidden && this.ring.some((s) => s.frame)) this.useCopies(); // a hidden page's decoder may just pause
+    return next;
   }
 }

@@ -165,6 +165,7 @@ export class RunView {
   private depthMap: FilmDepth | null = null;
   private frames: WebGLTexture[] = []; // two: the frame showing (unit 0) and the one before (unit 3, for the blur)
   private cur = 0;
+  private frameChecked = false; // a VideoFrame has uploaded without an error
   private last = '';
   private unshed = onShed(() => this.fit());
 
@@ -197,23 +198,40 @@ export class RunView {
     this.fit();
   }
 
-  /** A new frame (or the poster, until frames arrive), and where its film sits on the photo. */
-  upload(src: TexImageSource & { width: number; height: number }, align: RunAlign) {
+  /**
+   * A new frame (`width` × `height` px; or the poster, until frames arrive), and where its film sits on the photo.
+   * False if the browser can't upload this kind of source (a VideoFrame, in an older one): nothing changes then.
+   */
+  upload(src: TexImageSource, width: number, height: number, align: RunAlign): boolean {
     const gl = this.gl;
-    if (!gl) return;
+    if (!gl) return true;
     // the frame showing becomes the one before, and the new one goes into the other texture
+    const bind = () => {
+      gl.activeTexture(gl.TEXTURE3);
+      gl.bindTexture(gl.TEXTURE_2D, this.frames[1 - this.cur]);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.frames[this.cur]);
+    };
     this.cur = 1 - this.cur;
-    gl.activeTexture(gl.TEXTURE3);
-    gl.bindTexture(gl.TEXTURE_2D, this.frames[1 - this.cur]);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.frames[this.cur]);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, src);
-    if (src.width !== this.tex.w || src.height !== this.tex.h || align !== this.align) {
-      this.tex = { w: src.width, h: src.height };
+    bind();
+    const frame = 'VideoFrame' in window && src instanceof VideoFrame;
+    try {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, src);
+      // checked once: getError waits on the GPU
+      if (frame && !this.frameChecked && gl.getError() !== gl.NO_ERROR) throw new Error('VideoFrame upload');
+      if (frame) this.frameChecked = true;
+    } catch {
+      this.cur = 1 - this.cur;
+      bind();
+      return false;
+    }
+    if (width !== this.tex.w || height !== this.tex.h || align !== this.align) {
+      this.tex = { w: width, h: height };
       this.align = align;
       this.fit();
     }
     this.last = '';
+    return true;
   }
 
   /** The trail photo the film opens from, for what the photo's framing shows past the film's frame. */
