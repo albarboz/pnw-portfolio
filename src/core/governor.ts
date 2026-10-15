@@ -1,7 +1,12 @@
 import { gsap } from './scroll';
 
-/** Frames per window: about a second. */
-const WINDOW = 60;
+/**
+ * Length of a window, in ms of frames. By time, not by count: a phone drawing 6 frames a second took 10 s to fill
+ * a 60-frame window, so it struggled for 24 s before the first step down.
+ */
+const WINDOW_MS = 1000;
+/** Fewest frames a window needs to say anything (its 10th percentile and middle). */
+const MIN_FRAMES = 5;
 /** A window is slow if its middle frame took longer than this (ms, under ~45 fps) … */
 const SLOW_MS = 22;
 /**
@@ -33,16 +38,19 @@ export function onShed(fit: () => void): () => void {
 export function startGovernor() {
   if (new URLSearchParams(location.search).has('quality')) return;
   const frames: number[] = [];
+  let spent = 0; // ms of frames in this window
   let slow = 0;
   let pace = Infinity; // ms per frame when nothing holds the screen back: the 10th percentile, lowest seen
   const sample = (_: number, delta: number) => {
     if (document.hidden || delta > 250) return; // a hidden tab, or the first frame back
     frames.push(delta);
-    if (frames.length < WINDOW) return;
+    spent += delta;
+    if (spent < WINDOW_MS || frames.length < MIN_FRAMES) return;
     frames.sort((a, b) => a - b);
-    pace = Math.min(pace, frames[Math.floor(WINDOW * 0.1)]);
-    const middle = frames[WINDOW >> 1];
+    pace = Math.min(pace, frames[Math.floor(frames.length * 0.1)]);
+    const middle = frames[frames.length >> 1];
     frames.length = 0;
+    spent = 0;
     slow = middle > SLOW_MS && middle > pace * OVER_PACE ? slow + 1 : 0;
     if (slow < PATIENCE) return;
     slow = 0;
