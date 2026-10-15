@@ -56,7 +56,7 @@ Researched 2026-10-13. Ordered by how much a visitor would notice. Each new depe
 
 **Feels instant** (2026-10-14, from a research round; numbers measured on the M2 in Chrome)
 
-- [x] The film streams: decoded while it downloads (`src/effects/stream-source.ts`). At 8 Mbit/s the first frame is ready 0.3 s after the request instead of 8.2 s (wide) / 4.8 s (phone)
+- ~~The film decoded while it downloads~~: first frame in 0.3 s, but a scroll ahead of the download froze the film for 2–3 s, and the first frame never showed anyway (the trail photo is that frame). Back to the whole file first; `src/effects/stream-source.ts` keeps the back/forward-cache pause
 - [x] Case-study covers load and decode when a row is pointed at, touched or focused, and the next project's once one is open
 - [x] Speculation Rules prefetch `work/*` pages (HTML only, Chromium); the overlook's preload also goes out as a `Link` header (an Early Hint once the site is on a custom domain with Early Hints on)
 - [x] Hero text paints before the scenes are built (`yieldToPaint()`): ~110 ms sooner at 4× CPU throttling

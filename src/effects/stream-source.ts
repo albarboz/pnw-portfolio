@@ -7,17 +7,20 @@ interface Wait {
 }
 
 /**
- * A file downloaded once, start to end, that can be read while it arrives: a read past what's in waits for those
- * bytes. A faststart MP4 (index first, as tools/run-video.py writes it) then shows its first frame after a few
- * hundred KB instead of the whole film, and ends up wholly in memory, so scrubbing back never fetches again.
+ * A file downloaded once, start to end, into memory, that can be read while it arrives (a read past what's in
+ * waits for those bytes) and says when it's all in (`complete`).
  * Leaving the page stops the download (an open fetch keeps the page out of the back/forward cache); coming back
- * resumes it from the byte it stopped at.
+ * resumes it from the byte it stopped at, or from the start if the server sends the whole file again.
  */
 export class StreamedFile {
   private got = 0;
   private waits: Wait[] = [];
   private error: unknown = null;
   private ctrl: AbortController | null = null;
+  private allIn!: () => void;
+  private failed!: (e: unknown) => void;
+  /** Resolves once every byte is in; rejects if the download fails (or the file is disposed first). */
+  readonly complete = new Promise<void>((resolve, reject) => ((this.allIn = resolve), (this.failed = reject)));
 
   private constructor(
     private url: string,
@@ -25,6 +28,7 @@ export class StreamedFile {
   ) {
     addEventListener('pagehide', this.pause);
     addEventListener('pageshow', this.resume);
+    this.complete.catch(() => {}); // a failure reaches whoever awaits it; never an unhandled rejection
   }
 
   /** Starts the download; null if the server says no. Without a known length it waits for the whole file. */
@@ -36,6 +40,7 @@ export class StreamedFile {
     if (!size || res.headers.get('content-encoding')) {
       const file = new StreamedFile(url, new Uint8Array(await res.arrayBuffer()));
       file.got = file.bytes.length;
+      file.allIn();
       return file;
     }
     const file = new StreamedFile(url, new Uint8Array(size));
@@ -81,6 +86,7 @@ export class StreamedFile {
       }
       if (this.got < this.bytes.length) throw new Error('file ended early');
       if (this.ctrl === ctrl) this.ctrl = null;
+      this.allIn();
     } catch (e) {
       if (!ctrl.signal.aborted) this.settle(e); // aborted on purpose: pause() or dispose()
     }
@@ -89,6 +95,7 @@ export class StreamedFile {
   /** Fails every waiting read (and every later one past what's in). */
   private settle(e: unknown) {
     this.error = e;
+    this.failed(e);
     for (const w of this.waits) w.fail(e);
     this.waits = [];
   }

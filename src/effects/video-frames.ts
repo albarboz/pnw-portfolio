@@ -54,8 +54,9 @@ export class VideoFrames {
   }
 
   /**
-   * Starts the download and resolves once the file's index is in (a few KB): frames decode as their bytes arrive
-   * (src/effects/stream-source.ts). Frames are kept no bigger than a `view` (CSS px) filled by
+   * Downloads the whole file (src/effects/stream-source.ts), then decodes on request. Not before: frames could
+   * decode as their bytes arrive, but a scroll that ran ahead of the download would freeze the film on a frame
+   * until it caught up, and until then the trail photo, which is the film's first frame, shows anyway. Frames are kept no bigger than a `view` (CSS px) filled by
    * cover at `dpr` device pixels per CSS px needs.
    */
   static async open(url: string, view: { w: number; h: number; dpr: number }): Promise<VideoFrames | null> {
@@ -65,6 +66,7 @@ export class VideoFrames {
     try {
       file = await StreamedFile.open(url);
       if (!file) return null;
+      await file.complete;
       input = new Input({ formats: [MP4], source: file.source() });
       const track = await input.getPrimaryVideoTrack();
       if (!track || !(await track.canDecode())) throw new Error('cannot decode');
