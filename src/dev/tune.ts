@@ -67,6 +67,7 @@ export function createTunePanel() {
   rn.addBinding(tuning.run, 'slow', { label: 'pace reading', min: 0.05, max: 1, step: 0.05 })
     .on('change', (e) => e.last && ScrollTrigger.refresh());
   rn.addBinding(tuning.run, 'dim', { label: 'shade', min: 0, max: 1, step: 0.01 });
+  rn.addBinding(tuning.run, 'depth', { label: 'ring by depth', min: 0, max: 1.5, step: 0.05 });
 
   const gr = pane.addFolder({ title: 'Film grain' });
   gr.addBinding(tuning.grain, 'amount', { min: 0, max: 0.5, step: 0.01 });
@@ -87,7 +88,7 @@ export function createTunePanel() {
       `shafts: { strength: ${r(l.strength)}, x: ${r(l.x)}, y: ${r(l.y)}, length: ${r(l.length)}, threshold: ${r(l.threshold)}, softness: ${r(l.softness)} },`,
       `grain: { amount: ${r(g.amount)}, size: ${r(g.size)} },`,
       `sign: { base: ${r(t.base)}, perScreen: ${r(t.perScreen)}, max: ${r(t.max)} },`,
-      `run: { reveal: ${r(n.reveal)}, gap: ${r(n.gap)}, slow: ${r(n.slow)}, dim: ${r(n.dim)} },`,
+      `run: { reveal: ${r(n.reveal)}, gap: ${r(n.gap)}, slow: ${r(n.slow)}, dim: ${r(n.dim)}, depth: ${r(n.depth)} },`,
       '// src/content/site.ts',
       `diveZoom: ${r(site.descent.diveZoom)},`,
     ].join('\n');

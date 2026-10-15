@@ -6,6 +6,8 @@
     <!-- Title, description and link-preview tags are written in at build time from site.meta (vite.config.ts),
          so link previews and search engines see them without JS. -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- the browser's toolbar on phones, in --night (src/styles/tokens.css) -->
+    <meta name="theme-color" content="#0e1310" />
   </head>
   <body>
     <!-- Text and images are filled from src/content/site.ts (data-text / data-img). -->
@@ -56,7 +58,7 @@
           <div class="scroll-cue" data-layer="cue" aria-hidden="true">
             <span class="scroll-cue-in">
               <span data-text="ui.scrollCue"></span>
-              <svg viewBox="0 0 12 12"><path d="M6 1.5v9M2.5 7 6 10.5 9.5 7" /></svg>
+              <span class="cue-blazes"><span class="blaze"></span><span class="blaze"></span><span class="blaze"></span></span>
             </span>
           </div>
 
@@ -93,7 +95,7 @@
         <section class="section about" id="about" aria-labelledby="about-h">
           <div class="wrap about-body" data-run="read">
             <!-- data-reveal sits on a wrapper so the heading itself is free for the drift (src/ui/reveal.ts) -->
-            <div data-reveal><h2 id="about-h" data-text="about.heading" data-drift></h2></div>
+            <div data-reveal><h2 id="about-h" class="blazed" data-text="about.heading" data-drift></h2></div>
             <div class="about-text" data-reveal>
               <span class="label" data-text="about.label"></span>
               <div data-about-body></div>
@@ -105,7 +107,7 @@
         <section class="section work" id="work" aria-labelledby="work-h">
           <div class="wrap" data-run="sheet">
             <div class="sec-head" data-reveal>
-              <h2 id="work-h" data-text="work.heading" data-drift></h2>
+              <h2 id="work-h" class="blazed" data-text="work.heading" data-drift></h2>
               <span class="label" data-text="work.label"></span>
             </div>
             <ul class="work-list" data-projects></ul>
@@ -118,7 +120,7 @@
         <section class="section contact" id="contact" aria-labelledby="contact-h">
           <div class="wrap contact-body" data-run="end">
             <div data-reveal>
-              <h2 id="contact-h" data-text="contact.heading"></h2>
+              <h2 id="contact-h" class="blazed" data-text="contact.heading"></h2>
               <span class="label" data-text="contact.label"></span>
             </div>
             <p class="lead" data-reveal>
@@ -128,7 +130,7 @@
             </p>
             <div class="email-row" data-reveal>
               <a class="email" data-email data-text="contact.email"></a>
-              <button class="copy" type="button" data-copy-email data-text="ui.copyEmail.label"></button>
+              <button class="copy blazed" type="button" data-copy-email data-text="ui.copyEmail.label"></button>
               <span class="sr-only" role="status" data-copy-status></span>
             </div>
             <ul class="contact-links" data-contact-links data-reveal></ul>
@@ -136,7 +138,7 @@
           <footer class="wrap site-footer">
             <span data-footer-name></span>
             <span class="credits" data-credits></span>
-            <a class="to-top" href="#top" data-fly-top data-text="ui.toTop"></a>
+            <a class="to-top blazed" href="#top" data-fly-top data-text="ui.toTop"></a>
           </footer>
         </section>
       </div>

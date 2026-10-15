@@ -90,6 +90,11 @@ export const tuning = {
     slow: 0.3,
     /** Strength of the shade on the text's side while a section reads over the film (1 = as drawn in CSS). */
     dim: 1,
+    /**
+     * How much the film's depth shapes the fog ring (0 = a plain ring): nearer than the runner clears sooner,
+     * farther clears later, so the fog leaves the ferns first and lingers down the trail.
+     */
+    depth: 0.6,
   },
 
   /** Distance of each overlook cutout from the camera's start (far = 1). Smaller = the camera passes it sooner. */

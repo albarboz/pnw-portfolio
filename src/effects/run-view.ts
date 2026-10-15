@@ -1,5 +1,7 @@
 import { clamp, smoothstep } from '../core/math';
 import { cssRgb } from '../core/tokens';
+import { tuning } from '../core/tuning';
+import { DEPTH_GLSL, type FilmDepth } from './film-depth';
 import { linkProgram } from './gl-program';
 
 /**
@@ -22,15 +24,26 @@ void main() {
 // The film opens framed exactly as the photo (its first frame laid where it sits on the photo, at the photo's zoom),
 // so until the ring has cleared the runner it is the photo; then it eases to its own cover framing as it finishes:
 // a small push-in as the runner sets off.
+// With the film's depth (src/effects/film-depth.ts) the edge runs ahead over what is nearer than the runner and
+// behind over what is farther, so it follows the trunks and leaves the ferns first.
 const FRAG = `
 precision highp float;
 varying vec2 vUv;
-uniform sampler2D uFrame;
+uniform sampler2D uFrame, uPhoto;
+uniform float uHasPhoto;
 uniform vec2 uScale, uOffset, uScaleAside, uOffsetAside, uOrigin, uPScale, uPOffset, uAPos, uASize;
 uniform vec2 uFocus;
-uniform float uAspect, uReveal, uReach, uAlign, uZoom, uAside, uTime;
+uniform float uAspect, uReveal, uReach, uAlign, uZoom, uAside, uTime, uDepthAmt;
 // the film's own framing, eased toward its stepped-aside framing (runner moved away from the text)
 vec2 own(vec2 uv) { return mix(uOffset, uOffsetAside, uAside) + uv * mix(uScale, uScaleAside, uAside); }
+// the frame point under screen point uv: the film's own framing, or, while it still is the photo, the photo's
+// (which shows more than the frame does: then it lands outside 0–1)
+vec2 frameRaw(vec2 uv) {
+  vec2 onPhoto = (uPOffset + (uFocus + (uv - uFocus) / uZoom) * uPScale - uAPos) / uASize;
+  return mix(own(uv), onPhoto, uAlign);
+}
+vec2 frameAt(vec2 uv) { return clamp(frameRaw(uv), 0.0, 1.0); }
+${DEPTH_GLSL}
 uniform vec3 uFog;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
@@ -51,11 +64,18 @@ void main() {
   vec2 d = (vUv - uOrigin) * vec2(uAspect, 1.0);
   float r = length(d);
   // Ring radius: from just inside the runner to past the farthest corner, plus room for the torn edge.
-  float R = mix(-0.25, uReach + 0.5, uReveal);
+  // (Room for the depth too: what is farthest has that much further to go.)
+  float R = mix(-0.25, uReach + 0.5 + uDepthAmt * 0.5, uReveal);
   // The edge, torn by noise that is itself warped (as the dive's fog is) and drifting slowly, so it billows.
   vec2 p = vUv * vec2(uAspect, 1.0);
   vec2 warp = vec2(fbm(p * 1.6 + vec2(uTime * 0.03, 0.0)), fbm(p * 1.6 + vec2(5.2, uTime * 0.02))) - 0.5;
   float edge = r + (fbm(p * 2.4 + warp * 1.2) - 0.5) * 0.6 - R; // < 0: inside
+  // Not right at the runner: the ring still opens from him whole (his head would read as the far trees behind it).
+  // Nor past the frame's edge, where there is no depth: it eases out there instead of smearing the edge row.
+  vec2 f0 = frameRaw(vUv);
+  vec2 out0 = max(-f0, f0 - 1.0);
+  float byDepth = uDepthAmt * smoothstep(0.1, 0.35, r) * (1.0 - smoothstep(0.0, 0.08, max(out0.x, out0.y)));
+  if (byDepth > 0.0) edge += byDepth * (nearness(frameRaw(uOrigin)) - nearness(f0));
   float inside = 1.0 - smoothstep(-0.2, 0.0, edge);
   // A bank of fog riding the edge: a dense core in a wide haze, thick and thin in billows rather than strands.
   float body = smoothstep(0.3, 0.8, fbm(p * 3.0 + warp * 2.0 + vec2(0.0, uTime * 0.05)));
@@ -65,10 +85,15 @@ void main() {
   vec2 away = d / max(r, 1e-4) / vec2(uAspect, 1.0);
   // the fog's bend, only once the film has its own framing: while it still is the photo, a bent copy over the photo
   // shows the runner twice where the edge crosses him
-  vec2 uv = vUv - away * core * 0.02 * (1.0 - uAlign);
-  vec2 film = own(uv);
-  vec2 onPhoto = (uPOffset + (uFocus + (uv - uFocus) / uZoom) * uPScale - uAPos) / uASize;
-  vec3 col = texture2D(uFrame, clamp(mix(film, onPhoto, uAlign), 0.0, 1.0)).rgb;
+  vec2 f = frameRaw(vUv - away * core * 0.02 * (1.0 - uAlign));
+  vec3 col = texture2D(uFrame, clamp(f, 0.0, 1.0)).rgb;
+  // Past the frame's edge (the photo's framing shows more than the first frame, and the edges stay out of it while the
+  // framing eases over): the photo itself, where the frame would be on it. Clamped, the frame's last row would smear
+  // across in streaks. The seam starts a little inside the frame, since the film drifts off the photo once the
+  // runner sets off; it narrows to the edge as the film takes its own framing (which never shows past it).
+  vec2 past = max(-f, f - 1.0);
+  float off = smoothstep(-0.05 * uAlign, 0.0005, max(past.x, past.y)) * uHasPhoto;
+  if (off > 0.0) col = mix(col, texture2D(uPhoto, clamp(uAPos + f * uASize, 0.0, 1.0)).rgb, off);
   fog = clamp(fog, 0.0, 1.0);
   col = mix(col, uFog * (0.94 + 0.06 * body), fog * 0.85); // a touch brighter where it's thick
   float a = clamp(max(inside, fog * 0.92), 0.0, 1.0);
@@ -114,6 +139,7 @@ export class RunView {
   private view = { vw: 0, vh: 0 };
   private dpr = 0;
   private align: RunAlign = { x: 0, y: 0, w: 1 };
+  private depthMap: { info: FilmDepth; align: RunAlign; tile: { w: number; h: number } } | null = null;
   private last = '';
 
   constructor(
@@ -158,21 +184,65 @@ export class RunView {
     this.last = '';
   }
 
-  /** `aside` (0–1): how far the film has stepped aside for a section reading over it. */
-  draw(reveal: number, aside = 0) {
+  /** The trail photo the film opens from, for what the photo's framing shows past the film's frame. */
+  photo(img: HTMLImageElement) {
+    const gl = this.gl;
+    if (!gl) return;
+    this.texture(2, gl.RGB, img);
+    gl.uniform1f(this.u.uHasPhoto, 1);
+    this.last = '';
+  }
+
+  /**
+   * The film's depth (src/effects/film-depth.ts) for the ring's edge, from the decoded atlas. `align` is where the
+   * film it was made from (the HQ one) sits on the photo.
+   */
+  depth(img: HTMLImageElement, info: FilmDepth, align: RunAlign) {
+    const gl = this.gl;
+    if (!gl) return;
+    this.texture(1, gl.LUMINANCE, img);
+    gl.uniform2f(this.u.uDGrid, info.cols, info.rows);
+    gl.uniform1f(this.u.uDCount, info.count);
+    gl.uniform2f(this.u.uDTexel, info.cols / img.width, info.rows / img.height);
+    this.depthMap = { info, align, tile: { w: img.width / info.cols, h: img.height / info.rows } };
+    this.fit();
+  }
+
+  /**
+   * `aside` (0–1): how far the film has stepped aside for a section reading over it; `t` (0–1): the film's
+   * progress, for its depth.
+   */
+  draw(reveal: number, aside = 0, t = 0) {
     const gl = this.gl;
     if (!gl || !this.tex.w) return;
     // while the ring is open its fog drifts, so it redraws every frame; otherwise only when something changed
     const opening = reveal > 0 && reveal < 1;
     const time = opening ? performance.now() / 1000 : 0;
-    const key = `${reveal}|${aside}|${time}`;
+    const D = this.depthMap;
+    const amount = D ? tuning.run.depth : 0;
+    const key = `${reveal}|${aside}|${time}|${t}|${amount}`;
     if (key === this.last) return;
     this.last = key;
+    gl.uniform1f(this.u.uDepthAmt, amount);
+    if (D) gl.uniform1f(this.u.uDFrame, clamp(t / D.info.until, 0, 1) * (D.info.count - 1));
     gl.uniform1f(this.u.uTime, time % 1000);
     gl.uniform1f(this.u.uReveal, reveal);
     gl.uniform1f(this.u.uAside, aside);
     gl.uniform1f(this.u.uAlign, 1 - smoothstep(RUN_STILL_UNTIL, 1, reveal));
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  /** An image on texture unit `unit` (the film's frames stay on unit 0, where upload() writes). */
+  private texture(unit: number, format: GLenum, img: TexImageSource) {
+    const gl = this.gl!;
+    gl.activeTexture(gl.TEXTURE0 + unit);
+    gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, format, format, gl.UNSIGNED_BYTE, img);
+    gl.activeTexture(gl.TEXTURE0);
   }
 
   destroy() {
@@ -191,7 +261,8 @@ export class RunView {
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     const frame = ['uFrame', 'uScale', 'uOffset', 'uScaleAside', 'uOffsetAside', 'uAside', 'uPScale', 'uPOffset'];
     frame.push('uAPos', 'uASize', 'uAlign', 'uFocus', 'uZoom', 'uTime');
-    for (const name of [...frame, 'uOrigin', 'uAspect', 'uReveal', 'uReach', 'uFog']) {
+    const depth = ['uPhoto', 'uHasPhoto', 'uDepth', 'uDepthAmt', 'uDPos', 'uDSize', 'uDGrid', 'uDTexel', 'uDFrame', 'uDCount'];
+    for (const name of [...frame, ...depth, 'uOrigin', 'uAspect', 'uReveal', 'uReach', 'uFog']) {
       this.u[name] = gl.getUniformLocation(prog, name);
     }
     gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
@@ -200,6 +271,8 @@ export class RunView {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.uniform1i(this.u.uFrame, 0);
+    gl.uniform1i(this.u.uDepth, 1);
+    gl.uniform1i(this.u.uPhoto, 2);
     gl.uniform3fv(this.u.uFog, cssRgb('--fog').map((c) => c / 255));
     return true;
   }
@@ -230,6 +303,12 @@ export class RunView {
     const size = [A.w, (A.w * photo.width * th) / (tw * photo.height)];
     gl.uniform2f(this.u.uAPos, A.x, A.y);
     gl.uniform2f(this.u.uASize, size[0], size[1]);
+    // the depth frame's place on the photo: the HQ film's
+    const D = this.depthMap;
+    if (D) {
+      gl.uniform2f(this.u.uDPos, D.align.x, D.align.y);
+      gl.uniform2f(this.u.uDSize, D.align.w, (D.align.w * photo.width * D.tile.h) / (D.tile.w * photo.height));
+    }
     // screen → frame, the film's own cover framing, around the runner where he is in the frame
     const fx = clamp((F.x - A.x) / size[0], 0, 1);
     const fy = clamp((F.y - A.y) / size[1], 0, 1);

@@ -20,7 +20,11 @@ export function createHeader(lenis: Lenis | null): { destroy: () => void } {
   list.replaceChildren(
     ...site.sign.links.map(({ label, target }) => {
       const section = document.getElementById(target)!;
-      const link = Object.assign(document.createElement('a'), { href: `#${target}`, textContent: label });
+      const link = Object.assign(document.createElement('a'), {
+        href: `#${target}`,
+        textContent: label,
+        className: 'blazed', // the section in view gets a painted blaze (sections.css)
+      });
       link.addEventListener('click', (e) => {
         e.preventDefault();
         flyTo(section, lenis);

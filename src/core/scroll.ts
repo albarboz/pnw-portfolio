@@ -15,6 +15,9 @@ export function initScroll(): Lenis | null {
 
   const lenis = new Lenis({ lerp: 0.09 });
   lenis.on('scroll', ScrollTrigger.update);
+  // Pins change the page's height on every refresh, and Lenis only notices 250 ms later: a trail sign clicked in
+  // between flew to the old, shorter limit and stopped halfway.
+  ScrollTrigger.addEventListener('refresh', () => lenis.resize());
   gsap.ticker.add((time) => lenis.raf(time * 1000));
   gsap.ticker.lagSmoothing(0);
   return lenis;

@@ -14,7 +14,7 @@ An immersive, scroll-driven portfolio. You start at a Cascade valley overlook, d
 - **Accessible by default.** With reduced motion turned on, every section shows as a still, readable layout. Text contrast is at least 4.5:1 everywhere.
 - **Fast first paint.** The page shows a tiny inline placeholder of the overlook right away, and everything heavier (Three.js, the video decoder, the films) loads after it.
 
-The photos and films are Midjourney generations. Their depth maps, layers and upscales come from the Python scripts in `tools/` (Depth Anything V2, ViTMatte, LaMa, Real-ESRGAN, RIFE). See [`docs/ASSET-CREDITS.md`](docs/ASSET-CREDITS.md).
+The photos and films are Midjourney generations. Their depth maps, layers and upscales come from the Python scripts in `tools/` (Depth Anything V2, Video Depth Anything, ViTMatte, LaMa, Real-ESRGAN, RIFE). See [`docs/ASSET-CREDITS.md`](docs/ASSET-CREDITS.md).
 
 ## Run it locally
 
@@ -25,6 +25,7 @@ npm install
 npm run dev        # http://localhost:5173, with a Tune panel (top right) for the feel numbers
 npm run build      # type-check, then production build to dist/
 npm run preview    # serve dist/
+npm test           # build, then the Done checklist in headless Chrome (tests/, Playwright + axe)
 ```
 
 ## Where things live

@@ -4,6 +4,7 @@ import { gsap, ScrollTrigger } from '../core/scroll';
  * Fades and lifts every [data-reveal] element into place as it scrolls into view.
  * Elements that arrive together (a heading and its text, the project rows) stagger in order.
  * A [data-lift] inside one is a veil of fog over a picture, which clears a moment after it arrives.
+ * A blaze inside one (.blazed, base.css) waits unpainted (.is-waiting) and paints in as it arrives.
  * Section headings ([data-drift]) also drift a little slower than the page while they pass through view.
  * A [data-drift] element must not also be [data-reveal]: the reveal's overwrite would cancel the drift.
  *
@@ -17,10 +18,12 @@ export function createReveal(): { destroy: () => void } {
   mm.add('(prefers-reduced-motion: no-preference)', () => {
     const items = gsap.utils.toArray<HTMLElement>('[data-reveal]');
     gsap.set(items, { opacity: 0, y: 28 });
+    items.forEach((el) => el.classList.add('is-waiting'));
 
     const lifts = (els: Element[]) => els.flatMap((el) => [...el.querySelectorAll('[data-lift]')]);
     gsap.set(lifts(items), { opacity: 0.8 });
     const show = (els: Element[]) => {
+      els.forEach((el) => el.classList.remove('is-waiting'));
       gsap.to(els, { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', stagger: 0.09, overwrite: true });
       const fog = lifts(els);
       if (!fog.length) return;
@@ -48,11 +51,15 @@ export function createReveal(): { destroy: () => void } {
       const el = (e.target as Element | null)?.closest('[data-reveal]');
       if (!el) return;
       gsap.set(el, { opacity: 1, y: 0, overwrite: true });
+      el.classList.remove('is-waiting');
       const fog = lifts([el]);
       if (fog.length) gsap.set(fog, { opacity: 0, overwrite: true });
     };
     document.addEventListener('focusin', onFocus);
-    return () => document.removeEventListener('focusin', onFocus);
+    return () => {
+      document.removeEventListener('focusin', onFocus);
+      items.forEach((el) => el.classList.remove('is-waiting'));
+    };
   });
 
   return { destroy: () => mm.revert() };

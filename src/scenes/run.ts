@@ -6,6 +6,7 @@ import { buildPace, type Pace } from '../core/pace';
 import { quality } from '../core/quality';
 import { tuning } from '../core/tuning';
 import { site } from '../content/site';
+import { loadFilmDepth } from '../effects/film-depth';
 import { Grain } from '../effects/grain';
 import { RUN_STILL_UNTIL, RunView } from '../effects/run-view';
 import { LANDED_ZOOM } from './descent';
@@ -156,6 +157,8 @@ export function createRunScene(): SceneHandle | null {
         canvas.hidden = false;
         view.resize(stage.clientWidth, stage.clientHeight);
         player = webgl = new WebglPlayer(view, site.descent.landing.src);
+        // the film's depth shapes the ring's edge; without it the ring stays plain
+        void loadFilmDepth(R.depth.src).then((img) => img && !dead && view.depth(img, R.depth, R.align));
         return loadFilm();
       }
       view.destroy();

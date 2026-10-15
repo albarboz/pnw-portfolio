@@ -11,6 +11,7 @@ export function initCopyEmail() {
   if (!button || !email) return;
 
   const t = site.ui.copyEmail;
+  let reset = 0;
   const say = (text: string) => {
     button.textContent = text;
     if (status) status.textContent = text;
@@ -19,6 +20,7 @@ export function initCopyEmail() {
     try {
       await navigator.clipboard.writeText(email.textContent?.trim() ?? '');
       say(t.copied);
+      button.classList.add('is-done'); // a blaze paints in beside the button (sections.css)
     } catch {
       const range = document.createRange();
       range.selectNodeContents(email);
@@ -27,8 +29,10 @@ export function initCopyEmail() {
       sel?.addRange(range);
       say(t.selected);
     }
-    window.setTimeout(() => {
+    window.clearTimeout(reset);
+    reset = window.setTimeout(() => {
       button.textContent = t.label;
+      button.classList.remove('is-done');
       if (status) status.textContent = '';
     }, 2000);
   });

@@ -224,6 +224,11 @@ export const site = {
      */
     align: { x: 0, y: 0.1, w: 1 },
     /**
+     * Depth of the film's first second (tools/film-depth.py prints the numbers), for the fog ring's edge. In the
+     * HQ film's frame, so it sits on the photo by `align` above.
+     */
+    depth: { src: asset('images/trail-run-depth.webp'), cols: 5, rows: 7, count: 31, until: 0.2414 },
+    /**
      * For screens held upright, which show only a slice of the film: that slice around the runner, upscaled
      * (tools/run-upscale.py), with its own place on the photo.
      */

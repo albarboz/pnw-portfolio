@@ -8,3 +8,6 @@ __pycache__/
 tools/plates/
 # wrangler local cache
 .wrangler/
+# Playwright (npm test)
+test-results/
+playwright-report/

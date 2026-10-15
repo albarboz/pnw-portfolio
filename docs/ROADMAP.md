@@ -92,6 +92,12 @@ From a design critique (19/32): the opening was authored, the sections were a te
 - [x] Soft cloud banks inside the white-out that swell past as the camera flies through (`drift` in descent.ts)
 - [x] Project dialog in the quiet language: night sheet with a hairline, "Close ×", medium title, tracked fact labels, plain links with an outward arrow
 
+## Phase 7 – Checks and depth (2026-10-14)
+
+- [x] The Done checklist as tests: [Playwright](https://github.com/microsoft/playwright) (Apache-2.0) + [axe-core](https://github.com/dequelabs/axe-core-npm) (MPL-2.0), dev only, in the installed Chrome (`npm test`, `tests/`). The whole page at 1440 and 375 px, quality 0 and 2, reduced motion, console errors, sideways overflow, WCAG 2.2 AA, project dialog by keyboard, trail sign. First run caught a real bug: a trail sign clicked in the first moments after load flew to Lenis's stale (pre-pin) limit and stopped halfway; Lenis now re-measures on every ScrollTrigger refresh (`scroll.ts`)
+- [x] Fog ring by depth: [Video Depth Anything](https://github.com/DepthAnything/Video-Depth-Anything) Small (Apache-2.0; Base/Large are CC BY-NC) on the film's first 1.3 s (`tools/film-depth.py` → `trail-run-depth.webp`, 47 KB atlas). The ring's edge runs ahead over what is nearer than the runner and behind over what is farther, so it leaves the ferns first and follows the trunks; not right around the runner. `tuning.run.depth` (0 = the plain ring)
+- [x] Edge streaks in the hand-off: the photo's framing shows more than the film's first frame (about 5% top and bottom), and the clamped frame smeared its last row across. Past the frame the ring now draws the trail photo itself (a second texture), blended from a little inside the edge while the film is still framed as the photo; the depth eases out there too instead of smearing its edge row (that smear had made a hard-edged hole in the fog)
+
 ## Useful references
 
 - GSAP docs: https://gsap.com/docs/v3/

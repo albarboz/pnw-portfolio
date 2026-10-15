@@ -70,7 +70,13 @@ export function renderContent() {
   }
 
   const email = document.querySelector<HTMLAnchorElement>('[data-email]');
-  if (email) email.href = `mailto:${site.contact.email}`;
+  if (email) {
+    const address = site.contact.email;
+    email.href = `mailto:${address}`;
+    // on a narrow screen the address breaks after the @ (name / domain), not mid-word
+    const at = address.indexOf('@');
+    if (at > 0) email.replaceChildren(address.slice(0, at + 1), document.createElement('wbr'), address.slice(at + 1));
+  }
 
   const links = document.querySelector('[data-contact-links]');
   if (links) {

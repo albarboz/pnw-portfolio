@@ -9,7 +9,7 @@ An immersive, scroll-driven portfolio. The visitor starts at a Cascade valley ov
 - **Lenis** for smooth scrolling, wired to ScrollTrigger in `src/core/scroll.ts`.
 - **Three.js** for the shader fog (`src/effects/fog3d.ts`), loaded lazily by `src/effects/fog-layer.ts` so it never delays first paint; the Canvas 2D fog (`src/effects/fog.ts`) draws until it's in, and stays as the fallback without WebGL. Import three only from lazily loaded modules. The overlook dolly needs no 3D engine: flat cutouts facing the camera are drawn exactly by CSS transforms (`dolly()` in `src/effects/photo-layers.ts`). A small hand-written WebGL shader draws the 2.5D trail photo (`src/effects/depth-photo.ts`), with sun shafts baked once into a small texture (`src/effects/light-shafts.ts`).
 - The overlook dive flies through the photo in 3D: the far and mid cutouts become relief meshes pushed back by their depth maps (`tools/layer-depth.py` → `src/effects/depth-layers.ts`, on three, loaded after the cutouts). At rest they draw exactly the flat cutouts; the near branches stay a CSS card above the fog, moved by the same camera (`src/effects/overlook.ts`). Without WebGL, or with reduced motion, the flat cutouts / photo stay.
-- **Mediabunny** (pinned, MPL-2.0) decodes the trail run frame by frame with WebCodecs (`src/effects/video-frames.ts`), drawn by a small WebGL shader that also opens it from the trail photo in a ring of fog (`src/effects/run-view.ts`). Loaded lazily once the dive starts; without WebCodecs or WebGL a plain `<video>` scrubs the all-keyframe fallback. The run's stage sticks behind About and Work (`src/scenes/run.ts`); its pace slows under text (`src/core/pace.ts`). Videos come from one master via `tools/run-video.py`, optionally filled in to a higher frame rate first by `tools/run-interpolate.py` (RIFE). Both films are upscaled by `tools/run-upscale.py` (Real-ESRGAN, shared code in `tools/esrgan.py`): wide screens get the whole frame at 1920×1080 (`trail-run-hq.mp4`), screens held upright a portrait slice (`trail-run-phone.mp4`).
+- **Mediabunny** (pinned, MPL-2.0) decodes the trail run frame by frame with WebCodecs (`src/effects/video-frames.ts`), drawn by a small WebGL shader that also opens it from the trail photo in a ring of fog (`src/effects/run-view.ts`). Loaded lazily once the dive starts; without WebCodecs or WebGL a plain `<video>` scrubs the all-keyframe fallback. The fog ring's edge follows the film's depth (`tools/film-depth.py`, Video Depth Anything Small → `src/effects/film-depth.ts`; `tuning.run.depth`). The run's stage sticks behind About and Work (`src/scenes/run.ts`); its pace slows under text (`src/core/pace.ts`). Videos come from one master via `tools/run-video.py`, optionally filled in to a higher frame rate first by `tools/run-interpolate.py` (RIFE). Both films are upscaled by `tools/run-upscale.py` (Real-ESRGAN, shared code in `tools/esrgan.py`): wide screens get the whole frame at 1920×1080 (`trail-run-hq.mp4`), screens held upright a portrait slice (`trail-run-phone.mp4`).
 - **@pmndrs/detect-gpu** (pinned) for quality levels (`src/core/quality.ts`): known-weak GPUs keep the flat cutouts and a lower-resolution shader fog (level 1), or get no WebGL at all (level 0); unknown GPUs keep everything. Its benchmark data is served from this site (`benchmarks()` in `vite.config.ts`). `?quality=0|1|2` forces a level. Headless Chrome's software WebGL counts as level 0, so force `?quality=2` when testing the 3D there.
 
 Ask before adding any other dependency.
@@ -19,8 +19,9 @@ Ask before adding any other dependency.
 - `npm run dev` – dev server at http://localhost:5173, with a **Tune** slider panel (top right) for the feel numbers
 - `npm run build` – type-check, then production build to `dist/`
 - `npm run typecheck` – types only
+- `npm test` – build, then the Done checklist as Playwright tests in the installed Chrome (`tests/`): the whole page scrolled at 1440 px and 375 px, quality 0 and 2, reduced motion, console errors, sideways overflow, keyboard and axe (WCAG 2.2 AA). `npx playwright test` skips the build; `npx playwright show-report` shows the screenshots
 
-Run `npm run build` after changes and fix all errors before calling a task done.
+Run `npm run build` after changes and fix all errors before calling a task done; run `npm test` before calling a visual or scroll change done.
 
 ## Layout
 
@@ -67,6 +68,7 @@ This keeps the timing (timeline) separate from the drawing (render), so timing c
 ## Done checklist
 
 - `npm run build` passes
+- `npm test` passes (covers scrolling at both widths, reduced motion, console errors and axe, but not how it looks: still check the screenshots)
 - Scroll the whole page at desktop and 375 px widths
 - Reduced motion on (OS setting) still reads correctly
 - No console errors

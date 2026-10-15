@@ -13,10 +13,12 @@ body {
   background: var(--night);
   color: var(--text);
   font-family: var(--body);
-  font-size: 17px;
-  line-height: 1.6;
+  font-size: var(--size-body);
+  line-height: 1.65;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
 }
 img {
   max-width: 100%;
@@ -33,17 +35,18 @@ button {
   cursor: pointer;
 }
 :focus-visible {
-  outline: 2px solid var(--lichen);
-  outline-offset: 3px;
+  outline: 2px solid var(--blaze);
+  outline-offset: 4px;
+  border-radius: 2px;
 }
 /* the browser's own surfaces, in the palette */
 ::selection {
-  background: color-mix(in srgb, var(--lichen) 42%, transparent);
+  background: color-mix(in srgb, var(--blaze) 40%, transparent);
   color: var(--text);
 }
 html {
   scrollbar-color: color-mix(in srgb, var(--text) 22%, transparent) var(--night);
-  caret-color: var(--lichen);
+  caret-color: var(--blaze);
 }
 /* visible to screen readers only */
 .sr-only {
@@ -55,12 +58,33 @@ html {
   clip-path: inset(50%);
   white-space: nowrap;
 }
-/* small facts beside a title: year and kind of a project */
+/* small facts beside a title: year and kind of a project, in sign capitals */
 .meta {
-  font-size: 14px;
-  letter-spacing: 0.01em;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
+}
+/* The trail blaze (--blaze-shape): a painted mark, sized by --blaze-w (tall 1 : 2.4). It paints in from the top,
+   like a brush stroke, wherever a parent drops .is-waiting (reveal.ts) or a rule sets --blaze-paint: 0. */
+.blazed::before,
+.blaze {
+  content: '';
+  display: block;
+  width: var(--blaze-w, 8px);
+  height: calc(var(--blaze-w, 8px) * 2.4);
+  background: var(--blaze-color, var(--blaze));
+  -webkit-mask: var(--blaze-shape) center / 100% 100% no-repeat;
+  mask: var(--blaze-shape) center / 100% 100% no-repeat;
+  transform: scaleY(var(--blaze-paint, 1));
+  transform-origin: 50% 0;
+  transition: transform 0.75s var(--ease-paint) var(--blaze-delay, 0s);
+}
+.is-waiting {
+  --blaze-paint: 0;
 }
 h1,
 h2 {

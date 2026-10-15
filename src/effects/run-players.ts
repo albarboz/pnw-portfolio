@@ -26,7 +26,13 @@ export class WebglPlayer implements Player {
   ) {
     const photo = new Image();
     photo.src = photoSrc;
-    photo.decode().then(() => !this.frames && view.upload(photo, this.align), () => {});
+    photo.decode().then(
+      () => {
+        view.photo(photo);
+        if (!this.frames) view.upload(photo, this.align);
+      },
+      () => {},
+    );
   }
 
   get hasFilm() {
@@ -46,7 +52,7 @@ export class WebglPlayer implements Player {
       const frame = f.take();
       if (frame) this.view.upload(frame, this.align);
     }
-    this.view.draw(reveal, aside);
+    this.view.draw(reveal, aside, t);
   }
 
   resize(vw: number, vh: number) {
