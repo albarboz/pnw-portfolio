@@ -4,7 +4,7 @@ import { expect, type Page, type TestInfo } from '@playwright/test';
 export function trackErrors(page: Page): string[] {
   const errors: string[] = [];
   page.on('console', (msg) => {
-    if (msg.type() === 'error') errors.push(`console: ${msg.text()}`);
+    if (msg.type() === 'error') errors.push(`console: ${msg.text()} ${msg.location().url}`.trim());
   });
   page.on('pageerror', (err) => errors.push(`page: ${err.message}`));
   page.on('requestfailed', (req) => {

@@ -66,6 +66,8 @@
             <nav class="trail-sign" data-sign>
               <ul></ul>
             </nav>
+            <!-- Back where you were, on a later visit: src/ui/resume.ts -->
+            <p class="resume" data-resume hidden><a href=""></a></p>
           </div>
 
           <!-- Scroll hint: visual only (the page scrolls like any other); fades out with the hero -->
@@ -152,6 +154,7 @@
           <footer class="wrap site-footer">
             <span data-footer-name></span>
             <span class="credits" data-credits></span>
+            <button class="keys-open" type="button" data-keys-open hidden></button>
             <a class="to-top blazed" href="#top" data-fly-top data-text="ui.toTop"></a>
           </footer>
         </section>
@@ -189,6 +192,16 @@
       <div class="cs-fog" aria-hidden="true">
         <canvas data-cs="fog"></canvas>
         <div class="cs-veil" data-cs="veil"></div>
+      </div>
+    </dialog>
+
+    <!-- Keyboard shortcuts (src/ui/keys.ts): `?` or the footer's button -->
+    <dialog class="keys" aria-labelledby="keys-title" data-keys>
+      <h2 id="keys-title" class="keys-title" data-keys-part="title"></h2>
+      <dl class="keys-list" data-keys-part="list"></dl>
+      <div class="keys-actions">
+        <button class="keys-toggle" type="button" data-keys-part="toggle"></button>
+        <button class="keys-close" type="button" data-keys-part="close"></button>
       </div>
     </dialog>
 

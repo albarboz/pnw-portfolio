@@ -270,6 +270,22 @@ export const site = {
     /** Footer link that flies back up the page, through the fog, to the overlook. */
     toTop: 'Back to the overlook',
     copyEmail: { label: 'Copy email', copied: 'Copied', selected: 'Selected — press Ctrl/⌘ C' },
+    /** On a later visit, under the trail sign: "Back on the trail at <the last case study opened>" (src/ui/resume.ts). */
+    resume: 'Back on the trail at',
+    /** Keyboard shortcuts (src/ui/keys.ts): `?` lists them; so does the footer's button, on screens with a mouse. */
+    keys: {
+      open: 'Keyboard shortcuts',
+      title: 'Keyboard shortcuts',
+      help: 'Show this list',
+      then: 'then',
+      goTo: 'Go to',
+      next: 'Next project, in a case study',
+      previous: 'Previous project, in a case study',
+      closeCaseStudy: 'Close a case study',
+      close: 'Close',
+      off: 'Turn shortcuts off',
+      on: 'Turn shortcuts on',
+    },
     /** The tab's icon follows the scene (src/ui/bar-color.ts). `contact` is the page's own favicon. */
     tabIcons: {
       overlook: asset('images/tab/valley.svg'),
