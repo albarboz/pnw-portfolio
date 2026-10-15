@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Tab icon in the dive (src/ui/bar-color.ts): banks of fog, one ridge tip above them. Colors match the tokens fog-high, bar-sky, fog-dusk. -->
+  <clipPath id="c"><rect width="32" height="32" rx="7"/></clipPath>
+  <g clip-path="url(#c)">
+    <rect width="32" height="32" fill="#e2e7e9"/>
+    <path fill="#8899a8" d="m14 15 6-8 6 8Z" opacity=".55"/>
+    <path fill="#9fa9a4" d="M0 14c6-2 11 2 17 0s11-2 15 0v4c-6-1-10 2-16 1S5 16 0 18Z" opacity=".5"/>
+    <path fill="#9fa9a4" d="M0 22c5-2 10 1 16 0s11-2 16 0v4c-7-1-11 2-17 1S5 24 0 26Z" opacity=".35"/>
+  </g>
+</svg>

@@ -270,6 +270,13 @@ export const site = {
     /** Footer link that flies back up the page, through the fog, to the overlook. */
     toTop: 'Back to the overlook',
     copyEmail: { label: 'Copy email', copied: 'Copied', selected: 'Selected — press Ctrl/⌘ C' },
+    /** The tab's icon follows the scene (src/ui/bar-color.ts). `contact` is the page's own favicon. */
+    tabIcons: {
+      overlook: asset('images/tab/valley.svg'),
+      fog: asset('images/tab/fog.svg'),
+      trail: asset('images/tab/trail.svg'),
+      contact: asset('favicon.svg'),
+    },
   },
 
   credits: [
