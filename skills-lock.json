@@ -13,11 +13,23 @@
       "skillPath": "skills/animation-performance/SKILL.md",
       "computedHash": "b68ba704106e27b1f83df0cb817e09ec947abb76825d86eabdee2954b6c1bb84"
     },
+    "debug-optimize-lcp": {
+      "source": "ChromeDevTools/chrome-devtools-mcp",
+      "sourceType": "github",
+      "skillPath": "skills/debug-optimize-lcp/SKILL.md",
+      "computedHash": "92582986e94a362630fe8d87bd20e141500393ec5def777fd5e4196ea57a3ac3"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "89496d5dd00f4810205f351759594fc2742bf8eea85a2f2b2d1de59f4bd91576"
+    },
+    "memory-leak-debugging": {
+      "source": "ChromeDevTools/chrome-devtools-mcp",
+      "sourceType": "github",
+      "skillPath": "skills/memory-leak-debugging/SKILL.md",
+      "computedHash": "a43e2037aecc34dcd87c97e26ac306e66b9249676802197bff1316ba84c1a8c7"
     },
     "mobile-native": {
       "source": "emilkowalski/skills",
@@ -36,6 +48,18 @@
       "sourceType": "github",
       "skillPath": "skills/review-animations/SKILL.md",
       "computedHash": "b4e5f0f4fe3e2743c85bf7354108f48a0b9d502cb20ef5c4a9c195da91f93736"
+    },
+    "web-perf": {
+      "source": "cloudflare/skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-perf/SKILL.md",
+      "computedHash": "72d0dd9706147e19bf3c1a36fdc02570f77685541d89d901a3a2f570824ba3cb"
+    },
+    "web-quality-audit": {
+      "source": "addyosmani/web-quality-skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-quality-audit/SKILL.md",
+      "computedHash": "9be796fc70ff05cf9842327d234b019376dc1abad8d7e3c4e3ea2dab8d8d3deb"
     }
   }
 }
