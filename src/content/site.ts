@@ -66,7 +66,7 @@ export const site = {
    */
   meta: {
     url: 'https://pnw-portfolio.alansoftwareengineer.workers.dev/',
-    title: 'Into the Fog',
+    title: 'Alan Barboza Portfolio',
     description: 'An immersive portfolio that descends through Cascade valley fog.',
     /** 1200×630, relative to `url`. A crop of the overlook. */
     image: {
@@ -78,7 +78,7 @@ export const site = {
   },
 
   name: { first: 'Alan', last: 'Barboza' },
-  tagline: 'Design and development from the west side of the mountains.',
+  tagline: 'Design and development.',
   /** Trail sign under the tagline: one plank per section, in page order. `target` is the section's id in index.html. */
   sign: {
     label: 'Sections',
@@ -138,13 +138,13 @@ export const site = {
     label: '',
     heading: 'I like making things.',
     paragraphs: [
-      'Interfaces with atmosphere: quiet, layered, and paced like a run through old growth on a grey morning.',
-      'I care about craft, calm motion, and pages that reward the second look. Replace this with your own story.',
+      'I designed this website and built it with claude',
+      "Full disclosure: it's all ai generated",
     ],
   },
 
   work: {
-    heading: 'Selected work',
+    heading: "Stuff I've made",
     label: '',
     /** Interface labels in the project detail view. */
     detail: { close: 'Close', role: 'Role', tools: 'Tools', example: 'Example', next: 'Next project' },
