@@ -12,7 +12,9 @@
     "run_worker_first": true
   },
   // alanbarboza.com's DNS is on Cloudflare; its A records (proxied) point at the blog's server, which the Worker
-  // reaches for /blog. The site still answers at pnw-portfolio.alansoftwareengineer.workers.dev too.
+  // reaches for /blog. The old address, pnw-portfolio.alansoftwareengineer.workers.dev, stays on (routes would turn
+  // it off) so links to it still work: the Worker sends them to alanbarboza.com.
+  "workers_dev": true,
   "routes": [
     { "pattern": "alanbarboza.com/*", "zone_name": "alanbarboza.com" },
     { "pattern": "www.alanbarboza.com/*", "zone_name": "alanbarboza.com" }
