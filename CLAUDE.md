@@ -15,6 +15,8 @@ An immersive, scroll-driven portfolio. The visitor is pulled out of a cloud onto
 - **web-haptics** (pinned 0.0.6, MIT, lochie) taps the phone at a few moments (`src/core/haptics.ts`: a blaze painting in, the landing on the trail, a flight arriving, the case-study cloud, the email copied, each of the runner's footfalls as the scroll passes it: `site.run.footfalls` from `tools/film-footfalls.py`). Touch screens only, loaded after the hero; Android vibrates, iOS 18+ ticks through a hidden switch. Browsers allow it only after the visitor's first tap.
 - **Case studies**: each project has its own address, `work/<slug>/` (`src/content/paths.ts`), opened over the trail in a `<dialog>` through a cloud (`src/ui/case-study.ts`, `src/effects/fog-wipe.ts`, `tuning.wipe`). The address is the state: Back, Close and Next move through the history. `siteMeta()` in `vite.config.ts` writes a copy of the page for each project with its own title and link preview, and a `<base>` back to the root; the app pins that base on every page, so relative paths survive the address changing.
 
+- **Hosting:** Cloudflare, at https://alanbarboza.com/ (DNS on Cloudflare; a push to `main` deploys). A small Worker runs first (`worker/index.ts`, `wrangler.jsonc`): the owner's blog stays at `/blog` on its own server (`/blog`, `/static` and `/.well-known/acme-challenge` go through to it), `www` and the old workers.dev address redirect to the bare domain, everything else is `dist/`.
+
 Ask before adding any other dependency.
 
 ## Commands
