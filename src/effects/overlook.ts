@@ -8,6 +8,8 @@ import type { DepthLayers, DepthView } from './depth-layers';
 
 /** A little bigger than cover, so even at rest the cutouts have room to shift with the pointer. */
 const OVERSCAN = 1.04;
+/** How long the flat photo stays under the cutouts once they're shown (ms): see render(). */
+const PHOTO_HOLD_MS = 400;
 /** The 3D layers draw the same picture as the flat ones at rest; a short fade hides any resampling difference. */
 const FADE_MS = 400;
 /** The far layer's sharper middle (`detail` in site.ts) blends in over this zoom range, once the dive is moving. */
@@ -40,6 +42,7 @@ export class Overlook {
   private relief: DepthLayers | null = null;
   private reliefReady = false;
   private layered = false;
+  private layeredAt = 0;
   private reliefSince = -1; // when the 3D layers began fading in (performance.now), −1 while they're off
   private dead = false;
   private L = { vw: 0, vh: 0, w: 0, h: 0 };
@@ -95,6 +98,7 @@ export class Overlook {
     const atRest = v.dive === 0; // a stage swaps in only here, where it stacks exactly onto the one before
     if (atRest && this.layers.ready && !this.layered) {
       this.layered = true;
+      this.layeredAt = performance.now();
       this.layers.show();
       this.photo.style.willChange = 'auto'; // the cutouts move now; the flat photo only waits under them
     }
@@ -105,7 +109,11 @@ export class Overlook {
     const parts = this.layers.parts;
 
     this.canvas.style.opacity = covered ? '0' : String(fade);
-    this.photo.style.opacity = covered || this.layered || fade === 1 ? '0' : '';
+    // The flat photo stays under the cutouts for a moment after they appear: Safari can take a frame or two to paint
+    // an image it has just un-hidden, and with nothing under it that showed as a flash. They stack onto it exactly,
+    // so the overlap can't be seen; once the camera moves, the photo (which stops following it) goes at once.
+    const settled = this.layered && (!atRest || performance.now() - this.layeredAt > PHOTO_HOLD_MS);
+    this.photo.style.opacity = covered || settled || fade === 1 ? '0' : '';
     if (covered) {
       parts.forEach((p) => (p.el.style.opacity = '0'));
       this.detail.style.opacity = '0';
