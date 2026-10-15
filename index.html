@@ -41,6 +41,9 @@
             <canvas data-layer="landing-depth" hidden aria-hidden="true"></canvas>
             <div class="landing-shade" aria-hidden="true"></div>
           </div>
+          <!-- Water on the lens: src/effects/lens-drops.ts. Under the low fog, so the drops are as hazy as the trail they
+               bend (in front of it they'd show the photo unfogged, as dark specks) and come clear as the fog lifts. -->
+          <canvas data-layer="lens" hidden aria-hidden="true"></canvas>
           <canvas data-fog="low" aria-hidden="true"></canvas>
           <!-- Film grain over every picture layer, below the text: src/effects/grain.ts -->
           <div class="grain" data-layer="grain" aria-hidden="true"><div class="grain-tile"></div></div>

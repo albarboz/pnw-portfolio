@@ -43,6 +43,9 @@ vec2 frameRaw(vec2 uv) {
   return mix(own(uv), onPhoto, uAlign);
 }
 vec2 frameAt(vec2 uv) { return clamp(frameRaw(uv), 0.0, 1.0); }
+// a point of the frame showing, in the HQ film's frame (the phone film is a slice of it): via their places on the photo
+uniform vec2 uMPos, uMSize;
+vec2 master(vec2 f) { return (uAPos + f * uASize - uMPos) / uMSize; }
 ${DEPTH_GLSL}
 uniform vec3 uFog;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -96,7 +99,10 @@ void main() {
   if (off > 0.0) col = mix(col, texture2D(uPhoto, clamp(uAPos + f * uASize, 0.0, 1.0)).rgb, off);
   fog = clamp(fog, 0.0, 1.0);
   col = mix(col, uFog * (0.94 + 0.06 * body), fog * 0.85); // a touch brighter where it's thick
-  float a = clamp(max(inside, fog * 0.92), 0.0, 1.0);
+  // Nothing before the hand-off: while the stage still rises over the descent (reveal 0) the torn edge would open a
+  // patch of film around the runner's place on the stage, low on the screen: a second runner. Then in over a moment,
+  // so the first wisps don't pop.
+  float a = clamp(max(inside, fog * 0.92), 0.0, 1.0) * smoothstep(0.0, 0.06, uReveal);
   gl_FragColor = vec4(col * a, a);
 }`;
 
@@ -118,6 +124,8 @@ export interface RunPlacement {
   focus: { x: number; y: number };
   /** The photo's zoom at rest (the descent's landed zoom). */
   zoom: number;
+  /** The HQ film's first frame on the photo, and its width / height: the depth is in its frame. */
+  film: RunAlign & { aspect: number };
 }
 
 /** Where a film's first frame sits on the photo: left, top and width, as fractions of the photo. */
@@ -139,7 +147,7 @@ export class RunView {
   private view = { vw: 0, vh: 0 };
   private dpr = 0;
   private align: RunAlign = { x: 0, y: 0, w: 1 };
-  private depthMap: { info: FilmDepth; align: RunAlign; tile: { w: number; h: number } } | null = null;
+  private depthMap: FilmDepth | null = null;
   private last = '';
 
   constructor(
@@ -193,20 +201,18 @@ export class RunView {
     this.last = '';
   }
 
-  /**
-   * The film's depth (src/effects/film-depth.ts) for the ring's edge, from the decoded atlas. `align` is where the
-   * film it was made from (the HQ one) sits on the photo.
-   */
-  depth(img: HTMLImageElement, info: FilmDepth, align: RunAlign) {
+  /** The film's depth (src/effects/film-depth.ts) for the ring's edge, from the decoded atlas. */
+  depth(img: HTMLImageElement, info: FilmDepth) {
     const gl = this.gl;
     if (!gl) return;
     this.texture(1, gl.LUMINANCE, img);
     gl.uniform2f(this.u.uDGrid, info.cols, info.rows);
     gl.uniform1f(this.u.uDCount, info.count);
     gl.uniform2f(this.u.uDTexel, info.cols / img.width, info.rows / img.height);
-    this.depthMap = { info, align, tile: { w: img.width / info.cols, h: img.height / info.rows } };
-    this.fit();
+    this.depthMap = info;
+    this.last = '';
   }
+
 
   /**
    * `aside` (0–1): how far the film has stepped aside for a section reading over it; `t` (0–1): the film's
@@ -224,7 +230,7 @@ export class RunView {
     if (key === this.last) return;
     this.last = key;
     gl.uniform1f(this.u.uDepthAmt, amount);
-    if (D) gl.uniform1f(this.u.uDFrame, clamp(t / D.info.until, 0, 1) * (D.info.count - 1));
+    if (D) gl.uniform1f(this.u.uDFrame, clamp(t / D.until, 0, 1) * (D.count - 1));
     gl.uniform1f(this.u.uTime, time % 1000);
     gl.uniform1f(this.u.uReveal, reveal);
     gl.uniform1f(this.u.uAside, aside);
@@ -261,8 +267,9 @@ export class RunView {
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     const frame = ['uFrame', 'uScale', 'uOffset', 'uScaleAside', 'uOffsetAside', 'uAside', 'uPScale', 'uPOffset'];
     frame.push('uAPos', 'uASize', 'uAlign', 'uFocus', 'uZoom', 'uTime');
-    const depth = ['uPhoto', 'uHasPhoto', 'uDepth', 'uDepthAmt', 'uDPos', 'uDSize', 'uDGrid', 'uDTexel', 'uDFrame', 'uDCount'];
-    for (const name of [...frame, ...depth, 'uOrigin', 'uAspect', 'uReveal', 'uReach', 'uFog']) {
+    const depth = ['uPhoto', 'uHasPhoto', 'uDepth', 'uDepthAmt', 'uDGrid', 'uDTexel', 'uDFrame', 'uDCount'];
+    const film = ['uMPos', 'uMSize'];
+    for (const name of [...frame, ...depth, ...film, 'uOrigin', 'uAspect', 'uReveal', 'uReach', 'uFog']) {
       this.u[name] = gl.getUniformLocation(prog, name);
     }
     gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
@@ -303,12 +310,10 @@ export class RunView {
     const size = [A.w, (A.w * photo.width * th) / (tw * photo.height)];
     gl.uniform2f(this.u.uAPos, A.x, A.y);
     gl.uniform2f(this.u.uASize, size[0], size[1]);
-    // the depth frame's place on the photo: the HQ film's
-    const D = this.depthMap;
-    if (D) {
-      gl.uniform2f(this.u.uDPos, D.align.x, D.align.y);
-      gl.uniform2f(this.u.uDSize, D.align.w, (D.align.w * photo.width * D.tile.h) / (D.tile.w * photo.height));
-    }
+    // the HQ film's frame on the photo, where the depth is
+    const M = this.place.film;
+    gl.uniform2f(this.u.uMPos, M.x, M.y);
+    gl.uniform2f(this.u.uMSize, M.w, (M.w * photo.width) / (M.aspect * photo.height));
     // screen → frame, the film's own cover framing, around the runner where he is in the frame
     const fx = clamp((F.x - A.x) / size[0], 0, 1);
     const fy = clamp((F.y - A.y) / size[1], 0, 1);

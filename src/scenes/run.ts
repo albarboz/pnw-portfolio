@@ -147,6 +147,8 @@ export function createRunScene(): SceneHandle | null {
         photo: { width: L.width, height: L.height },
         focus: { x: F.x / 100, y: F.y / 100 },
         zoom: LANDED_ZOOM,
+        // the HQ film's frame (the still is one of its frames, so it has its shape)
+        film: { ...R.align, aspect: R.still.width / R.still.height },
       };
       const view = new RunView(canvas, place, () => {
         webgl?.destroy(); // context lost: the plain video takes over
@@ -158,7 +160,7 @@ export function createRunScene(): SceneHandle | null {
         view.resize(stage.clientWidth, stage.clientHeight);
         player = webgl = new WebglPlayer(view, site.descent.landing.src);
         // the film's depth shapes the ring's edge; without it the ring stays plain
-        void loadFilmDepth(R.depth.src).then((img) => img && !dead && view.depth(img, R.depth, R.align));
+        void loadFilmDepth(R.depth.src).then((img) => img && !dead && view.depth(img, R.depth));
         return loadFilm();
       }
       view.destroy();

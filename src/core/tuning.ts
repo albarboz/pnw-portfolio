@@ -71,6 +71,26 @@ export const tuning = {
   },
 
   /**
+   * Water on the lens as the camera comes out of the cloud onto the trail (src/effects/lens-drops.ts). It condenses
+   * in the white-out, runs while the trail settles and dries before the film opens. Sizes in CSS px on a laptop
+   * screen; a phone gets them smaller.
+   */
+  drops: {
+    /** Drops already on the lens as the trail appears (on a 1920 × 1080 screen). */
+    seed: 60,
+    /** New drops a second at the wettest. 0 = only the fine beads. */
+    rate: 6,
+    /** Size of the largest drop (the water drawn is about a third of it). Big drops are heavy enough to run. */
+    size: 120,
+    /** Fine beads a second on a 1920 × 1080 screen, misting the glass. */
+    beads: 300,
+    /** How much each drop bends the trail behind it: 1 = raindrop-fx's own. */
+    refract: 1,
+    /** The sky's glint on each drop, lit from the gap in the canopy (top right). 0 = none. */
+    glint: 0.5,
+  },
+
+  /**
    * The trail sign's trip to a section (src/ui/trail-sign.ts): the dive plays on the way down, so a long trip
    * takes long enough to watch. Seconds = base + perScreen × screens travelled, capped at max.
    */

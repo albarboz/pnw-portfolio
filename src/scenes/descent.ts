@@ -7,6 +7,7 @@ import { tuning } from '../core/tuning';
 import { DepthPhoto } from '../effects/depth-photo';
 import { FogLayer } from '../effects/fog-layer';
 import { Grain } from '../effects/grain';
+import type { LensDrops } from '../effects/lens-drops';
 import { Overlook } from '../effects/overlook';
 import { site } from '../content/site';
 import type { SceneHandle } from './types';
@@ -19,6 +20,7 @@ export const LANDED_ZOOM = 1.02;
  *
  *   time  0 ──── 0.16 ──── 0.4 ──── 0.62 ──── 0.78 ──── 0.95 ── 1 ─────────── + hold
  *         hero out   dive & fog thicken  whiteout   trail resolves  caption   the run opens over the trail
+ *                                          └ water on the lens: condenses, runs, dries ┘
  *
  * The hold keeps the trail pinned while the trail run's fog ring opens the film over it (src/scenes/run.ts); the
  * pin ends as the ring finishes, and the film's stage, stuck on top, carries on.
@@ -71,6 +73,23 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
 
   const grain = new Grain($('[data-layer="grain"]'));
 
+  // Water on the lens as the camera leaves the cloud (src/effects/lens-drops.ts): loaded once the dive is under way,
+  // only where the GPU has room for it. Without it the trail is simply dry.
+  const lensCanvas = $<HTMLCanvasElement>('[data-layer="lens"]');
+  let lens: LensDrops | null = null;
+  let lensAsked = false;
+  let dead = false;
+  const loadLens = async () => {
+    lensAsked = true;
+    if (still || (await quality) < 2) return;
+    const { LensDrops } = await import('../effects/lens-drops');
+    const framing = { focus: { x: F.x / 100, y: F.y / 100 }, zoom: LANDED_ZOOM };
+    const made = await LensDrops.create(lensCanvas, landing, framing, L.vw, L.vh);
+    if (dead) return made?.destroy();
+    lens = made;
+    lensCanvas.hidden = !made;
+  };
+
   // The opening view: flat photo → cutouts flown through by a CSS dolly → the valley in 3D (src/effects/overlook.ts).
   const overlook = new Overlook(stage, () => render());
 
@@ -89,6 +108,8 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     land: 0, // landing photo settles from 1.35× to 1×
     fogLow: 0, // fog density over the landing
     capLanding: 0,
+    wet: 0, // how fast water gathers on the lens, 0–1
+    dry: 0, // the lens drying off, 0–1
   };
 
   // ---------- layout ----------
@@ -107,6 +128,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     fogHigh.resize();
     fogLow.resize();
     depth.resize(vw, vh);
+    lens?.resize(vw, vh);
   };
 
   // ---------- render: the only place that writes to the DOM ----------
@@ -139,6 +161,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
       landing.style.transform = `scale(${s}) translate3d(${pointer.x * -6 * m}px, ${pointer.y * -4 * m}px, 0)`;
     }
     capLanding.style.opacity = String(state.capLanding);
+    lensCanvas.style.opacity = String(state.landing * (1 - state.dry));
 
     fogHigh.density = state.fogHigh;
     fogHigh.rush = state.rush * 1.6 * m;
@@ -181,7 +204,10 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     .to(state, { landing: 1, duration: 0.16, ease: 'power1.inOut' }, 0.62)
     .to(state, { land: 1, duration: 0.38, ease: 'power2.out' }, 0.62)
     .to(state, { fogLow: 0.12, duration: 0.3, ease: 'power1.inOut' }, 0.66)
-    .to(state, { capLanding: 1, duration: 0.09 }, 0.86);
+    .to(state, { capLanding: 1, duration: 0.09 }, 0.86)
+    .to(state, { wet: 1, duration: 0.08 }, 0.54)
+    .to(state, { wet: 0, duration: 0.1, ease: 'power1.in' }, 0.8)
+    .to(state, { dry: 1, duration: 0.1, ease: 'power1.in' }, 0.9);
   // the hand-off hold, as long (in the timeline's units, 1 = the descent) as the run's reveal is in scroll
   const holdLength = () => tuning.run.reveal / tuning.scroll;
   const hold = tl?.to({}, { duration: holdLength() }, 1);
@@ -197,7 +223,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   observer.observe(stage);
 
   let lastProgress = -1;
-  const tick = (time: number) => {
+  const tick = (time: number, deltaMs: number) => {
     if (!visible) return;
     render();
     const p = tl?.time() ?? 0; // 0–1 through the descent, then on through the hold
@@ -208,6 +234,10 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     if (p < 0.72) fogHigh.draw(t);
     else fogHigh.clear();
     fogLow.draw(t * 0.8);
+    if (!lensAsked && p > 0.1) void loadLens();
+    // water runs on its own while the lens shows; once it's out of sight (above the trail or dried), wipe it
+    if (state.landing * (1 - state.dry) > 0) lens?.draw(state.wet, deltaMs / 1000);
+    else lens?.dry();
   };
 
   const onResize = () => {
@@ -224,6 +254,8 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     destroy() {
       gsap.ticker.remove(tick);
       observer.disconnect();
+      dead = true;
+      lens?.destroy();
       depth.destroy();
       fogHigh.destroy();
       fogLow.destroy();

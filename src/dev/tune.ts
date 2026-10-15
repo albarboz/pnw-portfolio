@@ -59,6 +59,14 @@ export function createTunePanel() {
   sh.addBinding(tuning.shafts, 'threshold', { label: 'gap brightness', min: 0, max: 0.6, step: 0.01 });
   sh.addBinding(tuning.shafts, 'softness', { min: 0, max: 0.6, step: 0.01 });
 
+  const dr = pane.addFolder({ title: 'Lens drops' });
+  dr.addBinding(tuning.drops, 'seed', { label: 'drops at start', min: 0, max: 300, step: 5 });
+  dr.addBinding(tuning.drops, 'rate', { label: 'drops / s', min: 0, max: 20, step: 0.5 });
+  dr.addBinding(tuning.drops, 'size', { label: 'largest (px)', min: 20, max: 140, step: 1 });
+  dr.addBinding(tuning.drops, 'beads', { label: 'beads / s', min: 0, max: 2000, step: 10 });
+  dr.addBinding(tuning.drops, 'refract', { label: 'bend', min: 0, max: 3, step: 0.05 });
+  dr.addBinding(tuning.drops, 'glint', { min: 0, max: 1, step: 0.01 });
+
   const rn = pane.addFolder({ title: 'Trail run' });
   rn.addBinding(tuning.run, 'reveal', { label: 'hand-off', min: 0.3, max: 2, step: 0.05 })
     .on('change', (e) => e.last && ScrollTrigger.refresh());
@@ -78,7 +86,7 @@ export function createTunePanel() {
 
   pane.addButton({ title: 'Copy values' }).on('click', () => {
     const r = (n: number) => Math.round(n * 1000) / 1000;
-    const { fog: f, dolly: d, photo3d: s, shafts: l, grain: g, sign: t, run: n } = tuning;
+    const { fog: f, dolly: d, photo3d: s, shafts: l, grain: g, sign: t, run: n, drops: w } = tuning;
     const text = [
       '// src/core/tuning.ts',
       `scroll: ${r(tuning.scroll)},`,
@@ -87,6 +95,7 @@ export function createTunePanel() {
       `photo3d: { show: ${s.show}, sky: ${r(s.sky)}, fly: ${r(s.fly)}, fov: ${r(s.fov)}, sway: ${r(s.sway)}, near: ${r(s.near)}, smooth: ${r(s.smooth)} },`,
       `shafts: { strength: ${r(l.strength)}, x: ${r(l.x)}, y: ${r(l.y)}, length: ${r(l.length)}, threshold: ${r(l.threshold)}, softness: ${r(l.softness)} },`,
       `grain: { amount: ${r(g.amount)}, size: ${r(g.size)} },`,
+      `drops: { seed: ${r(w.seed)}, rate: ${r(w.rate)}, size: ${r(w.size)}, beads: ${r(w.beads)}, refract: ${r(w.refract)}, glint: ${r(w.glint)} },`,
       `sign: { base: ${r(t.base)}, perScreen: ${r(t.perScreen)}, max: ${r(t.max)} },`,
       `run: { reveal: ${r(n.reveal)}, gap: ${r(n.gap)}, slow: ${r(n.slow)}, dim: ${r(n.dim)}, depth: ${r(n.depth)} },`,
       '// src/content/site.ts',
