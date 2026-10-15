@@ -2,18 +2,29 @@ import './styles/fonts.css';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/sections.css';
+import './styles/print.css';
 
 import { initScroll, ScrollTrigger } from './core/scroll';
+import { prefersReducedMotion } from './core/motion';
+import { yieldToPaint } from './core/after-hero';
+import { startGovernor } from './core/governor';
 import { renderContent } from './ui/content';
 import { createReveal } from './ui/reveal';
 import { createTrailSign } from './ui/trail-sign';
 import { createHeader } from './ui/header';
 import { initCopyEmail } from './ui/copy-email';
 import { createCaseStudy } from './ui/case-study';
+import { createBarColor } from './ui/bar-color';
+import { logColophon } from './ui/colophon';
 import { createScenes } from './scenes';
 
 // 1. content first, so scenes measure real layout
 renderContent();
+
+// Let the browser paint the hero's text before the scenes are built (~80 ms on a slow phone): every layer they
+// drive starts hidden in CSS, as their first frame has it. Not with reduced motion, whose still layout the scenes
+// set: painting before it would shift the page.
+if (!prefersReducedMotion()) await yieldToPaint();
 
 // 2. smooth scroll (skipped for reduced motion)
 const lenis = initScroll();
@@ -25,6 +36,13 @@ const trailSign = createTrailSign(lenis);
 const header = createHeader(lenis); // after the scenes too: it measures where the sections are
 initCopyEmail();
 const caseStudy = createCaseStudy(lenis);
+const barColor = createBarColor(); // after the scenes: it follows the descent's pin
+
+// Watch the frame rate: if frames keep running late, the WebGL layers draw fewer pixels (src/core/governor.ts).
+startGovernor();
+
+// A note in the console for the curious (src/ui/colophon.ts).
+logColophon();
 
 // Recalculate trigger positions once fonts have settled. (ScrollTrigger refreshes on window load by itself.)
 document.fonts?.ready.then(() => ScrollTrigger.refresh());
@@ -41,6 +59,7 @@ if (import.meta.hot) {
     trailSign.destroy();
     header.destroy();
     caseStudy.destroy();
+    barColor.destroy();
     lenis?.destroy();
   });
 }

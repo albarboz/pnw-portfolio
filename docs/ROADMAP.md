@@ -54,6 +54,20 @@ Researched 2026-10-13. Ordered by how much a visitor would notice. Each new depe
 - [x] Overlook depth maps from [Depth Anything 3](https://github.com/ByteDance-Seed/Depth-Anything-3) `DA3MONO-LARGE` (Apache 2.0; the Large and Giant checkpoints are CC BY-NC, so don't use those), via `tools/layer-depth.py`. Its depth is turned into nearness spaced like V2's (√(1/z)), so the tuned dive holds; the tall fir passes a little later. Its sky head also flagged the valley fog as sky, so only sky that reaches the top of the frame counts. Sharper edges don't show: the depth is smoothed on purpose against streaks. The trail keeps V2: DA3 lays out its ground and ferns differently and no remap matched. [MoGe-2](https://github.com/microsoft/MoGe) (MIT code; check the weights' license) stays the second option
 - [x] Sharper dive with [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) `x4plus` (BSD-3), so `diveZoom` is back at 4.5. The whole overlook at 2× measured ~1 MB as WebP (cutouts ~1.5 MB more), far past the budget, so only the valley the zoom looks into is upscaled: `tools/detail-patch.py` → `valley-far-detail.webp` (2330×2044, 75 KB, after the hero), from the lossless original where the far layer still shows it (an upscaled repaint grows speckled needles), tones matched to the far layer. The far layer blends it in from 1.1× to 1.8× zoom, in 3D (`setDetail()` in `depth-layers.ts`) and in the flat fallback (an `<img>` over the far cutout)
 
+**Feels instant** (2026-10-14, from a research round; numbers measured on the M2 in Chrome)
+
+- [x] The film streams: decoded while it downloads (`src/effects/stream-source.ts`). At 8 Mbit/s the first frame is ready 0.3 s after the request instead of 8.2 s (wide) / 4.8 s (phone)
+- [x] Case-study covers load and decode when a row is pointed at, touched or focused, and the next project's once one is open
+- [x] Speculation Rules prefetch `work/*` pages (HTML only, Chromium); the overlook's preload also goes out as a `Link` header (an Early Hint once the site is on a custom domain with Early Hints on)
+- [x] Hero text paints before the scenes are built (`yieldToPaint()`): ~110 ms sooner at 4× CPU throttling
+- [x] Back/forward cache: the film's download pauses on `pagehide`, so Back from another site restores the page mid-scroll; it resumes by range request
+- [x] Frame-time governor and Save-Data (`src/core/governor.ts`, `saveData()` in `src/core/quality.ts`)
+- [x] Phone toolbar color follows the scene (`src/ui/bar-color.ts`, `--bar-*` tokens)
+- [x] Dithered fog and fog ring (`src/effects/dither.ts`), scroll gust (`tuning.fog.gust`) and the landing's focus pull (`tuning.air`). Fog churn and dive motes were tried and taken out (read as snow)
+- [x] Per-project link-preview cards (`tools/share-cards.mjs`), `<noscript>` page, print stylesheet, `security.txt`, `humans.txt`, a console note with the build and this visit's quality
+- [ ] Thumbnail → case-study View Transition: skipped, the cloud wipe covers the swap
+- [ ] MoGe-2/3 depth for the overlook: needs its own Python env (numpy ≥ 2), check MoGe-3's license; would re-tune the dive
+
 **Smaller polish**
 
 - [x] Project links: each project is a case study at its own address (Phase 8)

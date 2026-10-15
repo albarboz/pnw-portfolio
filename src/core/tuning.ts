@@ -18,6 +18,8 @@ export const tuning = {
     banks: 0.35,
     /** How much the fog thins toward the bottom of the frame, where the nearest trees are. */
     near: 0.45,
+    /** How much a fast scroll hurries the fog's drift (it settles again as the page slows): 0 = not at all. */
+    gust: 0.8,
   },
 
   /** The overlook in 3D: the far and mid cutouts pushed back by their depth maps (src/effects/depth-layers.ts). */
@@ -60,6 +62,15 @@ export const tuning = {
     threshold: 0.3,
     /** How wide the light is, as a fraction of the photo. Wider = beams that feather out as they fall. 0 = sharp. */
     softness: 0.2,
+  },
+
+  /** The lens as the camera lands on the trail. */
+  air: {
+    /**
+     * How far out of focus the trail starts as the camera comes out of the cloud, sharpening onto the runner as it
+     * settles (src/effects/depth-photo.ts): 0 = sharp from the start.
+     */
+    focus: 0.8,
   },
 
   /** Film grain over the whole descent (src/effects/grain.ts), so the smooth fog shares the photos' grain. */

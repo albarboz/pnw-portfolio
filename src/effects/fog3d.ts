@@ -9,8 +9,10 @@ import {
   Vector3,
   WebGLRenderer,
 } from 'three';
+import { onShed, shed } from '../core/governor';
 import { cssRgb } from '../core/tokens';
 import { tuning } from '../core/tuning';
+import { DITHER_GLSL } from './dither';
 import type { FogOptions } from './fog';
 
 const VERT = `
@@ -31,7 +33,7 @@ uniform vec2 uOffset;
 uniform vec3 uTint;
 uniform float uTime, uDensity, uRush, uYMin, uSeed;
 uniform float uStrength, uHaze, uBanks, uNear; // src/core/tuning.ts
-
+${DITHER_GLSL}
 float hash(vec3 p) {
   p = fract(p * 0.3183099 + 0.1);
   p *= 17.0;
@@ -82,6 +84,7 @@ void main() {
   float band = smoothstep(uYMin - 0.15, uYMin + 0.3, vUv.y) * mix(uBanks, 1.0, bank) * (1.0 - uNear * near);
   thick *= mix(band, 1.0, inside);
   float a = 1.0 - exp(-thick * pow(uDensity, 0.7) * uStrength);
+  a = clamp(a + dither() * step(0.002, a), 0.0, 1.0); // no bands in the thin edges of the fog
   gl_FragColor = vec4(uTint * a, a); // premultiplied, like the canvas expects
 }`;
 
@@ -103,6 +106,7 @@ export class Fog3D {
   private opts: Required<FogOptions>;
   private last = ''; // inputs of the frame on the canvas, so a still frame (reduced motion) is drawn once
   private size = new Vector2(2, 2);
+  private unshed = onShed(() => this.resize());
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -120,7 +124,6 @@ export class Fog3D {
       powerPreference: 'low-power',
     });
     this.renderer.setClearColor(0x000000, 0);
-    this.renderer.setPixelRatio(this.opts.resolution);
     const [r, g, b] = cssRgb(this.opts.tint);
     // Raw sRGB tint: a plain ShaderMaterial skips three's color management, so the canvas gets these values as-is.
     this.material = new ShaderMaterial({
@@ -152,6 +155,7 @@ export class Fog3D {
   resize() {
     const rect = this.canvas.getBoundingClientRect();
     this.size.set(Math.max(2, rect.width), Math.max(2, rect.height));
+    this.renderer.setPixelRatio(this.opts.resolution * shed.scale); // fewer pixels if frames run late (core/governor.ts)
     this.renderer.setSize(this.size.x, this.size.y, false); // CSS keeps it at 100%
     this.last = '';
   }
@@ -183,6 +187,7 @@ export class Fog3D {
   }
 
   destroy() {
+    this.unshed();
     this.canvas.removeEventListener('webglcontextlost', this.lost);
     this.scene.traverse((o) => (o as Mesh).geometry?.dispose());
     this.material.dispose();

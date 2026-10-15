@@ -12,6 +12,7 @@ import {
   Vector4,
   WebGLRenderer,
 } from 'three';
+import { onShed, shed } from '../core/governor';
 import { cssRgb } from '../core/tokens';
 
 /**
@@ -143,6 +144,8 @@ export class DepthLayers {
   private detailMix = { value: 0 }; // shared with the far layer's material once it has a detail image
   private targetDepth = 0; // stored depth value at the dive target, read from the far layer's map
   private last = '';
+  private size = { vw: 0, vh: 0 };
+  private unshed = onShed(() => this.size.vw && this.resize(this.size.vw, this.size.vh));
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -168,7 +171,9 @@ export class DepthLayers {
   }
 
   resize(vw: number, vh: number) {
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_DPR));
+    this.size = { vw, vh };
+    // fewer pixels if frames run late (core/governor.ts)
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_DPR) * shed.scale);
     this.renderer.setSize(vw, vh, false); // CSS keeps it at 100%
     this.last = '';
   }
@@ -218,6 +223,7 @@ export class DepthLayers {
   }
 
   destroy() {
+    this.unshed();
     this.canvas.removeEventListener('webglcontextlost', this.lost);
     this.scene.traverse((o) => (o as Mesh).geometry?.dispose());
     this.materials.forEach((m) => {

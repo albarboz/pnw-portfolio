@@ -1,0 +1,115 @@
+/* Printing (or saving as PDF) gives a one-page CV, not screenshots of the fog: the name and tagline, About, the
+   projects and Contact, in ink on paper, with every link's address written out. The immersive layers, pinned
+   space and scrubbed effects are dropped; whatever the reveals and scenes left half-faded is shown in full. */
+@media print {
+  :root {
+    color-scheme: light;
+  }
+  html,
+  body {
+    background: var(--print-paper) !important;
+  }
+  body,
+  body * {
+    color: var(--print-ink) !important;
+    text-shadow: none !important;
+  }
+  .section,
+  .work,
+  .contact,
+  .about,
+  [data-stage] {
+    background: none !important;
+  }
+  /* the soft hand-off gradients between sections */
+  .section::before,
+  .section::after {
+    display: none !important;
+  }
+
+  /* gone: chrome, pictures, motion, buttons that do nothing on paper */
+  .site-header,
+  .trail-sign,
+  .scroll-cue,
+  .caption,
+  .run .stage,
+  .run-gap,
+  .case-study,
+  .copy,
+  .to-top,
+  .work-thumb,
+  .work-cue,
+  .grain,
+  canvas,
+  video,
+  [data-scene='descent'] [data-stage] > :not(.hero-copy) {
+    display: none !important;
+  }
+
+  /* the pinned and sticky frames flatten into the flow */
+  .pin-spacer,
+  [data-scene],
+  [data-stage],
+  .hero-copy {
+    position: static !important;
+    inset: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    transform: none !important;
+  }
+  .hero-copy,
+  [data-reveal],
+  [data-drift],
+  [data-lift] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+  /* no arrivals on paper: the name's rise-in would print it mid-fade; blazes print painted */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .is-waiting {
+    --blaze-paint: 1;
+  }
+  /* the name heads the page, on the sections' left edge */
+  .hero-copy {
+    max-width: var(--max) !important;
+    margin: 0 auto !important;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .hero-copy h1 {
+    font-size: 40pt;
+  }
+  .section {
+    min-height: 0 !important;
+    padding: 18pt 0 0 !important;
+  }
+  .section h2 {
+    font-size: 24pt;
+  }
+  .work-row {
+    display: block !important;
+    padding-block: 8pt !important;
+    break-inside: avoid;
+  }
+
+  /* links write out where they go */
+  a[href^='http']::after,
+  a[href^='mailto:']::after {
+    content: ' (' attr(href) ')';
+    font-size: 9pt;
+  }
+  a[href^='mailto:'].email::after {
+    content: none; /* the address is its own text */
+  }
+}

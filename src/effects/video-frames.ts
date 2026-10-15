@@ -1,4 +1,5 @@
-import { BlobSource, Input, MP4, VideoSampleSink, type VideoSample } from 'mediabunny';
+import { Input, MP4, VideoSampleSink, type VideoSample } from 'mediabunny';
+import { StreamedFile } from './stream-source';
 
 /** Memory for decoded frames: as many as fit (10–20), enough to scrub back a little without decoding again. */
 const POOL_BYTES = 64e6;
@@ -35,6 +36,7 @@ export class VideoFrames {
   private dead = false;
 
   private constructor(
+    private file: StreamedFile,
     private input: Input,
     private sink: VideoSampleSink,
     private first: number,
@@ -52,16 +54,18 @@ export class VideoFrames {
   }
 
   /**
-   * Fetches the whole file, then decodes on request. Frames are kept no bigger than a `view` (CSS px) filled by
+   * Starts the download and resolves once the file's index is in (a few KB): frames decode as their bytes arrive
+   * (src/effects/stream-source.ts). Frames are kept no bigger than a `view` (CSS px) filled by
    * cover at `dpr` device pixels per CSS px needs.
    */
   static async open(url: string, view: { w: number; h: number; dpr: number }): Promise<VideoFrames | null> {
     if (!('VideoDecoder' in window)) return null;
+    let file: StreamedFile | null = null;
     let input: Input | null = null;
     try {
-      const res = await fetch(url);
-      if (!res.ok) return null;
-      input = new Input({ formats: [MP4], source: new BlobSource(await res.blob()) });
+      file = await StreamedFile.open(url);
+      if (!file) return null;
+      input = new Input({ formats: [MP4], source: file.source() });
       const track = await input.getPrimaryVideoTrack();
       if (!track || !(await track.canDecode())) throw new Error('cannot decode');
       const [stats, first] = await Promise.all([track.computePacketStats(), track.getFirstTimestamp()]);
@@ -69,9 +73,10 @@ export class VideoFrames {
       const scale = Math.min(1, cover * view.dpr);
       const w = Math.round(track.displayWidth * scale);
       const h = Math.round(track.displayHeight * scale);
-      return new VideoFrames(input, new VideoSampleSink(track), first, stats.averagePacketRate, stats.packetCount, w, h);
+      return new VideoFrames(file, input, new VideoSampleSink(track), first, stats.averagePacketRate, stats.packetCount, w, h);
     } catch {
       input?.dispose();
+      file?.dispose();
       return null;
     }
   }
@@ -101,6 +106,7 @@ export class VideoFrames {
     this.dead = true;
     this.wake?.();
     this.input.dispose();
+    this.file.dispose();
     for (const s of this.ring) s.canvas.width = s.canvas.height = 0; // let the browser drop the pixels now
   }
 
@@ -156,8 +162,10 @@ export class VideoFrames {
         if (!this.dead) at = this.store(r.value);
         r.value.close();
       } catch {
-        it = null; // a decoder error: start over from the next request
+        it = null; // a decoder or download error: start over at the next request, not at once (it'd spin)
         at = -1;
+        await new Promise<void>((res) => (this.wake = res));
+        this.wake = null;
       }
     }
     await it?.return();

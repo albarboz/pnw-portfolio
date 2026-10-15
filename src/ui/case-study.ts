@@ -51,9 +51,26 @@ export function createCaseStudy(lenis: Lenis | null): { destroy: () => void } {
   // How many case-study entries this visit has pushed onto the history, so Close can step back past all of them.
   const depth = () => (history.state as { cs?: number } | null)?.cs ?? 0;
 
+  // ---------- warming ----------
+  // A cover is a big photo: decoding it as the cloud clears would hitch the clearing, or show the page without it
+  // for a moment. So each starts loading and decoding as soon as a visit is likely: a row pointed at, touched or
+  // focused, and the next project once one is open.
+  const warmed = new Set<number>();
+  const warm = (i: number) => {
+    const src = projects[i]?.image?.src;
+    if (!src || warmed.has(i)) return;
+    warmed.add(i);
+    Object.assign(new Image(), { src }).decode().catch(() => {});
+  };
+  const onListNear = (e: Event) => {
+    const row = (e.target as Element).closest<HTMLElement>('[data-project]');
+    if (row) warm(Number(row.dataset.project));
+  };
+
   // ---------- show / hide ----------
   const show = (i: number, instant = false) => {
     if (i === current && dialog.open && !leaving) return;
+    warm(i);
     leaving = false;
     const opening = !dialog.open;
     if (opening) {
@@ -158,6 +175,7 @@ export function createCaseStudy(lenis: Lenis | null): { destroy: () => void } {
     links.hidden = !links.children.length;
 
     const after = projects[(projects.indexOf(p) + 1) % projects.length];
+    warm(projects.indexOf(after));
     next.hidden = after === p;
     next.href = urlOf(after);
     part('next-title').textContent = after.title;
@@ -195,6 +213,8 @@ export function createCaseStudy(lenis: Lenis | null): { destroy: () => void } {
   };
 
   list.addEventListener('click', onListClick);
+  list.addEventListener('pointerover', onListNear); // a touch fires it too, before the click
+  list.addEventListener('focusin', onListNear);
   dialog.addEventListener('click', onDialogClick);
   dialog.addEventListener('cancel', onCancel);
   dialog.addEventListener('close', finish);
@@ -221,6 +241,8 @@ export function createCaseStudy(lenis: Lenis | null): { destroy: () => void } {
   return {
     destroy() {
       list.removeEventListener('click', onListClick);
+      list.removeEventListener('pointerover', onListNear);
+      list.removeEventListener('focusin', onListNear);
       dialog.removeEventListener('click', onDialogClick);
       dialog.removeEventListener('cancel', onCancel);
       dialog.removeEventListener('close', finish);

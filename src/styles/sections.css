@@ -1302,3 +1302,43 @@ html:has(.case-study[open]) {
     transform: none;
   }
 }
+
+/* The page without JavaScript (<noscript>, written from site.ts by vite.config.ts): the same content, plain, in
+   the site's own type. The immersive frame it stands in for is hidden there too. */
+.nojs {
+  padding: var(--space-6) var(--gutter);
+}
+.nojs h1,
+.nojs h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 500;
+  line-height: 1;
+}
+.nojs h1 {
+  font-size: var(--size-name);
+}
+.nojs h2 {
+  margin: var(--space-6) 0 var(--space-3);
+  font-size: var(--size-section);
+}
+.nojs .lead {
+  font-size: var(--size-lead);
+  color: var(--text-soft);
+}
+.nojs ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nojs-work li {
+  padding-block: var(--space-3);
+  border-top: 1px solid var(--rule);
+}
+.nojs-work a {
+  font-family: var(--display);
+  font-size: var(--size-item);
+}
+.nojs a {
+  color: var(--text);
+}

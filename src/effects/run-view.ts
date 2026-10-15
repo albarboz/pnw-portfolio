@@ -1,6 +1,8 @@
 import { clamp, smoothstep } from '../core/math';
+import { onShed, shed } from '../core/governor';
 import { cssRgb } from '../core/tokens';
 import { tuning } from '../core/tuning';
+import { DITHER_GLSL } from './dither';
 import { DEPTH_GLSL, type FilmDepth } from './film-depth';
 import { linkProgram } from './gl-program';
 
@@ -48,6 +50,7 @@ uniform vec2 uMPos, uMSize;
 vec2 master(vec2 f) { return (uAPos + f * uASize - uMPos) / uMSize; }
 ${DEPTH_GLSL}
 uniform vec3 uFog;
+${DITHER_GLSL}
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
   vec2 i = floor(p), f = fract(p);
@@ -99,6 +102,7 @@ void main() {
   if (off > 0.0) col = mix(col, texture2D(uPhoto, clamp(uAPos + f * uASize, 0.0, 1.0)).rgb, off);
   fog = clamp(fog, 0.0, 1.0);
   col = mix(col, uFog * (0.94 + 0.06 * body), fog * 0.85); // a touch brighter where it's thick
+  col += dither() * step(0.002, fog); // the haze's long soft falloff, without bands
   // Nothing before the hand-off: while the stage still rises over the descent (reveal 0) the torn edge would open a
   // patch of film around the runner's place on the stage, low on the screen: a second runner. Then in over a moment,
   // so the first wisps don't pop.
@@ -149,6 +153,7 @@ export class RunView {
   private align: RunAlign = { x: 0, y: 0, w: 1 };
   private depthMap: FilmDepth | null = null;
   private last = '';
+  private unshed = onShed(() => this.fit());
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -252,6 +257,7 @@ export class RunView {
   }
 
   destroy() {
+    this.unshed();
     this.canvas.removeEventListener('webglcontextlost', this.lost);
     this.gl?.getExtension('WEBGL_lose_context')?.loseContext();
     this.gl = null;
@@ -292,7 +298,7 @@ export class RunView {
     if (!gl || !vw || !vh || !tw) return;
     this.last = '';
     const cover = Math.max(vw / tw, vh / th); // CSS px per frame px
-    const ratio = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+    const ratio = Math.min(window.devicePixelRatio || 1, MAX_DPR) * shed.scale; // fewer if frames run late (core/governor.ts)
     const [cw, ch] = [Math.round(vw * ratio), Math.round(vh * ratio)];
     // even the same size, set again, would clear the canvas
     if (this.canvas.width !== cw || this.canvas.height !== ch) Object.assign(this.canvas, { width: cw, height: ch });

@@ -3,7 +3,7 @@ import { afterHero } from '../core/after-hero';
 import { clamp, smoothstep } from '../core/math';
 import { prefersReducedMotion } from '../core/motion';
 import { buildPace, type Pace } from '../core/pace';
-import { quality } from '../core/quality';
+import { quality, saveData } from '../core/quality';
 import { tuning } from '../core/tuning';
 import { site } from '../content/site';
 import { loadFilmDepth } from '../effects/film-depth';
@@ -124,7 +124,8 @@ export function createRunScene(): SceneHandle | null {
     const ticket = ++loading;
     const up = upright();
     filmUpright = up;
-    const film = up ? R.phone : R;
+    // saving data: the small fallback file (1.9 MB, not 4.6–8), in the HQ film's framing, for either shape
+    const film = saveData() ? { video: R.fallback, align: R.align } : up ? R.phone : R;
     // the decoder (mediabunny) loads only now, so it never weighs on the first paint
     const { VideoFrames } = await import('../effects/video-frames');
     const view = { w: stage.clientWidth, h: stage.clientHeight, dpr: Math.min(window.devicePixelRatio || 1, 2) };

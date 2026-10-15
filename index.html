@@ -6,8 +6,14 @@
     <!-- Title, description and link-preview tags are written in at build time from site.meta (vite.config.ts),
          so link previews and search engines see them without JS. -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <!-- the browser's toolbar on phones, in --night (src/styles/tokens.css) -->
-    <meta name="theme-color" content="#0e1310" />
+    <!-- the browser's toolbar on phones: the overlook's sky (--bar-sky in src/styles/tokens.css) until the page runs,
+         then src/ui/bar-color.ts follows the scene -->
+    <meta name="theme-color" content="#8899a8" />
+    <!-- Chrome fetches a case study's page while a link to it is pointed at (or pressed, on phones), so one opened in
+         a new tab, or shared, is already here. Only the HTML: a prerender would run the whole site in a hidden tab. -->
+    <script type="speculationrules">
+      { "prefetch": [{ "where": { "href_matches": "work/*", "relative_to": "document" }, "eagerness": "moderate" }] }
+    </script>
   </head>
   <body>
     <!-- Text and images are filled from src/content/site.ts (data-text / data-img). -->

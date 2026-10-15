@@ -25,6 +25,7 @@ export function createTunePanel() {
   fog.addBinding(tuning.fog, 'haze', { min: 0, max: 0.4, step: 0.01 });
   fog.addBinding(tuning.fog, 'banks', { label: 'clear patches', min: 0, max: 1, step: 0.01 });
   fog.addBinding(tuning.fog, 'near', { label: 'bottom fade', min: 0, max: 1, step: 0.01 });
+  fog.addBinding(tuning.fog, 'gust', { label: 'scroll gust', min: 0, max: 3, step: 0.05 });
 
   const dive = pane.addFolder({ title: 'Dive (length in screens)' });
   dive
@@ -81,6 +82,9 @@ export function createTunePanel() {
   rn.addBinding(tuning.run, 'dim', { label: 'shade', min: 0, max: 1, step: 0.01 });
   rn.addBinding(tuning.run, 'depth', { label: 'ring by depth', min: 0, max: 1.5, step: 0.05 });
 
+  const air = pane.addFolder({ title: 'Landing lens' });
+  air.addBinding(tuning.air, 'focus', { label: 'landing focus pull', min: 0, max: 1.5, step: 0.05 });
+
   const gr = pane.addFolder({ title: 'Film grain' });
   gr.addBinding(tuning.grain, 'amount', { min: 0, max: 0.5, step: 0.01 });
   gr.addBinding(tuning.grain, 'size', { min: 0.5, max: 3, step: 0.05 });
@@ -90,14 +94,15 @@ export function createTunePanel() {
 
   pane.addButton({ title: 'Copy values' }).on('click', () => {
     const r = (n: number) => Math.round(n * 1000) / 1000;
-    const { fog: f, dolly: d, photo3d: s, shafts: l, grain: g, sign: t, run: n, drops: w, wipe: c } = tuning;
+    const { fog: f, dolly: d, photo3d: s, shafts: l, grain: g, sign: t, run: n, drops: w, wipe: c, air: a } = tuning;
     const text = [
       '// src/core/tuning.ts',
       `scroll: ${r(tuning.scroll)},`,
-      `fog: { strength: ${r(f.strength)}, haze: ${r(f.haze)}, banks: ${r(f.banks)}, near: ${r(f.near)} },`,
+      `fog: { strength: ${r(f.strength)}, haze: ${r(f.haze)}, banks: ${r(f.banks)}, near: ${r(f.near)}, gust: ${r(f.gust)} },`,
       `dolly: { mid: ${r(d.mid)}, near: ${r(d.near)} },`,
       `photo3d: { show: ${s.show}, sky: ${r(s.sky)}, fly: ${r(s.fly)}, fov: ${r(s.fov)}, sway: ${r(s.sway)}, near: ${r(s.near)}, smooth: ${r(s.smooth)} },`,
       `shafts: { strength: ${r(l.strength)}, x: ${r(l.x)}, y: ${r(l.y)}, length: ${r(l.length)}, threshold: ${r(l.threshold)}, softness: ${r(l.softness)} },`,
+      `air: { focus: ${r(a.focus)} },`,
       `grain: { amount: ${r(g.amount)}, size: ${r(g.size)} },`,
       `drops: { seed: ${r(w.seed)}, rate: ${r(w.rate)}, size: ${r(w.size)}, beads: ${r(w.beads)}, refract: ${r(w.refract)}, glint: ${r(w.glint)} },`,
       `sign: { base: ${r(t.base)}, perScreen: ${r(t.perScreen)}, max: ${r(t.max)} },`,

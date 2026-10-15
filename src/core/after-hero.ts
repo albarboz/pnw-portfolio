@@ -11,3 +11,15 @@ export const afterHero = new Promise<void>((resolve) => {
   if (document.readyState === 'complete') painted();
   else window.addEventListener('load', painted, { once: true });
 });
+
+/**
+ * Resolves just after the browser's next paint (a frame, then a task: rendering happens between the two), so what
+ * the page has written so far shows before the work that follows. A tab in the background paints nothing and runs
+ * no frames: there it resolves after 100 ms.
+ */
+export const yieldToPaint = () =>
+  new Promise<void>((resolve) => {
+    const done = () => resolve();
+    requestAnimationFrame(() => setTimeout(done, 0));
+    setTimeout(done, 100);
+  });

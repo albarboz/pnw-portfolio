@@ -27,3 +27,4 @@ Originals live outside the repo; the files here are WebP exports under the 400 K
 - Unsplash / Pexels: free for commercial use, no attribution required (credit anyway)
 - National Park Service and other US government photos: usually public domain; check the caption
 - Wikimedia Commons: check each file's license
+| `public/images/share/<slug>.jpg` | Link-preview card for each case study (1200×630): the project's year, kind, title and description from `site.ts` in Barlow on `--night` with the blaze, beside a crop of its cover. Drawn by `tools/share-cards.mjs` (HTML photographed by the installed Chrome) | Site owner (derived) | Same as each project's cover; Barlow is OFL 1.1 | OK |

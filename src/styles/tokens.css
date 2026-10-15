@@ -28,6 +28,13 @@
   --fog-low: #cdd7d0;
   /* The cloud between the trail and a case study (src/effects/fog-wipe.ts): the same mist, dimmed by the night */
   --fog-dusk: #9fa9a4;
+  /* The phone's browser toolbar (src/ui/bar-color.ts), matched to the top edge of the picture under it: the
+     overlook's sky and the forest canopy over the trail and the run (sampled from the photos and the film) */
+  --bar-sky: #8899a8;
+  --bar-canopy: #333f28;
+  /* Paper and ink for printing (src/styles/print.css) */
+  --print-paper: #ffffff;
+  --print-ink: #161a17;
   /* Sun shafts in the trail photo (src/effects/light-shafts.ts): pale, faintly warm light through the mist */
   --light-shaft: #e8e8d9;
 

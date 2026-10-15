@@ -1,8 +1,20 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { appendFileSync, existsSync, readdirSync, readFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, type Plugin } from 'vite';
-import { projectPath, projectTitleText } from './src/content/paths';
+import { projectPath, projectSlug, projectTitleText } from './src/content/paths';
 import { site } from './src/content/site';
+import { humansTxt, noscriptHtml, securityTxt } from './src/content/site-files';
+
+const built = new Date();
+/** The commit being built, for the console note (src/ui/colophon.ts); 'dev' outside git. */
+const commit = (() => {
+  try {
+    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    return 'dev';
+  }
+})();
 
 /**
  * Writes site.meta into the page head (title, description, Open Graph and X/Twitter link previews) and emits
@@ -10,13 +22,26 @@ import { site } from './src/content/site';
  * Each project also gets its own page at work/<slug>/ (src/content/paths.ts): a copy of the site with that project's
  * title and description in its head, so a shared case-study link previews as the project. The app opens the case
  * study from the address (src/ui/case-study.ts). A <base> points the copy's relative paths back at the site root.
+ * A project's preview image is its own card from tools/share-cards.mjs (public/images/share/<slug>.jpg) when there
+ * is one, else the site's.
+ * Also from site.ts (src/content/site-files.ts): the page without JavaScript (<noscript>), humans.txt and
+ * .well-known/security.txt.
  */
 function siteMeta(): Plugin {
   const { url, title, description, image } = site.meta;
-  const imageUrl = new URL(image.src, url).href;
+  const card = (p: (typeof site.work.projects)[number]) => {
+    const src = `images/share/${projectSlug(p)}.jpg`;
+    if (!existsSync(fileURLToPath(new URL(`./public/${src}`, import.meta.url)))) return image;
+    return { src, alt: `${p.title}: ${p.description}`, width: 1200, height: 630 };
+  };
   const pages = [
-    { path: '', title, description },
-    ...site.work.projects.map((p) => ({ path: projectPath(p), title: projectTitleText(p), description: p.description })),
+    { path: '', title, description, image },
+    ...site.work.projects.map((p) => ({
+      path: projectPath(p),
+      title: projectTitleText(p),
+      description: p.description,
+      image: card(p),
+    })),
   ];
   const esc = (text: string | number) =>
     String(text).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -26,6 +51,7 @@ function siteMeta(): Plugin {
   const END = '<!-- /site-meta -->';
   const head = (page: (typeof pages)[number]) => {
     const pageUrl = new URL(page.path, url).href;
+    const { image } = page;
     return [
       START,
       `<title>${esc(page.title)}</title>`,
@@ -35,7 +61,7 @@ function siteMeta(): Plugin {
       meta('property', 'og:url', pageUrl),
       meta('property', 'og:title', page.title),
       meta('property', 'og:description', page.description),
-      meta('property', 'og:image', imageUrl),
+      meta('property', 'og:image', new URL(image.src, url).href),
       meta('property', 'og:image:width', image.width),
       meta('property', 'og:image:height', image.height),
       meta('property', 'og:image:alt', image.alt),
@@ -44,15 +70,21 @@ function siteMeta(): Plugin {
     ].join('\n    ');
   };
 
+  let outDir = '';
+
   return {
     name: 'site-meta',
+    configResolved: (config) => void (outDir = config.command === 'build' ? config.build.outDir : ''),
     transformIndexHtml: (html) =>
-      html.replace(
-        /[ ]*<\/head>/,
-        `    ${head(pages[0])}\n` +
-          // The overlook's src is set by JS, so without this the photo would wait for the script before it starts loading.
-          `    <link rel="preload" as="image" href="${site.descent.overlook.src.replace(/^\//, '')}" />\n  </head>`,
-      ),
+      html
+        .replace(
+          /[ ]*<\/head>/,
+          `    ${head(pages[0])}\n` +
+            '    <link rel="author" href="humans.txt" />\n' +
+            // The overlook's src is set by JS, so without this the photo would wait for the script before it starts loading.
+            `    <link rel="preload" as="image" href="${site.descent.overlook.src.replace(/^\//, '')}" />\n  </head>`,
+        )
+        .replace(/<body>/, `<body>\n    ${noscriptHtml()}`),
     generateBundle: {
       order: 'post', // after Vite has written index.html into the bundle
       handler(_, bundle) {
@@ -70,6 +102,9 @@ function siteMeta(): Plugin {
               .replace(/<meta charset="UTF-8" \/>/i, `$&\n    <base href="${up}" />`),
           });
         }
+        this.emitFile({ type: 'asset', fileName: '.well-known/security.txt', source: securityTxt(built) });
+        const deps = Object.keys(JSON.parse(readFileSync('package.json', 'utf8')).dependencies);
+        this.emitFile({ type: 'asset', fileName: 'humans.txt', source: humansTxt(built, deps) });
         this.emitFile({
           type: 'asset',
           fileName: 'robots.txt',
@@ -85,6 +120,14 @@ function siteMeta(): Plugin {
             '</urlset>\n',
         });
       },
+    },
+    // The overlook's preload again as a header on every page (public/_headers is copied in first). Browsers start
+    // the photo before the HTML has arrived, and on a custom domain with Early Hints switched on, Cloudflare sends
+    // it in a 103 while the page is still being fetched. It does nothing on workers.dev.
+    closeBundle() {
+      if (!outDir) return;
+      const link = `  Link: <${site.descent.overlook.src}>; rel=preload; as=image\n`;
+      appendFileSync(`${outDir}/_headers`, `\n# The overlook, as early as possible (siteMeta() in vite.config.ts)\n/\n${link}/work/*\n${link}`);
     },
   };
 }
@@ -117,6 +160,7 @@ export default defineConfig({
   // Relative asset paths, so the built site works from any folder or subpath.
   base: './',
   plugins: [siteMeta(), benchmarks()],
+  define: { __BUILD__: JSON.stringify({ commit, date: built.toISOString().slice(0, 10) }) },
   build: {
     // three.js (~520 kB, ~130 kB gzipped) is its own chunk, loaded after first paint by src/effects/fog-layer.ts.
     chunkSizeWarningLimit: 600,

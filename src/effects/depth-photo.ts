@@ -1,7 +1,9 @@
+import { onShed, shed } from '../core/governor';
 import { tuning } from '../core/tuning';
 import { cssRgb } from '../core/tokens';
 import { linkProgram } from './gl-program';
 import { LightShafts, SHAFT_UNIT } from './light-shafts';
+import { soften } from './soften';
 
 /** Where the camera sits. 1 / 0 / 0 / 0 draws the photo exactly as its <img> would. */
 export interface DepthCamera {
@@ -12,10 +14,14 @@ export interface DepthCamera {
   /** Camera slide in CSS px. Near pixels move this far one way, far pixels part of it the other way. */
   x: number;
   y: number;
+  /** Out of focus, away from the runner's depth: 0 = sharp everywhere, 1 = the nearest and farthest fully soft. */
+  blur?: number;
 }
 
 /** Depth that stays put when the camera slides (0 = far, 1 = near): about the runner's distance. */
 const FOCUS = 0.45;
+/** Texture unit of the blurred photo (0 photo, 1 depth, 2 the shafts: SHAFT_UNIT). */
+const SOFT_UNIT = 3;
 /** Past 1.5× device pixels the photo has no more detail to give, so a sharper canvas only costs GPU time. */
 const MAX_DPR = 1.5;
 
@@ -37,8 +43,9 @@ varying vec2 vUv;
 uniform sampler2D uColor;
 uniform sampler2D uDepth;
 uniform sampler2D uShafts;
+uniform sampler2D uSoft; // the photo, blurred (an eighth of its size, drawn back up)
 uniform vec2 uScale, uOffset, uOrigin, uShift;
-uniform float uZoom, uDolly, uFocus, uShaftStrength;
+uniform float uZoom, uDolly, uFocus, uShaftStrength, uBlur;
 uniform vec3 uShaftTint;
 vec2 photo(vec2 s) { return uOffset + s * uScale; }
 void main() {
@@ -50,6 +57,8 @@ void main() {
   }
   vec2 p = clamp(photo(s), 0.0, 1.0);
   vec3 col = texture2D(uColor, p).rgb;
+  // depth of field: sharp at the runner's depth, softer the nearer or farther a pixel is
+  if (uBlur > 0.0) col = mix(col, texture2D(uSoft, p).rgb, clamp(abs(d - uFocus) * uBlur * 3.0, 0.0, 1.0));
   float shaft = texture2D(uShafts, p).r * uShaftStrength * (1.0 - 0.7 * d);
   // a little noise, so the soft 8-bit shafts don't band on the dark trees
   shaft += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0 * step(0.002, shaft);
@@ -71,6 +80,7 @@ export class DepthPhoto {
   private texSize = { w: 1, h: 1 };
   private view = { vw: 0, vh: 0 };
   private last = '';
+  private unshed = onShed(() => this.fitCanvas());
   active = false;
 
   constructor(
@@ -99,7 +109,8 @@ export class DepthPhoto {
     if (!gl || !this.active) return;
     const sh = tuning.shafts;
     if (this.bakeShafts()) this.last = '';
-    const key = `${cam.zoom}|${cam.dolly}|${cam.x}|${cam.y}|${sh.strength}`;
+    const blur = cam.blur ?? 0;
+    const key = `${cam.zoom}|${cam.dolly}|${cam.x}|${cam.y}|${sh.strength}|${blur}`;
     if (key === this.last) return;
     this.last = key;
     gl.uniform1f(this.u.uShaftStrength, sh.strength);
@@ -107,10 +118,12 @@ export class DepthPhoto {
     gl.uniform1f(this.u.uZoom, cam.zoom);
     gl.uniform1f(this.u.uDolly, cam.dolly);
     gl.uniform1f(this.u.uFocus, FOCUS);
+    gl.uniform1f(this.u.uBlur, blur);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
   destroy() {
+    this.unshed();
     this.canvas.removeEventListener('webglcontextlost', this.onLost);
     this.setActive(false);
     this.gl?.getExtension('WEBGL_lose_context')?.loseContext();
@@ -129,11 +142,11 @@ export class DepthPhoto {
     this.shafts = LightShafts.create(gl); // optional: without it the photo just has no shafts
 
     gl.useProgram(prog);
-    const uniforms = ['uColor', 'uDepth', 'uScale', 'uOffset', 'uOrigin', 'uShift', 'uZoom', 'uDolly', 'uFocus'];
+    const uniforms = ['uColor', 'uDepth', 'uSoft', 'uScale', 'uOffset', 'uOrigin', 'uShift', 'uZoom', 'uDolly', 'uFocus', 'uBlur'];
     for (const name of [...uniforms, 'uShafts', 'uShaftStrength', 'uShaftTint']) {
       this.u[name] = gl.getUniformLocation(prog, name);
     }
-    [0, 1].forEach((unit) => {
+    [0, 1, SOFT_UNIT].forEach((unit) => {
       gl.activeTexture(gl.TEXTURE0 + unit);
       gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -143,6 +156,7 @@ export class DepthPhoto {
     });
     gl.uniform1i(this.u.uColor, 0);
     gl.uniform1i(this.u.uDepth, 1);
+    gl.uniform1i(this.u.uSoft, SOFT_UNIT);
     gl.uniform1i(this.u.uShafts, SHAFT_UNIT);
     gl.uniform3fv(this.u.uShaftTint, cssRgb('--light-shaft').map((c) => c / 255));
     return true;
@@ -175,6 +189,8 @@ export class DepthPhoto {
       gl.activeTexture(gl.TEXTURE0 + unit);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, im);
     });
+    gl.activeTexture(gl.TEXTURE0 + SOFT_UNIT);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, soften(this.img));
     this.texSize = { w: this.img.naturalWidth, h: this.img.naturalHeight };
     this.fitCanvas();
     this.bakeShafts(); // now, not on the first frame the trail shows
@@ -190,7 +206,8 @@ export class DepthPhoto {
     this.last = '';
     const cover = Math.max(vw / tw, vh / th); // CSS px per photo px
     // as many device pixels as the screen can show, but no more than the photo has to give
-    const ratio = Math.min(window.devicePixelRatio || 1, MAX_DPR, Math.max(1, 1 / cover));
+    // (and fewer if frames run late: core/governor.ts)
+    const ratio = Math.min(window.devicePixelRatio || 1, MAX_DPR, Math.max(1, 1 / cover)) * shed.scale;
     this.canvas.width = Math.round(vw * ratio);
     this.canvas.height = Math.round(vh * ratio);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);

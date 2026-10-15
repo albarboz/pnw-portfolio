@@ -1,4 +1,5 @@
-import { gsap, ScrollTrigger } from '../core/scroll';
+import { gsap, ScrollTrigger, scrollVelocity } from '../core/scroll';
+import { shed } from '../core/governor';
 import { haptic } from '../core/haptics';
 import { lerp } from '../core/math';
 import { motionScale, prefersReducedMotion } from '../core/motion';
@@ -161,6 +162,8 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
       if (state.landing > 0)
         depth.draw({
           zoom: s,
+          // the lens finds its focus on the runner as the camera settles (tuning.air.focus)
+          blur: tuning.air.focus * (1 - state.land) * m,
           dolly: 0.18 * rise,
           x: pointer.x * -14 * m,
           y: rise * 0.08 * L.vh + pointer.y * -8 * m,
@@ -231,20 +234,23 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   observer.observe(stage);
 
   let lastProgress = -1;
+  let fogTime = 0; // the fog's own clock: it runs faster while the page scrolls fast (tuning.fog.gust)
   const tick = (time: number, deltaMs: number) => {
     if (!visible) return;
     render();
     const p = tl?.time() ?? 0; // 0–1 through the descent, then on through the hold
     grain.update(p !== lastProgress && !still, time); // fresh grain only while scrolling
     lastProgress = p;
-    const t = still ? 0 : time;
+    const gust = tuning.fog.gust * Math.min(3, Math.abs(scrollVelocity()) / 40);
+    fogTime += (Math.min(deltaMs, 100) / 1000) * (1 + gust);
+    const t = still ? 0 : fogTime;
     // Timeline time, not scroll progress: with scrub lag, the scroll runs ahead of the whiteout.
     if (p < 0.72) fogHigh.draw(t);
     else fogHigh.clear();
     fogLow.draw(t * 0.8);
     if (!lensAsked && p > 0.1) void loadLens();
     // water runs on its own while the lens shows; once it's out of sight (above the trail or dried), wipe it
-    if (state.landing * (1 - state.dry) > 0) lens?.draw(state.wet, deltaMs / 1000);
+    if (state.landing * (1 - state.dry) > 0 && shed.step < 2) lens?.draw(state.wet, deltaMs / 1000);
     else lens?.dry();
   };
 
