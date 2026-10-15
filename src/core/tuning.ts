@@ -7,6 +7,12 @@
 export const tuning = {
   /** Scroll length of the descent, in screen heights. More = a slower dive. */
   scroll: 3.2,
+  /**
+   * Seconds the descent takes to catch up with the scroll. With a mouse, Lenis already eases the wheel and this
+   * glides on top; under a finger, the page itself moves at once, so any lag reads as the dive trailing behind it.
+   * Read when the page loads.
+   */
+  catchUp: { mouse: 0.6, touch: 0.1 },
 
   /** The shader fog (src/effects/fog3d.ts). The canvas fallback ignores these. */
   fog: {

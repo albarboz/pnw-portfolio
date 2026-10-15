@@ -202,7 +202,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
           start: 'top top',
           // a function, so ScrollTrigger.refresh() picks up a new length
           end: () => `+=${(tuning.scroll + tuning.run.reveal) * 100}%`,
-          scrub: 0.6,
+          scrub: matchMedia('(pointer: coarse)').matches ? tuning.catchUp.touch : tuning.catchUp.mouse,
           onUpdate: (self) => opts.onProgress?.(self.progress),
         },
       });
