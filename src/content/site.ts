@@ -65,7 +65,7 @@ export const site = {
    * these into the built HTML, so they work without JavaScript. Change `url` when the site gets its own domain.
    */
   meta: {
-    url: 'https://pnw-portfolio.alansoftwareengineer.workers.dev/',
+    url: 'https://alanbarboza.com/',
     title: 'Alan Barboza Portfolio',
     description: 'An immersive portfolio that descends through Cascade valley fog.',
     /** 1200×630, relative to `url`. A crop of the overlook. */

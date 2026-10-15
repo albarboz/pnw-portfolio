@@ -2,7 +2,7 @@
 
 An immersive, scroll-driven portfolio. You start at a Cascade valley overlook, dive through the river of fog below, and land on a forest trail behind a runner. The sections (About, Work, Contact) unfold along the run.
 
-**Live:** https://pnw-portfolio.alansoftwareengineer.workers.dev/
+**Live:** https://alanbarboza.com/ (the blog stays at https://alanbarboza.com/blog)
 
 ## How it's built
 

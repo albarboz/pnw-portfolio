@@ -1,10 +1,20 @@
-// Cloudflare deploy config: the site is static, so Cloudflare serves the built dist/ folder as-is
-// (no Worker code, no Vite plugin). Caching rules live in public/_headers.
+// Cloudflare deploy config. The site is static: Cloudflare serves the built dist/ folder as-is (caching rules in
+// public/_headers). On alanbarboza.com a small Worker runs first (worker/index.ts): it sends the owner's blog
+// (/blog, on its own server) through, sends www to the bare domain, and hands everything else to dist/.
 {
   "name": "pnw-portfolio",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-10-06",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
-  }
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
+  // alanbarboza.com's DNS is on Cloudflare; its A records (proxied) point at the blog's server, which the Worker
+  // reaches for /blog. The site still answers at pnw-portfolio.alansoftwareengineer.workers.dev too.
+  "routes": [
+    { "pattern": "alanbarboza.com/*", "zone_name": "alanbarboza.com" },
+    { "pattern": "www.alanbarboza.com/*", "zone_name": "alanbarboza.com" }
+  ]
 }
