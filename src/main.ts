@@ -22,6 +22,11 @@ import { createScenes } from './scenes';
 
 // Dev only: ?data=worst|empty|one swaps the projects for stress-test data (src/dev/worst-case.ts).
 if (import.meta.env.DEV) (await import('./dev/worst-case')).useDataset();
+// Dev only: ?bench=upload times the film's frame uploads on this device instead of booting (src/dev/upload-bench.ts).
+if (import.meta.env.DEV && new URLSearchParams(location.search).get('bench') === 'upload') {
+  await (await import('./dev/upload-bench')).runUploadBench();
+  await new Promise(() => {}); // the page never boots: nothing else competes for the GPU
+}
 
 // 1. content first, so scenes measure real layout
 renderContent();
