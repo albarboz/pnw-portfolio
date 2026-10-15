@@ -1,6 +1,6 @@
 # PNW Portfolio
 
-An immersive, scroll-driven portfolio. The visitor starts at a Cascade valley overlook, dives into the river of fog below, and lands on a forest trail behind a runner; the portfolio sections live below. Atmosphere first, but it must stay fast, accessible and easy to change.
+An immersive, scroll-driven portfolio. The visitor is pulled out of a cloud onto a Cascade valley overlook (`src/effects/opening.ts`, started before the first paint by a class set in `index.html`'s head), dives into the river of fog below, and lands on a forest trail behind a runner; the portfolio sections live below. Atmosphere first, but it must stay fast, accessible and easy to change.
 
 ## Stack
 

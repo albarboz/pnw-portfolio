@@ -11,6 +11,7 @@ import { FogLayer } from '../effects/fog-layer';
 import { Grain } from '../effects/grain';
 import type { LensDrops } from '../effects/lens-drops';
 import { Overlook } from '../effects/overlook';
+import { createOpening } from '../effects/opening';
 import { site } from '../content/site';
 import type { SceneHandle } from './types';
 
@@ -94,6 +95,10 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
 
   // The opening view: flat photo → cutouts flown through by a CSS dolly → the valley in 3D (src/effects/overlook.ts).
   const overlook = new Overlook(stage, () => render());
+  // The page opens inside the cloud and pulls back out onto the overlook (src/effects/opening.ts): its numbers add
+  // to the state below while it plays.
+  const opening = createOpening($<HTMLImageElement>('[data-layer="overlook"]'));
+  const open = opening.state;
 
   // ---------- state: the timeline tweens these numbers, render() reads them ----------
   const state = {
@@ -139,15 +144,16 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   const render = () => {
     const m = motionScale();
     // hidden under a fully landed trail, except in the still layout, where both photos show
-    overlook.render({ dive: state.dive * m, pan: state.pan * m, x: pointer.x * m, y: pointer.y * m }, !still && state.landing >= 1);
+    overlook.render({ dive: (state.dive + open.dive) * m, pan: state.pan * m, x: pointer.x * m, y: pointer.y * m }, !still && state.landing >= 1);
 
     heroCopy.style.opacity = String(1 - state.heroOut);
     heroCopy.style.visibility = state.heroOut >= 1 ? 'hidden' : ''; // faded out: the trail sign can't be clicked or tabbed to
     heroCopy.style.transform = `translate3d(0, ${state.heroY * m}px, 0)`;
-    cue.style.opacity = String(1 - state.heroOut);
+    cue.style.opacity = String((1 - state.heroOut) * (1 - open.veil));
     capFog.style.opacity = String(state.capFog);
-    whiteout.style.opacity = String(state.whiteout);
-    drift.style.transform = `scale(${1 + state.drift * 0.8 * m}) rotate(${state.drift * 6 * m}deg)`;
+    whiteout.style.opacity = String(Math.max(state.whiteout, open.veil));
+    const d = state.drift + open.drift;
+    drift.style.transform = `scale(${1 + d * 0.8 * m}) rotate(${d * 6 * m}deg)`;
 
     landingWrap.style.opacity = String(state.landing);
     // breaking out of the cloud onto the trail, on the way down: a soft double beat on phones
@@ -174,8 +180,8 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
     capLanding.style.opacity = String(state.capLanding);
     lensCanvas.style.opacity = String(state.landing * (1 - state.dry));
 
-    fogHigh.density = state.fogHigh;
-    fogHigh.rush = state.rush * 1.6 * m;
+    fogHigh.density = state.fogHigh + open.fog * 1.5;
+    fogHigh.rush = (state.rush + open.rush) * 1.6 * m;
     fogLow.density = state.fogLow;
     for (const f of [fogHigh, fogLow]) {
       f.offsetX = pointer.x * m;
@@ -267,6 +273,7 @@ export function createDescentScene(opts: { onProgress?: (p: number) => void } = 
   return {
     destroy() {
       gsap.ticker.remove(tick);
+      opening.destroy();
       observer.disconnect();
       dead = true;
       lens?.destroy();

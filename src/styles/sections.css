@@ -87,6 +87,16 @@
   opacity: 0;
   pointer-events: none;
 }
+/* The opening (src/effects/opening.ts): until the script takes over, the cloud covers the overlook, and the hero's
+   arrivals wait for the air to clear. */
+.opening .whiteout {
+  opacity: 1;
+}
+.opening .hero-copy *,
+.opening .trail-sign,
+.opening .scroll-cue * {
+  animation-play-state: paused;
+}
 .whiteout-drift {
   position: absolute;
   inset: -15%;

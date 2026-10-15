@@ -9,6 +9,11 @@
     <!-- the browser's toolbar on phones: the overlook's sky (--bar-sky in src/styles/tokens.css) until the page runs,
          then src/ui/bar-color.ts follows the scene -->
     <meta name="theme-color" content="#8899a8" />
+    <!-- The page opens inside the cloud (src/effects/opening.ts). Set here, before the first paint, so the overlook
+         never flashes before the cloud covers it. Not with reduced motion; without JavaScript there's no opening. -->
+    <script>
+      matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.add('opening');
+    </script>
     <!-- Chrome fetches a case study's page while a link to it is pointed at (or pressed, on phones), so one opened in
          a new tab, or shared, is already here. Only the HTML: a prerender would run the whole site in a hidden tab. -->
     <script type="speculationrules">
