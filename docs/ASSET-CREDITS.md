@@ -28,5 +28,5 @@ Originals live outside the repo; the files here are WebP exports under the 400 K
 - Unsplash / Pexels: free for commercial use, no attribution required (credit anyway)
 - National Park Service and other US government photos: usually public domain; check the caption
 - Wikimedia Commons: check each file's license
-| `public/images/work/wagecheck.webp`, `salon-nadia.webp`, `blog.webp` | Screenshots of the owner's own sites (wagecheck.org, salonnadia.com, alanbarboza.com/blog), 1440×960 at 1.5×, taken in headless Chrome | Site owner | Owner's own work | OK |
+| `public/images/work/wagecheck.webp`, `salon-nadia.webp`, `blog.webp` | Screenshots of the owner's own sites (alanbarboza.com/blog, wagecheck.org, salonnadia.com), framed on their content by `tools/work-covers.mjs` (installed Chrome via Playwright) | Site owner | Owner's own work | OK |
 | `public/images/share/<slug>.jpg` | Link-preview card for each case study (1200×630): the project's year, kind, title and description from `site.ts` in Barlow on `--night` with the blaze, beside a crop of its cover. Drawn by `tools/share-cards.mjs` (HTML photographed by the installed Chrome) | Site owner (derived) | Same as each project's cover; Barlow is OFL 1.1 | OK |

@@ -602,6 +602,9 @@ h2[tabindex='-1']:focus {
   aspect-ratio: 3 / 2;
   border-radius: var(--radius);
   background: var(--forest);
+  /* a hairline edge, so a dark screenshot doesn't melt into the night around it */
+  outline: 1px solid var(--rule);
+  outline-offset: -1px;
   /* keeps the rounded corners clipping the picture while it scales (Safari) */
   isolation: isolate;
 }
@@ -1205,14 +1208,17 @@ html:has(.case-study[open]) {
   font-size: var(--size-lead);
   line-height: 1.45;
 }
+/* the whole cover, at the list's 3:2: a screenshot of a site, cut, loses its words mid-line */
 .cs-image {
   margin-top: var(--space-5);
   width: 100%;
   height: auto;
-  aspect-ratio: 16 / 9;
-  object-fit: cover; /* cut around its focus (case-study.ts) */
+  aspect-ratio: 3 / 2;
+  object-fit: cover; /* a cover of another shape is cut around its focus (case-study.ts) */
   border-radius: var(--radius);
   background: var(--forest);
+  outline: 1px solid var(--rule);
+  outline-offset: -1px;
 }
 /* the write-up beside its facts and links; one column on narrow screens */
 .cs-columns {
@@ -1337,11 +1343,6 @@ html:has(.case-study[open]) {
 @media (max-width: 800px) {
   .cs-columns {
     grid-template-columns: minmax(0, 1fr);
-  }
-}
-@media (max-width: 640px) {
-  .cs-image {
-    aspect-ratio: 4 / 3;
   }
 }
 /* ===================== responsive & motion ===================== */

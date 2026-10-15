@@ -150,6 +150,22 @@ export const site = {
     detail: { close: 'Close', role: 'Role', tools: 'Tools', example: 'Example', next: 'Next project' },
     projects: [
       {
+        title: 'Blog',
+        slug: 'blog',
+        year: '2026',
+        kind: 'Personal site',
+        description: 'Writings, notes, and small builds, starting with how the blog itself is built.',
+        links: [{ label: 'Live site', href: 'https://alanbarboza.com/blog' }],
+        image: {
+          src: asset('images/work/blog.webp'),
+          alt: 'The blog\'s front page: "Writings, notes, and small builds." above its first post.',
+          width: 2160,
+          height: 1440,
+          // on phones the list crops it wider: keep the top, where the site's name is
+          focus: { x: 0.5, y: 0.35 },
+        },
+      },
+      {
         title: 'WageCheck',
         slug: 'wagecheck',
         year: '2026',
@@ -162,6 +178,8 @@ export const site = {
           alt: "WageCheck's calculator: a location field, a posted hourly rate and a compliance check.",
           width: 2160,
           height: 1440,
+          // on phones the list crops it wider: keep the top, where the site's name is
+          focus: { x: 0.5, y: 0.2 },
         },
       },
       {
@@ -177,20 +195,8 @@ export const site = {
           alt: "Salon Nadia's home page: \"Quality Hair Care\" over an illustration of a stylist at work.",
           width: 2160,
           height: 1440,
-        },
-      },
-      {
-        title: 'Blog',
-        slug: 'blog',
-        year: '2026',
-        kind: 'Personal site',
-        description: 'Writings, notes, and small builds, starting with how the blog itself is built.',
-        links: [{ label: 'Live site', href: 'https://alanbarboza.com/blog' }],
-        image: {
-          src: asset('images/work/blog.webp'),
-          alt: 'The blog\'s front page: "Writings, notes, and small builds." above its first post.',
-          width: 2160,
-          height: 1440,
+          // on phones the list crops it wider: keep the top, where the site's name is
+          focus: { x: 0.5, y: 0 },
         },
       },
     ] as Project[],
