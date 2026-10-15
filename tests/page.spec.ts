@@ -88,19 +88,19 @@ test.describe('case study pages', () => {
     page,
   }) => {
     const errors = trackErrors(page);
-    await page.goto('/work/ridgeline-weather-dashboard/');
+    await page.goto('/work/wagecheck/');
     const dialog = page.locator('[data-case-study]');
     await expect(dialog).toHaveJSProperty('open', true);
-    await expect(page.locator('#cs-title')).toContainText('Ridgeline weather dashboard');
-    await expect(page).toHaveTitle(/^Ridgeline weather dashboard · /);
+    await expect(page.locator('#cs-title')).toContainText('WageCheck');
+    await expect(page).toHaveTitle(/^WageCheck · /);
     await expect(page.locator('[data-cs="image"]')).toHaveJSProperty('complete', true);
     expect(await page.locator('[data-cs="image"]').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
 
     await page.locator('[data-cs="next"]').click();
-    await expect(page).toHaveURL(/\/work\/trail-run-tracker\/$/);
-    await expect(page.locator('#cs-title')).toContainText('Trail run tracker', { timeout: 5000 });
+    await expect(page).toHaveURL(/\/work\/salon-nadia\/$/);
+    await expect(page.locator('#cs-title')).toContainText('Salon Nadia', { timeout: 5000 });
     await page.goBack();
-    await expect(page.locator('#cs-title')).toContainText('Ridgeline weather dashboard', { timeout: 5000 });
+    await expect(page.locator('#cs-title')).toContainText('WageCheck', { timeout: 5000 });
 
     await page.locator('[data-cs="close"]').click();
     await expect(dialog).toHaveJSProperty('open', false, { timeout: 5000 });
@@ -110,9 +110,9 @@ test.describe('case study pages', () => {
   });
 
   test('the built page for a project previews as that project', async ({ request }) => {
-    const html = await (await request.get('/work/trail-run-tracker/')).text();
-    expect(html).toContain('<title>Trail run tracker · ');
-    expect(html).toMatch(/<meta property="og:url" content="[^"]*\/work\/trail-run-tracker\/"/);
+    const html = await (await request.get('/work/salon-nadia/')).text();
+    expect(html).toContain('<title>Salon Nadia · ');
+    expect(html).toMatch(/<meta property="og:url" content="[^"]*\/work\/salon-nadia\/"/);
     expect(html).toContain('<base href="../../" />');
   });
 

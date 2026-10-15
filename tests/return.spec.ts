@@ -46,13 +46,13 @@ test.describe('keyboard shortcuts', () => {
     await page.keyboard.press('Escape');
     await expect(list).toHaveJSProperty('open', false);
 
-    await page.goto('/work/ridgeline-weather-dashboard/?quality=0');
-    await expect(page.locator('#cs-title')).toContainText('Ridgeline weather dashboard');
+    await page.goto('/work/wagecheck/?quality=0');
+    await expect(page.locator('#cs-title')).toContainText('WageCheck');
     await page.keyboard.press('j');
-    await expect(page).toHaveURL(/\/work\/trail-run-tracker\//);
-    await expect(page.locator('#cs-title')).toContainText('Trail run tracker', { timeout: 5000 });
+    await expect(page).toHaveURL(/\/work\/salon-nadia\//);
+    await expect(page.locator('#cs-title')).toContainText('Salon Nadia', { timeout: 5000 });
     await page.keyboard.press('k');
-    await expect(page.locator('#cs-title')).toContainText('Ridgeline weather dashboard', { timeout: 5000 });
+    await expect(page.locator('#cs-title')).toContainText('WageCheck', { timeout: 5000 });
 
     // off: J does nothing; the footer's button still opens the list to turn them back on
     await page.keyboard.press('?');
@@ -61,7 +61,7 @@ test.describe('keyboard shortcuts', () => {
     await page.keyboard.press('Escape');
     await page.keyboard.press('j');
     await page.waitForTimeout(1500);
-    await expect(page.locator('#cs-title')).toContainText('Ridgeline weather dashboard');
+    await expect(page.locator('#cs-title')).toContainText('WageCheck');
     expect(errors).toEqual([]);
   });
 

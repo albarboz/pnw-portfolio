@@ -1,6 +1,6 @@
 import type Lenis from 'lenis';
 import { site, type Project } from '../content/site';
-import { projectPath, projectTitleText } from '../content/paths';
+import { projectMeta, projectPath, projectTitleText } from '../content/paths';
 import { haptic } from '../core/haptics';
 import { prefersReducedMotion } from '../core/motion';
 import { FogWipe } from '../effects/fog-wipe';
@@ -144,7 +144,7 @@ export function createCaseStudy(lenis: Lenis | null): CaseStudy {
   const fill = (p: Project) => {
     const { detail } = site.work;
     document.title = projectTitleText(p);
-    part('meta').textContent = `${p.year} · ${p.kind}`;
+    part('meta').textContent = projectMeta(p);
     title.replaceChildren(projectTitle(p, 'cs-title-text'));
     part('lead').textContent = p.description;
 

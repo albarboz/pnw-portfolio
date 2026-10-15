@@ -20,5 +20,8 @@ export function projectSlug(p: Project): string {
  */
 export const projectPath = (p: Project) => `work/${projectSlug(p)}/`;
 
+/** A project's small line: year and kind ("2026 · Web app"), or whichever of them is set. */
+export const projectMeta = (p: Project) => [p.year, p.kind].filter(Boolean).join(' · ');
+
 /** A case study's page title: the project, then the site ("Trail run tracker · Into the Fog"). */
 export const projectTitleText = (p: Project) => `${p.title} · ${site.meta.title}`;

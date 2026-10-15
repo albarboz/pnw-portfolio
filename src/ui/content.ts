@@ -1,5 +1,5 @@
 import { site, type Project, type ProjectImage } from '../content/site';
-import { projectPath } from '../content/paths';
+import { projectMeta, projectPath } from '../content/paths';
 import { afterHero } from '../core/after-hero';
 
 /**
@@ -65,7 +65,7 @@ export function renderContent() {
         title.firstChild!.textContent = words.slice(0, -1).join(' ') + (words.length > 1 ? ' ' : '');
         end.append(words[words.length - 1], ...[...title.querySelectorAll('.example-tag')], openCue());
         title.append(end);
-        text.append(title, span('work-desc', p.description), span('work-meta meta', `${p.year} · ${p.kind}`));
+        text.append(title, span('work-desc', p.description), span('work-meta meta', projectMeta(p)));
 
         if (p.image) {
           const thumb = projectThumb(p.image);

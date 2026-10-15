@@ -21,7 +21,7 @@ const out = `${root}public/images/share/`;
 // site.ts through Vite, as the site sees it
 const vite = await createServer({ root, server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
 const { site } = await vite.ssrLoadModule('/src/content/site.ts');
-const { projectSlug } = await vite.ssrLoadModule('/src/content/paths.ts');
+const { projectMeta, projectSlug } = await vite.ssrLoadModule('/src/content/paths.ts');
 await vite.close();
 
 const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -53,7 +53,7 @@ p { margin-top: 22px; font-size: 24px; line-height: 1.4; color: var(--text-soft)
   transform-origin: ${focus}; transform: scale(${Math.max(1, (img?.zoom ?? 1) * 0.6)}); }
 </style></head><body>
 <div class="text">
-  <div class="meta">${esc(p.year)} · ${esc(p.kind)}</div>
+  <div class="meta">${esc(projectMeta(p))}</div>
   <div class="blaze"></div>
   <h1>${esc(p.title)}</h1>
   <p>${esc(p.description)}</p>

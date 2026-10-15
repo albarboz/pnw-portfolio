@@ -27,7 +27,7 @@ test('printed, it is a one-page CV', async ({ page }) => {
 test.describe('a case study', () => {
   test.use({ reducedMotion: 'reduce' });
   test('opened at its own address', async ({ page }) => {
-    await page.goto('work/trail-run-tracker/?quality=0');
+    await page.goto('work/wagecheck/?quality=0');
     await expect(page.locator('[data-case-study]')).toHaveAttribute('open', '');
     await page.evaluate(() => document.fonts.ready);
     await expect(page.locator('[data-cs="image"]')).toHaveJSProperty('complete', true);

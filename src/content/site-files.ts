@@ -1,4 +1,4 @@
-import { projectPath } from './paths';
+import { projectMeta, projectPath } from './paths';
 import { site } from './site';
 
 /**
@@ -18,7 +18,7 @@ export function noscriptHtml(): string {
   const projects = work.projects
     .map(
       (p) =>
-        `<li><a href="${esc(projectPath(p))}">${esc(p.title)}</a> <span class="meta">${esc(`${p.year} · ${p.kind}`)}</span>` +
+        `<li><a href="${esc(projectPath(p))}">${esc(p.title)}</a> <span class="meta">${esc(projectMeta(p))}</span>` +
         `<p>${esc(p.description)}</p></li>`,
     )
     .join('');
